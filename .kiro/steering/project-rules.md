@@ -28,6 +28,14 @@
 - Open Food Facts API (free barcode scanning)
 - Multiple recipe APIs with free tiers
 - AWS free tier utilization
+- **🚨 CRITICAL CONSTRAINT**: User has $20/month emergency budget - use only when truly necessary
+- **ALWAYS verify cost implications** before implementing ANY service (AWS, APIs, tools, SaaS)
+- **Scale minimally** - only add resources when absolutely needed or user demand requires it
+- **Monitor usage** across all services to stay within budget limits
+- **Prioritize free/open-source solutions** - paid options only as last resort
+- **Cost-benefit analysis required** - paid services must be essential, not just better
+- **Budget allocation**: $20/month available for truly necessary services only
+- **Upscaling allowed**: Budget can increase when user growth/revenue justifies infrastructure scaling
 
 ## Development Rules
 
@@ -36,7 +44,8 @@
 2. **MANDATORY**: Fix all errors before proceeding to next task
 3. **MANDATORY**: Test each feature immediately after implementation
 4. **MANDATORY**: No moving forward until current feature works and passes verification
-5. Document any issues and their solutions in fixes-log.md
+5. **MANDATORY**: Check cost implications for EVERY service/tool/API before implementation ($20/month emergency budget - use only when truly necessary)
+6. Document any issues and their solutions in fixes-log.md
 
 ### Verification Process
 - Run `auto-verify.bat` or `node .kiro/verify-and-scan.js` after every change
