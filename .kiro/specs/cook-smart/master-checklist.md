@@ -68,6 +68,10 @@
 - [ ] Create password hashing system
 - [ ] Set up session management
 - [ ] Create user profile endpoints
+- [ ] Implement Co-Founder email detection (brianaolszewski1@gmail.com)
+- [ ] Create special Co-Founder welcome page with personal message
+- [ ] Auto-assign Co-Founder badge and lifetime subscription
+- [ ] Add "Inspired by Briana Olszewski" credit to About section
 
 ### 2.3 Frontend Authentication
 - [ ] Create signup/login screens
@@ -75,6 +79,8 @@
 - [ ] Create protected route system
 - [ ] Add form validation
 - [ ] Implement error handling for auth flows
+- [ ] Create Co-Founder special welcome screen with personal message
+- [ ] Implement Co-Founder badge display system
 
 ## Phase 3: Core Ingredient & Recipe System (Priority 3)
 
@@ -120,6 +126,11 @@
 - [ ] Implement serving size adjustment
 - [ ] Create recipe scoring system
 - [ ] Add recipe result pagination
+- [ ] Add recipe difficulty rating system (Easy/Medium/Hard)
+- [ ] Add cooking time filtering (Under 30min, 30-60min, 60+ min)
+- [ ] Implement recipe scaling calculator for serving adjustments
+- [ ] Create leftover suggestion algorithm based on recent recipes
+- [ ] Track user cooking history for complementary recipe suggestions
 
 ### 4.2 Dietary Restrictions & Allergies
 - [ ] Create dietary restrictions database
@@ -129,6 +140,10 @@
 - [ ] Implement show/hide conflicting recipes
 - [ ] Add red highlighting for conflicting recipes
 - [ ] Add yellow highlighting for near-match recipes
+- [ ] Create ingredient substitution database (common swaps)
+- [ ] Implement substitution suggestion algorithm
+- [ ] Add "Suggest Substitute" button for conflicting ingredients
+- [ ] Display substitution options with ratios and notes
 
 ### 4.3 Recipe Display & Management
 - [ ] Create recipe display components
@@ -141,6 +156,14 @@
 - [ ] Display user recipes mixed with API recipes
 - [ ] Create LOLZ section/tab with humor disclaimer
 - [ ] Add recipe type filtering (normal/LOLZ)
+- [ ] Add unit conversion tools (Metric/Imperial toggle)
+- [ ] Implement built-in cooking timers for recipe steps
+- [ ] Create print-friendly recipe formatting with clean layouts
+- [ ] Implement offline storage for favorited recipes (local storage)
+- [ ] Add "Recently Cooked" section for leftover suggestions
+- [ ] Add ingredient substitution suggestions in recipe view
+- [ ] Allow users to save recipes with preferred substitutions
+- [ ] Create "My Substitutions" user preference system
 
 ### 4.4 AI Recipe Moderation & Voting
 - [ ] Set up AWS Rekognition for image copyright detection
@@ -178,9 +201,14 @@
 - [ ] Add referral sharing options (email, social, SMS)
 - [ ] Create referral reward system (1 month free)
 - [ ] Build referral analytics dashboard
-- [ ] Implement 7-day free trial for referred users (POST-BETA feature)
-- [ ] Create trial pricing logic ($24.99 yearly during trial - POST-BETA)
-- [ ] Implement trial expiration logic (revert to $34.99 after trial - POST-BETA)
+
+### 5.4 Universal Trial System (POST-BETA)
+- [ ] Implement 7-day free trial for ALL non-paying users
+- [ ] Create trial pricing logic ($24.99 yearly during ANY trial - FIRST PURCHASE ONLY)
+- [ ] Implement trial expiration logic (revert to $34.99 after trial)
+- [ ] Exempt BETA purchasers from trial system (already paid)
+- [ ] Apply trial system to: BETA non-purchasers, referral users, organic users
+- [ ] Implement renewal logic (ALL renewals at $34.99 regardless of initial price)
 
 ## Phase 6: Discord Integrations (Priority 6)
 
@@ -212,16 +240,19 @@
 - [ ] Add POST-BETA pricing tiers ($2.99/week, $6.99/month, $34.99/year)
 - [ ] Implement BETA pricing ($24.99/year for ALL users during BETA)
 
-### 7.2 Pre-Purchase System
-- [ ] Create pre-purchase interface
+### 7.2 Subscription System
+- [ ] Create subscription interface
 - [ ] Implement subscription selection with "Most Popular" badge on yearly option
 - [ ] Add savings calculator showing exact dollar savings for yearly subscription
 - [ ] Add payment confirmation system
 - [ ] Create subscription status tracking
 - [ ] Implement subscription management
-- [ ] Implement BETA pricing logic ($24.99 yearly for ALL users during BETA)
-- [ ] Implement POST-BETA referral trial pricing ($24.99 during 7-day trial)
-- [ ] Create trial expiration handling (price revert to $34.99 - POST-BETA)
+- [ ] Implement BETA pricing logic ($24.99 yearly for ALL users during BETA - FIRST PURCHASE ONLY)
+- [ ] Implement universal trial pricing ($24.99 during ANY 7-day trial - FIRST PURCHASE ONLY)
+- [ ] Create trial expiration handling (price revert to $34.99)
+- [ ] Create user status tracking (BETA purchaser vs trial eligible)
+- [ ] Implement renewal pricing logic (ALL renewals at $34.99)
+- [ ] Create promotional discount code system for special sales
 
 ## Phase 8: Admin Dashboard (Priority 8)
 

@@ -35,14 +35,18 @@
 
 ### Pricing Strategy
 **DURING BETA:**
-- **Yearly**: $24.99 for ALL users (no other options during BETA)
+- **Yearly**: $24.99 for ALL users (FIRST PURCHASE ONLY - renewals at $34.99)
 
 **POST-BETA LAUNCH:**
 - **Weekly**: $2.99 ($155.48/year) - Anchoring price
 - **Monthly**: $6.99 ($83.88/year) - Standard option  
 - **Yearly**: $34.99 (58% savings) - "Most Popular" with savings calculator
-- **Referral Trial**: 7-day free trial → $24.99 yearly (same as old BETA price)
+- **Universal Trial**: ALL non-paying users get 7-day trial → $24.99 yearly (FIRST PURCHASE ONLY)
+- **Trial Users**: BETA non-purchasers, referral users, organic users
 - **Post-Trial**: Reverts to $34.99 yearly pricing
+- **Exempt**: BETA purchasers (already paid $24.99)
+- **ALL RENEWALS**: $34.99 yearly (regardless of initial purchase price)
+- **Promotional Sales**: Manual discount codes for special offers
 
 ### Development Tools
 - **GitHub**: FREE for public repos ✅
@@ -71,14 +75,16 @@
 ### Phase 7+: Revenue Generation (Target: Costs < 30% revenue)
 - Scale services as income supports
 - Reinvest profits into infrastructure
-- Revenue streams: BETA pricing ($24.99 for all), POST-BETA referral trials ($24.99), full pricing ($34.99)
+- Revenue streams: BETA pricing ($24.99 first purchase), POST-BETA trials ($24.99 first purchase), renewals ($34.99), promotional sales
 
 ## 💰 Pricing Psychology Implementation
 - **Anchoring Effect**: Weekly ($155/year) makes monthly ($84/year) look reasonable
 - **Value Perception**: Yearly ($35) positioned as "smart choice" with 58% savings
 - **UI Enhancements**: "Most Popular" badge + savings calculator showing exact dollar savings
-- **Urgency Creation**: POST-BETA referral trial pricing ($24.99) only during 7-day window
-- **BETA Advantage**: All BETA users get $24.99 yearly pricing (no trials needed during BETA)
+- **Universal Urgency**: ALL non-paying users get 7-day window for $24.99 pricing
+- **BETA Advantage**: BETA purchasers got first year at $24.99 (renewals at $34.99)
+- **Fair Access**: Everyone gets same opportunity for $24.99 price through trial system
+- **Simple Logic**: First purchase via trial = $24.99, all renewals = $34.99, promotional discounts available
 - **Conversion Optimization**: Clear value hierarchy drives users toward yearly subscription
 
 ## 📈 Usage Monitoring Checklist
