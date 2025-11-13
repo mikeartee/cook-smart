@@ -1,6 +1,7 @@
 # End User License Agreement (EULA) - Cook Smart
 
 **Effective Date**: [To be set at launch]
+**Last Updated**: November 13, 2025
 
 ## License Grant
 

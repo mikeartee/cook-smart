@@ -1,6 +1,7 @@
 # Refund Policy - Cook Smart
 
 **Effective Date**: [To be set at launch]
+**Last Updated**: November 13, 2025
 
 ## BETA Period
 

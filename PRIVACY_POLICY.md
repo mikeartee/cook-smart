@@ -1,7 +1,7 @@
 # Privacy Policy - Cook Smart
 
 **Effective Date**: [To be set at launch]  
-**Last Updated**: [To be updated]
+**Last Updated**: November 13, 2025
 
 ## 1. Information We Collect
 
