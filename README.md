@@ -1,4 +1,4 @@
-# recipe-helper
+# cook-smart
 
 *This README is automatically updated on each push*
 
