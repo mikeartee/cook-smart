@@ -1,0 +1,56 @@
+name: Update Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update README
+      run: |
+        echo "# recipe-helper" > README.md
+        echo "" >> README.md
+        echo "Last updated: $(date)" >> README.md
+        echo "" >> README.md
+        echo "## Latest Changes" >> README.md
+        git log --oneline -5 --pretty=format:"- %s (%h)" >> README.md
+
+    - name: Update Changelog
+      run: |
+        # Get latest commit info
+        COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+        COMMIT_HASH=$(git log -1 --pretty=format:"%h")
+        DATE=$(date +"%Y-%m-%d")
+        
+        # Create temp file with new entry
+        echo "# Changelog" > temp_changelog.md
+        echo "" >> temp_changelog.md
+        echo "All notable changes to this project will be documented in this file." >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        echo "## [Unreleased]" >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        echo "### Added" >> temp_changelog.md
+        echo "- $COMMIT_MSG ($COMMIT_HASH) - $DATE" >> temp_changelog.md
+        echo "" >> temp_changelog.md
+        
+        # Append existing changelog (skip header)
+        if [ -f CHANGELOG.md ]; then
+          tail -n +8 CHANGELOG.md >> temp_changelog.md
+        fi
+        
+        mv temp_changelog.md CHANGELOG.md
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md CHANGELOG.md
+        git diff --staged --quiet || git commit -m "docs: auto-update README and CHANGELOG [skip ci]"
+        git push
