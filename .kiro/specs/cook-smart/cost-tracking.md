@@ -34,11 +34,14 @@
 - **Stripe**: 2.9% + $0.30 per transaction (only when earning) ✅
 
 ### Pricing Strategy
+**DURING BETA:**
+- **Yearly**: $24.99 for ALL users (no other options during BETA)
+
+**POST-BETA LAUNCH:**
 - **Weekly**: $2.99 ($155.48/year) - Anchoring price
 - **Monthly**: $6.99 ($83.88/year) - Standard option  
 - **Yearly**: $34.99 (58% savings) - "Most Popular" with savings calculator
-- **BETA Pre-Purchase**: $24.99 (30% off yearly)
-- **Referral Trial**: 7-day free trial → $24.99 yearly (same as BETA price)
+- **Referral Trial**: 7-day free trial → $24.99 yearly (same as old BETA price)
 - **Post-Trial**: Reverts to $34.99 yearly pricing
 
 ### Development Tools
@@ -68,13 +71,14 @@
 ### Phase 7+: Revenue Generation (Target: Costs < 30% revenue)
 - Scale services as income supports
 - Reinvest profits into infrastructure
-- Revenue streams: BETA pre-purchase ($24.99), referral trials ($24.99), full pricing ($34.99)
+- Revenue streams: BETA pricing ($24.99 for all), POST-BETA referral trials ($24.99), full pricing ($34.99)
 
 ## 💰 Pricing Psychology Implementation
 - **Anchoring Effect**: Weekly ($155/year) makes monthly ($84/year) look reasonable
 - **Value Perception**: Yearly ($35) positioned as "smart choice" with 58% savings
 - **UI Enhancements**: "Most Popular" badge + savings calculator showing exact dollar savings
-- **Urgency Creation**: Referral trial pricing ($24.99) only during 7-day window
+- **Urgency Creation**: POST-BETA referral trial pricing ($24.99) only during 7-day window
+- **BETA Advantage**: All BETA users get $24.99 yearly pricing (no trials needed during BETA)
 - **Conversion Optimization**: Clear value hierarchy drives users toward yearly subscription
 
 ## 📈 Usage Monitoring Checklist

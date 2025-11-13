@@ -61,8 +61,8 @@
 ### R11: Pre-Purchase System
 - **R11.1**: The system SHALL offer pre-purchase options for full release
 - **R11.2**: The system SHALL implement Stripe payment processing
-- **R11.3**: The system SHALL support pricing tiers: $2.99/week, $6.99/month, $34.99/year
-- **R11.4**: The system SHALL offer discounted yearly BETA pre-purchase at $24.99
+- **R11.3**: The system SHALL support pricing tiers: $2.99/week, $6.99/month, $34.99/year (POST-BETA)
+- **R11.4**: The system SHALL offer $24.99 yearly pricing for ALL users during BETA period
 - **R11.5**: The system SHALL display "Most Popular" badge on yearly subscription option
 - **R11.6**: The system SHALL show savings calculator displaying exact dollar savings for yearly option
 
@@ -72,9 +72,9 @@
 - **R12.3**: The system SHALL track referral conversions
 - **R12.4**: The system SHALL reward 1 month free per successful yearly subscription referral
 - **R12.5**: The system SHALL support unlimited referrals per user
-- **R12.6**: The system SHALL provide 7-day free trial for referred users
-- **R12.7**: The system SHALL offer $24.99 yearly pricing during 7-day trial period
-- **R12.8**: The system SHALL revert to $34.99 yearly pricing after trial expires
+- **R12.6**: The system SHALL provide 7-day free trial for referred users (POST-BETA only)
+- **R12.7**: The system SHALL offer $24.99 yearly pricing during 7-day trial period (POST-BETA only)
+- **R12.8**: The system SHALL revert to $34.99 yearly pricing after trial expires (POST-BETA only)
 
 ### R13: Points System
 - **R13.1**: The system SHALL assign unique point values to user actions

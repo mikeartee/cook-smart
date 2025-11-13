@@ -178,9 +178,9 @@
 - [ ] Add referral sharing options (email, social, SMS)
 - [ ] Create referral reward system (1 month free)
 - [ ] Build referral analytics dashboard
-- [ ] Implement 7-day free trial for referred users
-- [ ] Create trial pricing logic ($24.99 yearly during trial)
-- [ ] Implement trial expiration logic (revert to $34.99 after trial)
+- [ ] Implement 7-day free trial for referred users (POST-BETA feature)
+- [ ] Create trial pricing logic ($24.99 yearly during trial - POST-BETA)
+- [ ] Implement trial expiration logic (revert to $34.99 after trial - POST-BETA)
 
 ## Phase 6: Discord Integrations (Priority 6)
 
@@ -209,8 +209,8 @@
 - [ ] Set up Stripe account and API keys
 - [ ] Implement Stripe payment processing
 - [ ] Create subscription management system
-- [ ] Add pricing tiers ($2.99/week, $6.99/month, $34.99/year)
-- [ ] Implement BETA discount ($24.99/year)
+- [ ] Add POST-BETA pricing tiers ($2.99/week, $6.99/month, $34.99/year)
+- [ ] Implement BETA pricing ($24.99/year for ALL users during BETA)
 
 ### 7.2 Pre-Purchase System
 - [ ] Create pre-purchase interface
@@ -219,8 +219,9 @@
 - [ ] Add payment confirmation system
 - [ ] Create subscription status tracking
 - [ ] Implement subscription management
-- [ ] Implement referral trial pricing logic ($24.99 during 7-day trial)
-- [ ] Create trial expiration handling (price revert to $34.99)
+- [ ] Implement BETA pricing logic ($24.99 yearly for ALL users during BETA)
+- [ ] Implement POST-BETA referral trial pricing ($24.99 during 7-day trial)
+- [ ] Create trial expiration handling (price revert to $34.99 - POST-BETA)
 
 ## Phase 8: Admin Dashboard (Priority 8)
 
