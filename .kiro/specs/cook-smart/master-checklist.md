@@ -47,8 +47,10 @@
 - [ ] Configure connection pooling for PostgreSQL
 - [ ] Plan database indexing strategy
 - [ ] Design user accounts table
-- [ ] Design ingredients table (prepopulated)
-- [ ] Design user_ingredients table (inventory)
+- [ ] Design ingredients table (comprehensive 500+ items with categories)
+- [ ] Design user_ingredients table (inventory with quantities/expiration)
+- [ ] Design custom_ingredients table (user-added ingredients)
+- [ ] Design ingredient_synonyms table (alternate names for matching)
 - [ ] Design recipes table
 - [ ] Design user_recipes table (favorites)
 - [ ] Design user_submitted_recipes table (user-created recipes)
@@ -85,12 +87,17 @@
 ## Phase 3: Core Ingredient & Recipe System (Priority 3)
 
 ### 3.1 Ingredient Management
-- [ ] Populate ingredients database with common items
-- [ ] Create ingredient selection interface
-- [ ] Implement "other ingredient" manual entry
-- [ ] Create user inventory management
-- [ ] Add/remove ingredients from inventory
-- [ ] Persist user ingredient selections
+- [ ] Create comprehensive ingredients database (500+ items)
+- [ ] Organize ingredients by categories (proteins, vegetables, fruits, grains, dairy, spices, condiments, etc.)
+- [ ] Implement ingredient search with autocomplete functionality
+- [ ] Create ingredient selection interface with category filtering
+- [ ] Implement "Add Custom Ingredient" manual entry system
+- [ ] Save user-added custom ingredients to their personal ingredient list
+- [ ] Create user inventory management with add/remove functionality
+- [ ] Add ingredient synonyms and alternate names for better recipe matching
+- [ ] Implement optional quantity and expiration date tracking
+- [ ] Persist user ingredient selections and custom additions
+- [ ] Create ingredient database seeding script with comprehensive list
 
 ### 3.2 Barcode Scanner Integration
 - [ ] Research and evaluate barcode APIs (free vs paid)
@@ -165,7 +172,17 @@
 - [ ] Allow users to save recipes with preferred substitutions
 - [ ] Create "My Substitutions" user preference system
 
-### 4.4 AI Recipe Moderation & Voting
+### 4.4 Basic Nutrition Tracking
+- [ ] Integrate USDA nutrition database API (free)
+- [ ] Create nutrition calculation engine for recipes
+- [ ] Display basic nutrition facts (calories, protein, carbs, fat) per serving
+- [ ] Implement nutrition scaling when recipe servings are adjusted
+- [ ] Update nutrition values when ingredient substitutions are made
+- [ ] Add user preference to show/hide nutrition information
+- [ ] Create nutrition facts display component
+- [ ] Handle nutrition data for custom user-added ingredients
+
+### 4.5 AI Recipe Moderation & Voting
 - [ ] Set up AWS Rekognition for image copyright detection
 - [ ] Set up AWS Comprehend for content moderation
 - [ ] Implement AI moderation pipeline for new submissions

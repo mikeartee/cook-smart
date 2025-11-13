@@ -3,10 +3,15 @@
 ## Core Functional Requirements
 
 ### R1: Ingredient Inventory Management
-- **R1.1**: The system SHALL provide a prepopulated ingredient list for user selection
-- **R1.2**: The system SHALL allow manual ingredient entry via "other ingredient" option
-- **R1.3**: The system SHALL integrate barcode scanning for automatic ingredient identification
-- **R1.4**: The system SHALL maintain user ingredient inventory persistently
+- **R1.1**: The system SHALL provide a comprehensive prepopulated ingredient database with 500+ common ingredients
+- **R1.2**: The system SHALL categorize ingredients (proteins, vegetables, fruits, grains, dairy, spices, etc.)
+- **R1.3**: The system SHALL provide searchable ingredient selection with autocomplete
+- **R1.4**: The system SHALL allow manual ingredient entry via "Add Custom Ingredient" option
+- **R1.5**: The system SHALL save user-added custom ingredients for future selection
+- **R1.6**: The system SHALL integrate barcode scanning for automatic ingredient identification
+- **R1.7**: The system SHALL maintain user ingredient inventory persistently
+- **R1.8**: The system SHALL allow ingredient quantity and expiration date tracking (optional)
+- **R1.9**: The system SHALL provide ingredient synonyms and alternate names for better matching
 
 ### R2: Recipe Generation
 - **R2.1**: The system SHALL generate recipes based on available ingredients
@@ -57,6 +62,10 @@
 - **R6.10**: The system SHALL provide offline storage for favorited recipes
 - **R6.11**: The system SHALL display ingredient substitution suggestions within recipe view
 - **R6.12**: The system SHALL allow users to save recipes with their preferred substitutions
+- **R6.13**: The system SHALL display basic nutrition information per serving (calories, protein, carbs, fat)
+- **R6.14**: The system SHALL automatically adjust nutrition values when recipes are scaled
+- **R6.15**: The system SHALL update nutrition information when ingredient substitutions are made
+- **R6.16**: The system SHALL allow users to show/hide nutrition information based on preferences
 
 ## Discord Integration Requirements
 
@@ -134,6 +143,8 @@
 - **R16.1**: The system SHALL use free/low-cost barcode scanning API
 - **R16.2**: The system SHALL integrate multiple recipe APIs for reliability
 - **R16.3**: The system SHALL fetch actual recipe results (no mock data)
+- **R16.4**: The system SHALL integrate USDA nutrition database API for ingredient nutrition data
+- **R16.5**: The system SHALL calculate recipe nutrition totals from ingredient nutrition data
 
 ### R17: Mobile Transition
 - **R17.1**: The system SHALL be built to easily convert to native mobile apps

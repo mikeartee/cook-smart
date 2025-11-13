@@ -1,14 +1,14 @@
 {
   "completedItems": [],
   "currentPhase": 1,
-  "totalItems": 156,
+  "totalItems": 173,
   "completedCount": 0,
   "lastUpdated": "2024-11-13T00:00:00.000Z",
   "phaseProgress": {
     "1": { "completed": 0, "total": 16 },
-    "2": { "completed": 0, "total": 21 },
-    "3": { "completed": 0, "total": 19 },
-    "4": { "completed": 0, "total": 29 },
+    "2": { "completed": 0, "total": 24 },
+    "3": { "completed": 0, "total": 25 },
+    "4": { "completed": 0, "total": 37 },
     "5": { "completed": 0, "total": 17 },
     "6": { "completed": 0, "total": 9 },
     "7": { "completed": 0, "total": 13 },
