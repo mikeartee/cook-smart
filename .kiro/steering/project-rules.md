@@ -32,10 +32,17 @@
 ## Development Rules
 
 ### Quality Assurance
-1. Scan all code for errors before committing
-2. Test each feature immediately after implementation
-3. No moving forward until current feature works
-4. Document any issues and their solutions
+1. **MANDATORY**: Run verification scan after every code change
+2. **MANDATORY**: Fix all errors before proceeding to next task
+3. **MANDATORY**: Test each feature immediately after implementation
+4. **MANDATORY**: No moving forward until current feature works and passes verification
+5. Document any issues and their solutions in fixes-log.md
+
+### Verification Process
+- Run `auto-verify.bat` or `node .kiro/verify-and-scan.js` after every change
+- Must show "ALL CHECKS PASSED" before marking task complete
+- Auto-fix available for common issues
+- Zero tolerance for syntax errors, build failures, or broken functionality
 
 ### User Experience
 - Clear BETA labeling throughout app
