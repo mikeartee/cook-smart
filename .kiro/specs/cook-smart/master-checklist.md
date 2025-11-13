@@ -34,6 +34,10 @@
 - [ ] Design user_ingredients table (inventory)
 - [ ] Design recipes table
 - [ ] Design user_recipes table (favorites)
+- [ ] Design user_submitted_recipes table (user-created recipes)
+- [ ] Design recipe_votes table (humor & migration votes)
+- [ ] Design recipe_moderation_log table (AI & admin moderation)
+- [ ] Design recipe_edits table (edit history & approval)
 - [ ] Design shopping_lists table
 - [ ] Design points_system table
 - [ ] Design referrals table
@@ -105,6 +109,24 @@
 - [ ] Create favorites management interface
 - [ ] Add recipe sharing functionality
 - [ ] Implement recipe rating system
+- [ ] Create user recipe submission form (normal & LOLZ)
+- [ ] Implement image upload for user recipes (S3)
+- [ ] Display user recipes mixed with API recipes
+- [ ] Create LOLZ section/tab with humor disclaimer
+- [ ] Add recipe type filtering (normal/LOLZ)
+
+### 4.4 AI Recipe Moderation & Voting
+- [ ] Set up AWS Rekognition for image copyright detection
+- [ ] Set up AWS Comprehend for content moderation
+- [ ] Implement AI moderation pipeline for new submissions
+- [ ] Create AI content check (inappropriate, spam, quality)
+- [ ] Implement humor voting system (up/down)
+- [ ] Implement migration voting system (LOLZ → normal)
+- [ ] Create AI-based migration threshold calculator (scales with users)
+- [ ] Build migration approval workflow (AI → admin)
+- [ ] Implement recipe edit system with approval workflow
+- [ ] Create edit reason tracking and AI re-moderation
+- [ ] Add recipe reporting system for users
 
 ## Phase 5: Shopping List & User Features (Priority 5)
 
@@ -182,6 +204,12 @@
 - [ ] Add subscription management tools
 - [ ] Create badge management system (founders, legacy, loyalty)
 - [ ] Add user management tools
+- [ ] Create recipe moderation queue (AI-flagged submissions)
+- [ ] Implement approve/reject interface for user recipes
+- [ ] Add LOLZ → normal migration approval interface
+- [ ] Create recipe edit approval system
+- [ ] Add moderation log viewer
+- [ ] Implement bulk moderation actions
 
 ## Phase 9: BETA Preparation & Testing (Priority 9)
 
