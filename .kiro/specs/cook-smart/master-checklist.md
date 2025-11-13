@@ -178,6 +178,9 @@
 - [ ] Add referral sharing options (email, social, SMS)
 - [ ] Create referral reward system (1 month free)
 - [ ] Build referral analytics dashboard
+- [ ] Implement 7-day free trial for referred users
+- [ ] Create trial pricing logic ($24.99 yearly during trial)
+- [ ] Implement trial expiration logic (revert to $34.99 after trial)
 
 ## Phase 6: Discord Integrations (Priority 6)
 
@@ -211,10 +214,13 @@
 
 ### 7.2 Pre-Purchase System
 - [ ] Create pre-purchase interface
-- [ ] Implement subscription selection
+- [ ] Implement subscription selection with "Most Popular" badge on yearly option
+- [ ] Add savings calculator showing exact dollar savings for yearly subscription
 - [ ] Add payment confirmation system
 - [ ] Create subscription status tracking
 - [ ] Implement subscription management
+- [ ] Implement referral trial pricing logic ($24.99 during 7-day trial)
+- [ ] Create trial expiration handling (price revert to $34.99)
 
 ## Phase 8: Admin Dashboard (Priority 8)
 
