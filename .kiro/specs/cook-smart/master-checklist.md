@@ -140,6 +140,11 @@
 - [ ] Implement multi-API fallback system
 - [ ] Create recipe data normalization
 - [ ] Implement API caching layer for recipe data
+- [ ] Set up USDA FoodData Central API for nutrition data
+- [ ] Implement API caching layer for nutrition data by ingredient
+- [ ] Create cache pre-population script for popular recipes (1000+ recipes)
+- [ ] Create cache pre-population script for common barcode products
+- [ ] Implement cache hit rate monitoring and logging
 
 ## Phase 4: Recipe Generation & Filtering (Priority 4)
 
