@@ -40,6 +40,18 @@
 - [ ] Create documentation generation setup
 - [ ] Set up pre-commit hooks for code quality
 
+### 1.5 Legal Compliance Setup (CRITICAL)
+- [ ] Implement cookie consent banner (EU GDPR requirement)
+- [ ] Add age verification checkbox (13+ COPPA compliance)
+- [ ] Create data deletion endpoint (GDPR Article 17 - Right to be Forgotten)
+- [ ] Create data export endpoint (GDPR Article 20 - Data Portability)
+- [ ] Add allergy disclaimers to all recipe displays
+- [ ] Add food safety warnings for raw ingredients
+- [ ] Implement API attribution requirements (Open Food Facts, Spoonacular, etc.)
+- [ ] Set up data breach notification system (72-hour GDPR requirement)
+- [ ] Add accessibility compliance testing (axe-core integration)
+- [ ] Create "Not medical advice" disclaimers for nutrition info
+
 ## Phase 2: User Authentication & Core Database (Priority 2)
 
 ### 2.1 Database Schema Design
@@ -63,7 +75,7 @@
 - [ ] Run database migrations
 
 ### 2.2 User Authentication System
-- [ ] Create user registration endpoint
+- [ ] Create user registration endpoint with age verification
 - [ ] Implement email-based signup (no confirmation for BETA)
 - [ ] Create login/logout endpoints
 - [ ] Implement JWT token system
@@ -74,15 +86,19 @@
 - [ ] Create special Co-Founder welcome page with personal message
 - [ ] Auto-assign Co-Founder badge and lifetime subscription
 - [ ] Add "Inspired by Briana Olszewski" credit to About section
+- [ ] Implement GDPR data deletion for user accounts
+- [ ] Implement GDPR data export for user accounts
 
 ### 2.3 Frontend Authentication
-- [ ] Create signup/login screens
+- [ ] Create signup/login screens with age verification checkbox
+- [ ] Implement cookie consent banner (EU compliance)
 - [ ] Implement authentication state management
 - [ ] Create protected route system
-- [ ] Add form validation
+- [ ] Add form validation including age verification
 - [ ] Implement error handling for auth flows
 - [ ] Create Co-Founder special welcome screen with personal message
 - [ ] Implement Co-Founder badge display system
+- [ ] Add privacy settings page with data deletion/export options
 
 ## Phase 3: Core Ingredient & Recipe System (Priority 3)
 
@@ -153,7 +169,8 @@
 - [ ] Display substitution options with ratios and notes
 
 ### 4.3 Recipe Display & Management
-- [ ] Create recipe display components
+- [ ] Create recipe display components with allergy disclaimers
+- [ ] Add food safety warnings for raw ingredients in recipes
 - [ ] Implement recipe favoriting system
 - [ ] Create favorites management interface
 - [ ] Add recipe sharing functionality
@@ -171,11 +188,13 @@
 - [ ] Add ingredient substitution suggestions in recipe view
 - [ ] Allow users to save recipes with preferred substitutions
 - [ ] Create "My Substitutions" user preference system
+- [ ] Add API attribution notices (Open Food Facts, Spoonacular, etc.)
 
 ### 4.4 Basic Nutrition Tracking
 - [ ] Integrate USDA nutrition database API (free)
 - [ ] Create nutrition calculation engine for recipes
 - [ ] Display basic nutrition facts (calories, protein, carbs, fat) per serving
+- [ ] Add "Not medical advice" disclaimer to all nutrition information
 - [ ] Implement nutrition scaling when recipe servings are adjusted
 - [ ] Update nutrition values when ingredient substitutions are made
 - [ ] Add user preference to show/hide nutrition information

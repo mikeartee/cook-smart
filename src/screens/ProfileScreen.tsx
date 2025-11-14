@@ -1,0 +1,202 @@
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, SafeAreaView, RefreshControl } from 'react-native';
+import { UserProfileCard } from '../components/UserProfileCard';
+import { PointsDisplay } from '../components/PointsDisplay';
+import { PointsHistory } from '../components/PointsHistory';
+import { Leaderboard } from '../components/Leaderboard';
+
+interface UserProfile {
+  id: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  location?: string;
+}
+
+interface UserStats {
+  totalRecipes: number;
+  totalFavorites: number;
+  totalRatings: number;
+  averageRating: number;
+}
+
+interface UserPoints {
+  totalPoints: number;
+  level: number;
+}
+
+interface PointsTransaction {
+  id: string;
+  points: number;
+  action: string;
+  description: string;
+  dateCreated: Date;
+}
+
+interface Props {
+  userId: string;
+}
+
+export const ProfileScreen: React.FC<Props> = ({ userId }) => {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
+  const [transactions, setTransactions] = useState<PointsTransaction[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Mock data
+  const mockProfile: UserProfile = {
+    id: userId,
+    username: 'cookmaster',
+    firstName: 'John',
+    lastName: 'Doe',
+    bio: 'Passionate home cook who loves experimenting with new recipes and sharing culinary adventures!',
+    location: 'San Francisco, CA'
+  };
+
+  const mockStats: UserStats = {
+    totalRecipes: 12,
+    totalFavorites: 45,
+    totalRatings: 23,
+    averageRating: 4.2
+  };
+
+  const mockUserPoints: UserPoints = {
+    totalPoints: 1250,
+    level: 3
+  };
+
+  const mockTransactions: PointsTransaction[] = [
+    {
+      id: '1',
+      points: 15,
+      action: 'recipe_review',
+      description: 'Reviewed "Chicken Parmesan"',
+      dateCreated: new Date(Date.now() - 86400000) // 1 day ago
+    },
+    {
+      id: '2',
+      points: 5,
+      action: 'recipe_favorite',
+      description: 'Favorited "Pasta Primavera"',
+      dateCreated: new Date(Date.now() - 172800000) // 2 days ago
+    },
+    {
+      id: '3',
+      points: 10,
+      action: 'recipe_rating',
+      description: 'Rated "Beef Stir Fry"',
+      dateCreated: new Date(Date.now() - 259200000) // 3 days ago
+    }
+  ];
+
+  const mockLeaderboard = [
+    { userId: 'user1', username: 'chefmaster', totalPoints: 2500, level: 4 },
+    { userId: 'user2', username: 'foodlover', totalPoints: 1800, level: 3 },
+    { userId: userId, username: 'cookmaster', totalPoints: 1250, level: 3 },
+    { userId: 'user3', username: 'kitchenpro', totalPoints: 950, level: 2 },
+    { userId: 'user4', username: 'recipehunter', totalPoints: 720, level: 2 }
+  ];
+
+  useEffect(() => {
+    loadData();
+  }, [userId]);
+
+  const loadData = async () => {
+    setLoading(true);
+    // Simulate API calls
+    setTimeout(() => {
+      setProfile(mockProfile);
+      setStats(mockStats);
+      setUserPoints(mockUserPoints);
+      setTransactions(mockTransactions);
+      setLeaderboard(mockLeaderboard);
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const handleEditProfile = () => {
+    // Navigate to edit profile screen
+    console.log('Edit profile pressed');
+  };
+
+  const handlePointsPress = () => {
+    // Navigate to detailed points screen
+    console.log('Points pressed');
+  };
+
+  if (loading && !profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.loadingContainer}>
+          {/* Loading state could be added here */}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {profile && stats && (
+          <UserProfileCard
+            profile={profile}
+            stats={stats}
+            userPoints={userPoints || undefined}
+            onEditPress={handleEditProfile}
+            isOwnProfile={true}
+          />
+        )}
+        
+        {userPoints && (
+          <PointsDisplay
+            userPoints={userPoints}
+            onPress={handlePointsPress}
+          />
+        )}
+        
+        <PointsHistory
+          transactions={transactions}
+          loading={loading}
+        />
+        
+        <Leaderboard
+          entries={leaderboard}
+          currentUserId={userId}
+          loading={loading}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
