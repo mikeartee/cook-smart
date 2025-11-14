@@ -3,7 +3,7 @@ import { query, body, param, validationResult } from 'express-validator';
 import recipeService from '../services/recipeService';
 import { IngredientModel } from '../models/Ingredient';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
-import { db } from '../config/database';
+import pool from '../config/database';
 
 const router = Router();
 

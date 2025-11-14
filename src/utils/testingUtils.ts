@@ -17,7 +17,7 @@ export interface TestSuite {
 }
 
 export class TestRunner {
-  private results: TestResult[] = [];
+  public results: TestResult[] = [];
 
   async runTest(testName: string, testFn: () => Promise<void> | void): Promise<TestResult> {
     const startTime = Date.now();

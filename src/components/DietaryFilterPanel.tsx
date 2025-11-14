@@ -73,7 +73,7 @@ export const DietaryFilterPanel: React.FC<Props> = ({
           ]}>
             {allergy.name}
           </Text>
-          <Text style={[styles.severityText, styles[`${allergy.severity}Text`]]}>
+          <Text style={[styles.severityText, allergy.severity === 'severe' ? styles.severeText : allergy.severity === 'moderate' ? styles.moderateText : styles.mildText]}>
             {allergy.severity}
           </Text>
         </TouchableOpacity>

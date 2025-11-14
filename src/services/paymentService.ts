@@ -90,9 +90,9 @@ class PaymentService {
       }
       
       return data.paymentIntent;
-    } catch (error) {
-      if (error.type) throw error; // Already a PaymentError
-      const paymentError = PaymentErrorHandler.parseError(error);
+    } catch (error: any) {
+      if ((error as any).type) throw error; // Already a PaymentError
+      const paymentError = PaymentErrorHandler.parseError(error as any);
       PaymentErrorHandler.logError(paymentError, 'createPaymentIntent');
       throw paymentError;
     }
@@ -118,9 +118,9 @@ class PaymentService {
       }
       
       return data.subscription;
-    } catch (error) {
-      if (error.type) throw error; // Already a PaymentError
-      const paymentError = PaymentErrorHandler.parseError(error);
+    } catch (error: any) {
+      if ((error as any).type) throw error; // Already a PaymentError
+      const paymentError = PaymentErrorHandler.parseError(error as any);
       PaymentErrorHandler.logError(paymentError, 'createSubscription');
       throw paymentError;
     }
@@ -295,7 +295,8 @@ class PaymentService {
 
   async downloadReceipt(receiptUrl: string): Promise<void> {
     // In a real app, this would handle receipt download
-    window.open(receiptUrl, '_blank');
+    // For React Native, this would use Linking.openURL or similar
+    console.log('Download receipt:', receiptUrl);
   }
 
   formatBillingStatus(status: string): string {

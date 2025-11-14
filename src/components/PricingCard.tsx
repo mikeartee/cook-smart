@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: getBadgeText ? 12 : 0,
+    marginTop: 12,
   },
   planName: {
     fontSize: 18,
