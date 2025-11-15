@@ -38,16 +38,16 @@ export const getPool = (): Pool => {
  * Execute a query with automatic connection management
  */
 export const query = async (text: string, params?: any[]) => {
-  const pool = getPool();
-  return pool.query(text, params);
+  const dbPool = getPool();
+  return dbPool.query(text, params);
 };
 
 /**
  * Get a client for transaction support
  */
 export const getClient = async (): Promise<PoolClient> => {
-  const pool = getPool();
-  return pool.connect();
+  const dbPool = getPool();
+  return dbPool.connect();
 };
 
 /**
