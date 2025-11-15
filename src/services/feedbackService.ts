@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const API_BASE = 'http://localhost:3000/api/v1';
 
 export interface FeedbackData {
@@ -23,8 +25,8 @@ export interface FeedbackItem {
 }
 
 class FeedbackService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
+  private async getAuthHeaders() {
+    const token = await AsyncStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` })
@@ -34,7 +36,7 @@ class FeedbackService {
   async submitFeedback(feedback: FeedbackData): Promise<void> {
     const response = await fetch(`${API_BASE}/feedback`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify(feedback)
     });
 
@@ -47,7 +49,7 @@ class FeedbackService {
 
   async getUserFeedback(): Promise<FeedbackItem[]> {
     const response = await fetch(`${API_BASE}/feedback/user`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -61,7 +63,7 @@ class FeedbackService {
 
   async getAllFeedback(page: number = 1, limit: number = 50): Promise<FeedbackItem[]> {
     const response = await fetch(`${API_BASE}/admin/feedback?page=${page}&limit=${limit}`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -76,7 +78,7 @@ class FeedbackService {
   async updateFeedbackStatus(feedbackId: string, status: 'new' | 'reviewed' | 'resolved'): Promise<void> {
     const response = await fetch(`${API_BASE}/admin/feedback/${feedbackId}/status`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify({ status })
     });
 
@@ -94,7 +96,7 @@ class FeedbackService {
     statusBreakdown: Record<string, number>;
   }> {
     const response = await fetch(`${API_BASE}/admin/feedback/stats`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();

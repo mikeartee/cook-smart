@@ -73,7 +73,7 @@ export const QATestingScreen: React.FC = () => {
       setCurrentTest('Testing performance...');
       await runner.runTest('App Load Time', async () => {
         const startTime = Date.now();
-        await new Promise(resolve => setTimeout(resolve, 200)); // Mock app load
+        await new Promise<void>(resolve => setTimeout(() => resolve(), 200)); // Mock app load
         const loadTime = Date.now() - startTime;
         
         if (loadTime > 3000) {

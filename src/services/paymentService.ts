@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PaymentErrorHandler } from '../utils/paymentErrorHandler';
 
 const API_BASE = 'http://localhost:3000/api/v1';
@@ -54,8 +55,8 @@ export interface BillingItem {
 }
 
 class PaymentService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
+  private async getAuthHeaders() {
+    const token = await AsyncStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` })
@@ -77,7 +78,7 @@ class PaymentService {
     try {
       const response = await fetch(`${API_BASE}/payments/create-payment-intent`, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers: await this.getAuthHeaders(),
         body: JSON.stringify({ planId })
       });
       
@@ -105,7 +106,7 @@ class PaymentService {
       
       const response = await fetch(`${API_BASE}/payments/subscribe`, {
         method: 'POST',
-        headers: this.getAuthHeaders(),
+        headers: await this.getAuthHeaders(),
         body: JSON.stringify({ planId, paymentMethodId })
       });
       
@@ -128,7 +129,7 @@ class PaymentService {
 
   async getUserSubscriptions(): Promise<Subscription[]> {
     const response = await fetch(`${API_BASE}/payments/subscriptions`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
     
     const data = await response.json();
@@ -143,7 +144,7 @@ class PaymentService {
   async cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = true): Promise<void> {
     const response = await fetch(`${API_BASE}/payments/cancel-subscription`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify({ subscriptionId, cancelAtPeriodEnd })
     });
     
@@ -158,7 +159,7 @@ class PaymentService {
     // Mock reactivation - in real implementation, this would call Stripe API
     const response = await fetch(`${API_BASE}/payments/cancel-subscription`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify({ subscriptionId, cancelAtPeriodEnd: false })
     });
     
@@ -225,7 +226,7 @@ class PaymentService {
 
   async getPaymentMethods(): Promise<PaymentMethod[]> {
     const response = await fetch(`${API_BASE}/payments/payment-methods`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
     
     const data = await response.json();
@@ -240,7 +241,7 @@ class PaymentService {
   async addPaymentMethod(paymentData: PaymentData): Promise<PaymentMethod> {
     const response = await fetch(`${API_BASE}/payments/payment-methods`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify(paymentData)
     });
     
@@ -256,7 +257,7 @@ class PaymentService {
   async setDefaultPaymentMethod(paymentMethodId: string): Promise<void> {
     const response = await fetch(`${API_BASE}/payments/payment-methods/${paymentMethodId}/default`, {
       method: 'POST',
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
     
     const data = await response.json();
@@ -269,7 +270,7 @@ class PaymentService {
   async deletePaymentMethod(paymentMethodId: string): Promise<void> {
     const response = await fetch(`${API_BASE}/payments/payment-methods/${paymentMethodId}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
     
     const data = await response.json();
@@ -281,7 +282,7 @@ class PaymentService {
 
   async getBillingHistory(): Promise<BillingItem[]> {
     const response = await fetch(`${API_BASE}/payments/billing-history`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
     
     const data = await response.json();

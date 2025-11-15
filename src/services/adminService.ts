@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const API_BASE = 'http://localhost:3000/api/v1';
 
 export interface AdminStats {
@@ -42,8 +44,8 @@ export interface SystemHealth {
 }
 
 class AdminService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('adminToken');
+  private async getAuthHeaders() {
+    const token = await AsyncStorage.getItem('adminToken');
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` })
@@ -64,14 +66,14 @@ class AdminService {
     }
 
     // Store admin token
-    localStorage.setItem('adminToken', data.token);
+    await AsyncStorage.setItem('adminToken', data.token);
 
     return { token: data.token, user: data.user };
   }
 
   async getDashboardStats(): Promise<AdminStats> {
     const response = await fetch(`${API_BASE}/admin/stats`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -85,7 +87,7 @@ class AdminService {
 
   async getAllUsers(page: number = 1, limit: number = 50): Promise<any[]> {
     const response = await fetch(`${API_BASE}/admin/users?page=${page}&limit=${limit}`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -99,7 +101,7 @@ class AdminService {
 
   async getSubscriptionAnalytics(): Promise<any> {
     const response = await fetch(`${API_BASE}/admin/analytics/subscriptions`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -113,7 +115,7 @@ class AdminService {
 
   async getFailedPayments(): Promise<any[]> {
     const response = await fetch(`${API_BASE}/admin/payments/failed`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -128,7 +130,7 @@ class AdminService {
   async updateUserStatus(userId: string, status: 'active' | 'suspended' | 'banned'): Promise<void> {
     const response = await fetch(`${API_BASE}/admin/users/${userId}/status`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify({ status })
     });
 
@@ -141,7 +143,7 @@ class AdminService {
 
   async getBetaMetrics(): Promise<any> {
     const response = await fetch(`${API_BASE}/admin/beta/metrics`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -153,13 +155,14 @@ class AdminService {
     return data.metrics;
   }
 
-  isAdminAuthenticated(): boolean {
-    return !!localStorage.getItem('adminToken');
+  async isAdminAuthenticated(): Promise<boolean> {
+    const token = await AsyncStorage.getItem('adminToken');
+    return !!token;
   }
 
   async getSystemHealth(): Promise<SystemHealth> {
     const response = await fetch(`${API_BASE}/admin/system/health`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -173,7 +176,7 @@ class AdminService {
 
   async getSystemLogs(level: 'error' | 'warning' | 'info' = 'error', limit: number = 100): Promise<any[]> {
     const response = await fetch(`${API_BASE}/admin/system/logs?level=${level}&limit=${limit}`, {
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -188,7 +191,7 @@ class AdminService {
   async restartService(serviceName: string): Promise<void> {
     const response = await fetch(`${API_BASE}/admin/system/restart/${serviceName}`, {
       method: 'POST',
-      headers: this.getAuthHeaders()
+      headers: await this.getAuthHeaders()
     });
 
     const data = await response.json();
@@ -201,7 +204,7 @@ class AdminService {
   async createAlert(type: 'error' | 'warning' | 'info', message: string): Promise<void> {
     const response = await fetch(`${API_BASE}/admin/system/alerts`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: await this.getAuthHeaders(),
       body: JSON.stringify({ type, message })
     });
 
@@ -212,8 +215,8 @@ class AdminService {
     }
   }
 
-  adminLogout(): void {
-    localStorage.removeItem('adminToken');
+  async adminLogout(): Promise<void> {
+    await AsyncStorage.removeItem('adminToken');
   }
 }
 
