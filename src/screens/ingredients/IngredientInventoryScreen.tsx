@@ -65,7 +65,7 @@ export const IngredientInventoryScreen: React.FC = () => {
   };
 
   const groupIngredientsByCategory = (): GroupedIngredients[] => {
-    const allIngredients = [...ingredients, ...customIngredients];
+    const allIngredients = [...(ingredients || []), ...(customIngredients || [])];
     
     if (allIngredients.length === 0) {
       return [];

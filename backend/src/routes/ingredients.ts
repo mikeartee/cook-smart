@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { query, body, validationResult } from 'express-validator';
 import { IngredientModel } from '../models/Ingredient';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import mockIngredientsDB from '../config/mockIngredients';
 
 const router = Router();
 
@@ -23,14 +24,15 @@ router.get('/', [
 
     const { category, search, limit } = req.query;
     
+    // Use mock database in development
     if (search && typeof search === 'string') {
-      const ingredients = await IngredientModel.searchIngredients(
+      const ingredients = await mockIngredientsDB.searchIngredients(
         search, 
         parseInt(limit as string) || 20
       );
       res.json({ ingredients });
     } else {
-      const ingredients = await IngredientModel.getAll(
+      const ingredients = await mockIngredientsDB.getAll(
         typeof category === 'string' ? category : undefined
       );
       res.json({ ingredients });
@@ -47,7 +49,7 @@ router.get('/', [
 // Get ingredient categories
 router.get('/categories', async (req: Request, res: Response) => {
   try {
-    const categories = await IngredientModel.getCategories();
+    const categories = await mockIngredientsDB.getCategories();
     res.json({ categories });
   } catch (error) {
     console.error('Get categories error:', error);
