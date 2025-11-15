@@ -1,6 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+// API Configuration for Lambda Backend
+// Development: Use serverless-offline local server
+// Production: Use API Gateway endpoint (to be configured after deployment)
+const API_BASE_URL = __DEV__ 
+  ? 'http://localhost:3000' 
+  : 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
 
 export interface User {
   id: string;
