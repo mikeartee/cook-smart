@@ -11,8 +11,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +89,9 @@ const LoginScreen: React.FC = () => {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity style={styles.signupButton}>
+          <TouchableOpacity 
+            style={styles.signupButton}
+            onPress={() => navigation.navigate('Signup' as never)}>
             <Text style={styles.signupButtonText}>
               Don't have an account? Sign Up
             </Text>
