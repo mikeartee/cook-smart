@@ -56,7 +56,7 @@ router.get('/lookup/:barcode', [
     }
 
     res.json(result);
-  } catch (_error) {
+  } catch (error) {
     console.error('Barcode lookup error:', error);
     res.status(500).json({
       error: 'Barcode lookup failed',
@@ -126,7 +126,7 @@ router.post('/scan-to-pantry', authenticateToken, [
       product: result.product,
       ingredient: userIngredient
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Scan to pantry error:', error);
     res.status(500).json({
       error: 'Failed to add scanned product',
@@ -144,7 +144,7 @@ router.get('/usage', authenticateToken, async (req: AuthRequest, res: Response) 
       nutritionix: usage,
       message: usage.remaining < 100 ? 'Approaching monthly limit' : 'Usage within limits'
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Usage stats error:', error);
     res.status(500).json({
       error: 'Failed to get usage statistics'
@@ -166,7 +166,7 @@ router.get('/test/:barcode', async (req: Request, res: Response) => {
       responseTime: `${responseTime}ms`,
       timestamp: new Date().toISOString()
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Barcode test error:', error);
     res.status(500).json({
       error: 'Test failed',

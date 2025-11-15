@@ -55,7 +55,7 @@ export class UserPointsModel {
       await client.query(updateQuery, [userId, points, this.calculateLevel(points)]);
       
       await client.query('COMMIT');
-    } catch (_error) {
+    } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {

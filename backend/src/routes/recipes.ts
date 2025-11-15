@@ -117,7 +117,7 @@ router.get('/find', authenticateToken, [
       },
       usage: recipeService.getSpoonacularUsage()
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Recipe search error:', error);
     res.status(500).json({
       error: 'Recipe search failed',
@@ -159,7 +159,7 @@ router.get('/suggestions', authenticateToken, async (req: AuthRequest, res: Resp
       suggestions: topSuggestions,
       usage: recipeService.getSpoonacularUsage()
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Recipe suggestions error:', error);
     res.status(500).json({
       error: 'Failed to get suggestions',
@@ -197,7 +197,7 @@ router.get('/search', [
       found: recipes.length,
       recipes: recipes.slice(0, parseInt(limit as string) || 20)
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Recipe search error:', error);
     res.status(500).json({
       error: 'Search failed',
@@ -218,7 +218,7 @@ router.get('/usage', authenticateToken, async (req: AuthRequest, res: Response) 
         'Approaching Spoonacular monthly limit, will use backup APIs' : 
         'All APIs available'
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Usage stats error:', error);
     res.status(500).json({
       error: 'Failed to get usage statistics'
@@ -250,7 +250,7 @@ router.get('/test', async (req: Request, res: Response) => {
       })),
       timestamp: new Date().toISOString()
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Recipe test error:', error);
     res.status(500).json({
       error: 'Test failed',
@@ -281,7 +281,7 @@ router.post('/:recipeId/favorite', authenticateToken, [
     );
 
     res.json({ message: 'Recipe added to favorites' });
-  } catch (_error) {
+  } catch (error) {
     console.error('Add favorite error:', error);
     res.status(500).json({ error: 'Failed to add favorite' });
   }
@@ -307,7 +307,7 @@ router.delete('/:recipeId/favorite', authenticateToken, [
     );
 
     res.json({ message: 'Recipe removed from favorites' });
-  } catch (_error) {
+  } catch (error) {
     console.error('Remove favorite error:', error);
     res.status(500).json({ error: 'Failed to remove favorite' });
   }
@@ -331,7 +331,7 @@ router.get('/favorites', authenticateToken, async (req: AuthRequest, res: Respon
     );
 
     res.json({ favorites: result.rows });
-  } catch (_error) {
+  } catch (error) {
     console.error('Get favorites error:', error);
     res.status(500).json({ error: 'Failed to get favorites' });
   }
@@ -405,7 +405,7 @@ router.post('/submit', authenticateToken, [
       recipe_id: recipeId.id,
       status: 'pending_review'
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Submit recipe error:', error);
     res.status(500).json({ error: 'Failed to submit recipe' });
   }

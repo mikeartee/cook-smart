@@ -36,7 +36,7 @@ router.get('/recipes', async (req, res) => {
     );
 
     return res.json(result);
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to search recipes' });
   }
 });
@@ -52,7 +52,7 @@ router.get('/recipes/:id', async (req, res) => {
     }
     
     return res.json(recipe);
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to get recipe' });
   }
 });
@@ -107,7 +107,7 @@ router.get('/recipes/filtered/:userId', async (req, res) => {
       ...searchResult,
       recipes: recipesWithAnalysis
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to search and filter recipes' });
   }
 });

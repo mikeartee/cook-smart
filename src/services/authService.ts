@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Development: Use serverless-offline local server
 // Production: Use API Gateway endpoint (to be configured after deployment)
 const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:3000' 
+  ? 'http://192.168.12.196:3000' 
   : 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
 
 export interface User {
@@ -30,7 +30,7 @@ class AuthService {
   private token: string | null = null;
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ class AuthService {
     last_name?: string;
     age_verified: boolean;
   }): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ class AuthService {
       throw new Error('No authentication token');
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

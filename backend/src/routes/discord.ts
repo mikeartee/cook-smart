@@ -19,7 +19,7 @@ router.post('/test/:type', async (req, res) => {
     } else {
       return res.status(500).json({ error: `${type} webhook test failed` });
     }
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to test webhook' });
   }
 });
@@ -67,7 +67,7 @@ router.post('/notify', async (req, res) => {
     }
     
     return res.json({ success: true, message: 'Notification sent successfully' });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to send notification' });
   }
 });
@@ -88,7 +88,7 @@ router.get('/status', async (req, res) => {
       totalConfigured: Object.values(status).filter(Boolean).length,
       totalWebhooks: webhookTypes.length
     });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get webhook status' });
   }
 });

@@ -9,7 +9,7 @@ router.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const items = await ShoppingListModel.getUserItems(userId);
     res.json(items);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get shopping list' });
   }
 });
@@ -20,7 +20,7 @@ router.get('/user/:userId/categorized', async (req, res) => {
     const { userId } = req.params;
     const categorizedItems = await ShoppingListModel.getItemsByCategory(userId);
     res.json(categorizedItems);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get categorized shopping list' });
   }
 });
@@ -33,7 +33,7 @@ router.post('/user/:userId/items', async (req, res) => {
     
     await ShoppingListModel.addItem(userId, ingredient, quantity, unit, category, recipeId);
     res.json({ success: true, message: 'Item added to shopping list' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add item' });
   }
 });
@@ -46,7 +46,7 @@ router.put('/user/:userId/items/:itemId', async (req, res) => {
     
     await ShoppingListModel.updateItem(userId, itemId, ingredient, quantity, unit, category);
     res.json({ success: true, message: 'Item updated' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to update item' });
   }
 });
@@ -58,7 +58,7 @@ router.patch('/user/:userId/items/:itemId/toggle', async (req, res) => {
     
     await ShoppingListModel.toggleItemCompleted(userId, itemId);
     res.json({ success: true, message: 'Item status updated' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to toggle item' });
   }
 });
@@ -70,7 +70,7 @@ router.delete('/user/:userId/items/:itemId', async (req, res) => {
     
     await ShoppingListModel.removeItem(userId, itemId);
     res.json({ success: true, message: 'Item removed' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to remove item' });
   }
 });
@@ -83,7 +83,7 @@ router.post('/user/:userId/recipe/:recipeId', async (req, res) => {
     
     await ShoppingListModel.addRecipeIngredients(userId, recipeId, ingredients);
     res.json({ success: true, message: 'Recipe ingredients added to shopping list' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add recipe ingredients' });
   }
 });
@@ -95,7 +95,7 @@ router.delete('/user/:userId/completed', async (req, res) => {
     
     await ShoppingListModel.clearCompleted(userId);
     res.json({ success: true, message: 'Completed items cleared' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to clear completed items' });
   }
 });

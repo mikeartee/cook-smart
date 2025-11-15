@@ -35,7 +35,7 @@ router.get('/', [
       );
       res.json({ ingredients });
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Get ingredients error:', error);
     res.status(500).json({
       error: 'Failed to fetch ingredients',
@@ -49,7 +49,7 @@ router.get('/categories', async (req: Request, res: Response) => {
   try {
     const categories = await IngredientModel.getCategories();
     res.json({ categories });
-  } catch (_error) {
+  } catch (error) {
     console.error('Get categories error:', error);
     res.status(500).json({
       error: 'Failed to fetch categories',
@@ -70,7 +70,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     res.json({ ingredient });
-  } catch (_error) {
+  } catch (error) {
     console.error('Get ingredient error:', error);
     res.status(500).json({
       error: 'Failed to fetch ingredient',
@@ -101,7 +101,7 @@ router.post('/custom', authenticateToken, [
       message: 'Custom ingredient added successfully',
       ingredient
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Add custom ingredient error:', error);
     res.status(500).json({
       error: 'Failed to add ingredient',
@@ -119,7 +119,7 @@ router.get('/pantry/my', authenticateToken, async (req: AuthRequest, res: Respon
     }
     const ingredients = await IngredientModel.getUserIngredients(req.user.id);
     res.json({ ingredients });
-  } catch (_error) {
+  } catch (error) {
     console.error('Get user ingredients error:', error);
     res.status(500).json({
       error: 'Failed to fetch pantry',
@@ -155,7 +155,7 @@ router.post('/pantry', authenticateToken, [
       message: 'Ingredient added to pantry',
       ingredient: userIngredient
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Add user ingredient error:', error);
     res.status(500).json({
       error: 'Failed to add to pantry',
@@ -203,7 +203,7 @@ router.put('/pantry/:ingredientId', authenticateToken, [
       message: 'Pantry ingredient updated',
       ingredient: userIngredient
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Update user ingredient error:', error);
     res.status(500).json({
       error: 'Failed to update pantry',
@@ -223,7 +223,7 @@ router.delete('/pantry/:ingredientId', authenticateToken, async (req: AuthReques
     res.json({
       message: 'Ingredient removed from pantry'
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Remove user ingredient error:', error);
     res.status(500).json({
       error: 'Failed to remove from pantry',

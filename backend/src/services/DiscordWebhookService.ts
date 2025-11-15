@@ -121,7 +121,7 @@ export class DiscordWebhookService {
         },
         timeout: 5000
       });
-    } catch (_error) {
+    } catch (error) {
       console.error(`Failed to send Discord webhook (${type}):`, error);
     }
   }
@@ -133,7 +133,7 @@ export class DiscordWebhookService {
         username: 'Cook Smart Test Bot'
       });
       return true;
-    } catch (_error) {
+    } catch (error) {
       return false;
     }
   }

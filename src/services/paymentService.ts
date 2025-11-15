@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PaymentErrorHandler } from '../utils/paymentErrorHandler';
 
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://192.168.12.196:3000/api/v1';
 
 export interface PricingPlan {
   id: string;

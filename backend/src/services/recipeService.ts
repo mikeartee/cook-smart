@@ -90,7 +90,7 @@ class RecipeService {
       
       return dedupedRecipes.slice(0, 20);
 
-    } catch (_error) {
+    } catch (error) {
       console.error('Recipe search error:', error);
       return [];
     }
@@ -147,7 +147,7 @@ class RecipeService {
       }
 
       return recipes;
-    } catch (_error) {
+    } catch (error) {
       console.error('Spoonacular API error:', error);
       return [];
     }
@@ -198,7 +198,7 @@ class RecipeService {
           }
         };
       });
-    } catch (_error) {
+    } catch (error) {
       console.error('Edamam API error:', error);
       return [];
     }
@@ -243,7 +243,7 @@ class RecipeService {
       }
 
       return recipes;
-    } catch (_error) {
+    } catch (error) {
       console.error('TheMealDB API error:', error);
       return [];
     }

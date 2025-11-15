@@ -9,7 +9,7 @@ router.get('/restrictions', async (req, res) => {
   try {
     const restrictions = await DietaryRestrictionModel.getAll();
     res.json(restrictions);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to fetch dietary restrictions' });
   }
 });
@@ -20,7 +20,7 @@ router.get('/restrictions/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const restrictions = await DietaryRestrictionModel.getUserRestrictions(userId);
     res.json(restrictions);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to fetch user restrictions' });
   }
 });
@@ -32,7 +32,7 @@ router.post('/restrictions/user/:userId', async (req, res) => {
     const { restrictionId, notes } = req.body;
     await DietaryRestrictionModel.addUserRestriction(userId, restrictionId, notes);
     res.json({ success: true });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add restriction' });
   }
 });
@@ -44,7 +44,7 @@ router.post('/restrictions/custom/:userId', async (req, res) => {
     const { name, description, excludedIngredients } = req.body;
     await DietaryRestrictionModel.addCustomRestriction(userId, name, description, excludedIngredients);
     res.json({ success: true });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add custom restriction' });
   }
 });
@@ -54,7 +54,7 @@ router.get('/allergies', async (req, res) => {
   try {
     const allergies = await AllergyModel.getAll();
     res.json(allergies);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to fetch allergies' });
   }
 });
@@ -65,7 +65,7 @@ router.get('/allergies/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const allergies = await AllergyModel.getUserAllergies(userId);
     res.json(allergies);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to fetch user allergies' });
   }
 });
@@ -77,7 +77,7 @@ router.post('/allergies/user/:userId', async (req, res) => {
     const { allergyId, severityOverride, notes } = req.body;
     await AllergyModel.addUserAllergy(userId, allergyId, severityOverride, notes);
     res.json({ success: true });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add allergy' });
   }
 });
@@ -89,7 +89,7 @@ router.post('/allergies/custom/:userId', async (req, res) => {
     const { name, severity, description, triggerIngredients } = req.body;
     await AllergyModel.addCustomAllergy(userId, name, severity, description, triggerIngredients);
     res.json({ success: true });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to add custom allergy' });
   }
 });

@@ -14,7 +14,7 @@ router.get('/user/:userId', async (req, res) => {
     }
     
     return res.json(userPoints);
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to get user points' });
   }
 });
@@ -32,7 +32,7 @@ router.post('/user/:userId/add', async (req, res) => {
     
     await UserPointsModel.addPoints(userId, points, action, description);
     return res.json({ success: true, pointsAdded: points });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to add points' });
   }
 });
@@ -50,7 +50,7 @@ router.get('/user/:userId/history', async (req, res) => {
     );
     
     res.json(transactions);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get points history' });
   }
 });
@@ -62,7 +62,7 @@ router.get('/leaderboard', async (req, res) => {
     
     const leaderboard = await UserPointsModel.getLeaderboard(parseInt(limit as string));
     res.json(leaderboard);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get leaderboard' });
   }
 });
@@ -73,7 +73,7 @@ router.get('/levels/:level', async (req, res) => {
     const { level } = req.params;
     const levelInfo = UserPointsModel.getLevelInfo(parseInt(level));
     res.json(levelInfo);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get level info' });
   }
 });
@@ -94,7 +94,7 @@ router.get('/actions', async (req, res) => {
     ];
     
     res.json(actions);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get actions' });
   }
 });

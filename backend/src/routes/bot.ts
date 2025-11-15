@@ -8,7 +8,7 @@ router.post('/initialize', async (req, res) => {
   try {
     DiscordBotService.initializeCommands();
     res.json({ success: true, message: 'Bot commands initialized' });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to initialize bot commands' });
   }
 });
@@ -18,7 +18,7 @@ router.get('/commands', async (req, res) => {
   try {
     const commands = DiscordBotService.getRegisteredCommands();
     res.json({ commands });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get commands' });
   }
 });
@@ -34,7 +34,7 @@ router.post('/command', async (req, res) => {
     
     await DiscordBotService.processCommand(commandName, interaction);
     return res.json({ success: true, message: 'Command processed' });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to process command' });
   }
 });
@@ -55,7 +55,7 @@ router.post('/dm', async (req, res) => {
     } else {
       return res.status(500).json({ error: 'Failed to send direct message' });
     }
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to send direct message' });
   }
 });
@@ -71,7 +71,7 @@ router.post('/status', async (req, res) => {
     
     await DiscordBotService.updateBotStatus(activity);
     return res.json({ success: true, message: 'Bot status updated' });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to update bot status' });
   }
 });
@@ -87,7 +87,7 @@ router.get('/status', async (req, res) => {
       commandCount: commands.length,
       commands: commands.map(cmd => ({ name: cmd.name, description: cmd.description }))
     });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get bot status' });
   }
 });

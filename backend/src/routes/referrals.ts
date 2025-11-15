@@ -11,7 +11,7 @@ router.post('/user/:userId', async (req, res) => {
     
     const referralCode = await ReferralModel.createReferral(userId, email);
     res.json({ success: true, referralCode });
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to create referral' });
   }
 });
@@ -22,7 +22,7 @@ router.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const referrals = await ReferralModel.getUserReferrals(userId);
     res.json(referrals);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get referrals' });
   }
 });
@@ -33,7 +33,7 @@ router.get('/user/:userId/stats', async (req, res) => {
     const { userId } = req.params;
     const stats = await ReferralModel.getReferralStats(userId);
     res.json(stats);
-  } catch (_error) {
+  } catch (error) {
     res.status(500).json({ error: 'Failed to get referral stats' });
   }
 });
@@ -54,7 +54,7 @@ router.post('/complete', async (req, res) => {
     } else {
       return res.status(400).json({ error: 'Invalid or expired referral code' });
     }
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to complete referral' });
   }
 });
@@ -78,7 +78,7 @@ router.get('/validate/:referralCode', async (req, res) => {
       referrerId: referral.referrerId,
       message: 'Valid referral code' 
     });
-  } catch (_error) {
+  } catch (error) {
     return res.status(500).json({ error: 'Failed to validate referral code' });
   }
 });

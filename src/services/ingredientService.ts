@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:3000' 
+  ? 'http://192.168.12.196:3000' 
   : 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
 
 export interface Ingredient {
@@ -49,7 +49,7 @@ class IngredientService {
   async getUserIngredients(): Promise<GetIngredientsResponse> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/ingredients`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/ingredients`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -69,7 +69,7 @@ class IngredientService {
   async addIngredient(ingredientData: CreateIngredientDto): Promise<Ingredient> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/ingredients`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/ingredients`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -90,7 +90,7 @@ class IngredientService {
   async updateIngredient(id: number, updates: UpdateIngredientDto): Promise<Ingredient> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/ingredients/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/ingredients/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -111,7 +111,7 @@ class IngredientService {
   async deleteIngredient(id: number): Promise<void> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/ingredients/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/ingredients/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

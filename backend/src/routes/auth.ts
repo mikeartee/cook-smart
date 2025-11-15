@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
 import { generateToken, authenticateToken, AuthRequest } from '../middleware/auth';
+import mockDB from '../config/mockDatabase';
+import * as bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -30,7 +32,8 @@ router.post('/register', [
 
     const { email, password, first_name, last_name, age_verified } = req.body;
 
-    const existingUser = await UserModel.findByEmail(email);
+    // Use mock database in development
+    const existingUser = await mockDB.findUserByEmail(email);
     if (existingUser) {
       res.status(409).json({
         error: 'User already exists',
@@ -39,16 +42,21 @@ router.post('/register', [
       return;
     }
 
-    const user = await UserModel.create({
+    const isCoFounder = email === 'brianaolszewski1@gmail.com';
+    const password_hash = await bcrypt.hash(password, 10);
+    
+    const user = await mockDB.createUser({
       email,
-      password,
+      password_hash,
       first_name,
       last_name,
-      age_verified
+      is_co_founder: isCoFounder,
+      has_lifetime_subscription: isCoFounder,
+      subscription_status: isCoFounder ? 'lifetime' : 'free',
+      points: isCoFounder ? 1000 : 0
     });
 
     const token = generateToken(user.id);
-    const isCoFounder = email === 'brianaolszewski1@gmail.com';
 
     res.status(201).json({
       message: isCoFounder ? 'Welcome back, Co-Founder! 🎉' : 'Account created successfully',
@@ -68,7 +76,7 @@ router.post('/register', [
         lifetime_access: true
       })
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       error: 'Registration failed',
@@ -129,7 +137,7 @@ router.post('/login', [
         points: user.points
       }
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       error: 'Login failed',
@@ -166,7 +174,7 @@ router.get('/export-data', authenticateToken, async (req: AuthRequest, res: Resp
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="cook-smart-data-${req.user.id}.json"`);
     res.json(userData);
-  } catch (_error) {
+  } catch (error) {
     console.error('Data export error:', error);
     res.status(500).json({
       error: 'Export failed',
@@ -184,7 +192,7 @@ router.delete('/delete-account', authenticateToken, async (req: AuthRequest, res
       message: 'Account deleted successfully',
       note: 'All your data has been permanently removed from our systems'
     });
-  } catch (_error) {
+  } catch (error) {
     console.error('Account deletion error:', error);
     res.status(500).json({
       error: 'Deletion failed',

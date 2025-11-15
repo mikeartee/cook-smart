@@ -50,7 +50,7 @@ class BarcodeService {
       // Step 4: Manual entry required
       return { found: false, manualEntryRequired: true };
 
-    } catch (_error) {
+    } catch (error) {
       console.error('Barcode lookup error:', error);
       return { found: false, manualEntryRequired: true };
     }
@@ -80,7 +80,7 @@ class BarcodeService {
       }
 
       return { found: false };
-    } catch (_error) {
+    } catch (error) {
       console.error('Open Food Facts error:', error);
       return { found: false };
     }
@@ -122,7 +122,7 @@ class BarcodeService {
       }
 
       return { found: false };
-    } catch (_error) {
+    } catch (error) {
       console.error('Nutritionix error:', error);
       return { found: false };
     }
@@ -167,7 +167,7 @@ class BarcodeService {
       }
 
       return openFoodResult;
-    } catch (_error) {
+    } catch (error) {
       console.error('USDA enhancement error:', error);
       return openFoodResult;
     }

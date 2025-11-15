@@ -120,7 +120,7 @@ export class DiscordBotService {
 
     try {
       await command.execute(interaction);
-    } catch (_error) {
+    } catch (error) {
       console.error(`Error executing command ${commandName}:`, error);
     }
   }
