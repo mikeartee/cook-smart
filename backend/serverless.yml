@@ -50,8 +50,46 @@ functions:
           path: auth/me
           method: get
           cors: true
-  # User functions will be added in Task 4.2-4.4
-  # GDPR functions will be added in Task 5.1-5.2
+  
+  getProfile:
+    handler: functions/users/getProfile.handler
+    events:
+      - http:
+          path: users/profile
+          method: get
+          cors: true
+  
+  updateProfile:
+    handler: functions/users/updateProfile.handler
+    events:
+      - http:
+          path: users/profile
+          method: put
+          cors: true
+  
+  changePassword:
+    handler: functions/users/changePassword.handler
+    events:
+      - http:
+          path: users/password
+          method: put
+          cors: true
+  
+  exportData:
+    handler: functions/users/exportData.handler
+    events:
+      - http:
+          path: users/export
+          method: get
+          cors: true
+  
+  deleteAccount:
+    handler: functions/users/deleteAccount.handler
+    events:
+      - http:
+          path: users/account
+          method: delete
+          cors: true
 
 plugins:
   - serverless-offline
