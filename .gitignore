@@ -16,6 +16,8 @@ build/
 dist/
 *.tgz
 *.tar.gz
+*-bundle.js
+*.bundle
 
 # Runtime data
 pids
