@@ -8,7 +8,6 @@ export const PrePurchaseScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'info' | 'payment'>('info');
   const [paymentError, setPaymentError] = useState<PaymentError | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   const betaPlan = {
     id: 'beta-presale',
@@ -40,7 +39,7 @@ export const PrePurchaseScreen: React.FC = () => {
         'Thank you for supporting Cook Smart! You\'ll have full access when we launch, plus all BETA features remain free until then.',
         [{ text: 'Continue', onPress: () => {/* Navigate back */} }]
       );
-      setRetryCount(0);
+      // Payment successful
     } catch (error: any) {
       setPaymentError(error);
     } finally {
@@ -50,7 +49,7 @@ export const PrePurchaseScreen: React.FC = () => {
 
   const handleRetryPayment = () => {
     setPaymentError(null);
-    setRetryCount(prev => prev + 1);
+    // Retry logic can be added here
   };
 
   const handleCloseError = () => {

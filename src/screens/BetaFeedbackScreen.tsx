@@ -12,8 +12,8 @@ export const BetaFeedbackScreen: React.FC = () => {
     try {
       const feedback = await feedbackService.getUserFeedback();
       setUserFeedback(feedback);
-    } catch (error) {
-      console.error('Failed to load user feedback:', error);
+    } catch {
+      console.error('Failed to load user feedback');
     } finally {
       setLoading(false);
     }
@@ -27,7 +27,7 @@ export const BetaFeedbackScreen: React.FC = () => {
         'Your feedback helps us improve Cook Smart. We appreciate your input during the BETA phase!'
       );
       loadUserFeedback(); // Refresh the list
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to submit feedback. Please try again.');
     }
   };

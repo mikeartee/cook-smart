@@ -41,7 +41,7 @@ export const PaymentMethodsScreen: React.FC = () => {
       ];
       
       setPaymentMethods(mockMethods);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to load payment methods');
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ export const PaymentMethodsScreen: React.FC = () => {
       );
       
       Alert.alert('Success', 'Default payment method updated');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to update default payment method');
     }
   };
@@ -88,7 +88,7 @@ export const PaymentMethodsScreen: React.FC = () => {
               // Mock API call - replace with actual implementation
               setPaymentMethods(prev => prev.filter(m => m.id !== paymentMethodId));
               Alert.alert('Success', 'Payment method removed');
-            } catch (error) {
+            } catch {
               Alert.alert('Error', 'Failed to remove payment method');
             }
           }

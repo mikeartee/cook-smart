@@ -51,7 +51,7 @@ export const AdminUsersScreen: React.FC = () => {
       ];
       
       setUsers(mockUsers);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to load users');
     } finally {
       setLoading(false);

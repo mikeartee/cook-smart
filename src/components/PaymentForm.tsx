@@ -6,14 +6,11 @@ interface PaymentFormProps {
   planId: string;
   planName: string;
   price: number;
-  onSubmit: (paymentData: PaymentData) => void;
+  onSubmit: (_paymentData: PaymentData) => void;
   loading?: boolean;
 }
 
-
-
 export const PaymentForm: React.FC<PaymentFormProps> = ({
-  planId,
   planName,
   price,
   onSubmit,

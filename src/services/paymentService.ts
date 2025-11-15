@@ -99,7 +99,7 @@ class PaymentService {
     }
   }
 
-  async createSubscription(planId: string, paymentData: PaymentData): Promise<Subscription> {
+  async createSubscription(planId: string, _paymentData: PaymentData): Promise<Subscription> {
     try {
       // Mock payment method creation
       const paymentMethodId = `pm_${Date.now()}`;

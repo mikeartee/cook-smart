@@ -5,11 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const { width } = Dimensions.get('window');
 
 const CookieConsent: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);

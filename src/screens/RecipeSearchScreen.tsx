@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import { RecipeSearchBar } from '../components/RecipeSearchBar';
 import { RecipeFilterModal } from '../components/RecipeFilterModal';
 import { SortSelector, SortOption } from '../components/SortSelector';

@@ -27,7 +27,7 @@ export const ReferralCard: React.FC<Props> = ({
         message,
         title: 'Join Cook Smart!'
       });
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to share referral code');
     }
   };

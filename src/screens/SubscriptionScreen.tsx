@@ -12,9 +12,9 @@ export const SubscriptionScreen: React.FC = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      const subscriptions = await paymentService.getUserSubscriptions();
-      setSubscriptions(subscriptions);
-    } catch (error) {
+      const userSubscriptions = await paymentService.getUserSubscriptions();
+      setSubscriptions(userSubscriptions);
+    } catch {
       Alert.alert('Error', 'Failed to load subscriptions');
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ export const SubscriptionScreen: React.FC = () => {
               );
               
               Alert.alert('Success', 'Subscription will be canceled at the end of your billing period');
-            } catch (error) {
+            } catch {
               Alert.alert('Error', 'Failed to cancel subscription');
             }
           }
@@ -66,7 +66,7 @@ export const SubscriptionScreen: React.FC = () => {
       );
       
       Alert.alert('Success', 'Subscription reactivated successfully');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to reactivate subscription');
     }
   };

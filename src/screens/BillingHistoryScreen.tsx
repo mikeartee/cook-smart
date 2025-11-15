@@ -50,7 +50,7 @@ export const BillingHistoryScreen: React.FC = () => {
       ];
       
       setBillingHistory(mockHistory);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to load billing history');
     } finally {
       setLoading(false);

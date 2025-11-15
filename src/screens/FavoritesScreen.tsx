@@ -22,7 +22,7 @@ interface Props {
 
 export const FavoritesScreen: React.FC<Props> = ({ userId }) => {
   const [favorites, setFavorites] = useState<FavoriteRecipe[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Mock data

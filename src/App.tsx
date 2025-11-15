@@ -33,7 +33,7 @@ const MainStack = () => (
 );
 
 const HomeScreen = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   return (
     <SafeAreaView style={styles.container}>

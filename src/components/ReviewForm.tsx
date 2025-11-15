@@ -12,8 +12,6 @@ interface Props {
 }
 
 export const ReviewForm: React.FC<Props> = ({
-  recipeId,
-  userId,
   existingRating = 0,
   existingReview = '',
   onSubmit,

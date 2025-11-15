@@ -108,7 +108,7 @@ export const QATestingScreen: React.FC = () => {
         `${summary.passedTests}/${summary.totalTests} tests passed in ${summary.totalDuration}ms`
       );
       
-    } catch (error) {
+    } catch {
       Alert.alert('Test Error', 'Failed to run tests');
     } finally {
       setIsRunning(false);

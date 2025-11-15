@@ -21,7 +21,7 @@ export const AdminLoginScreen: React.FC = () => {
       } else {
         Alert.alert('Error', 'Invalid admin credentials');
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Login failed');
     } finally {
       setLoading(false);

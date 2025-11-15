@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import { BetaBanner } from '../components/BetaBanner';
 import { BetaPricingCard } from '../components/BetaPricingCard';
 import { paymentService, PricingPlan } from '../services/paymentService';
@@ -7,7 +7,6 @@ import { paymentService, PricingPlan } from '../services/paymentService';
 
 
 export const PricingScreen: React.FC = () => {
-  const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [plans, setPlans] = useState<PricingPlan[]>([]);
 
   useEffect(() => {
@@ -15,37 +14,12 @@ export const PricingScreen: React.FC = () => {
       try {
         const fetchedPlans = await paymentService.getPricingPlans();
         setPlans(fetchedPlans);
-        setSelectedPlan('monthly');
       } catch (error) {
         console.error('Failed to load plans:', error);
       }
     };
     loadPlans();
   }, []);
-
-  const handlePlanSelect = (planId: string) => {
-    setSelectedPlan(planId);
-  };
-
-  const handlePurchase = () => {
-    const plan = plans.find(p => p.id === selectedPlan);
-    if (!plan) return;
-
-    Alert.alert(
-      'Confirm Purchase',
-      `You selected ${plan.name} for $${(plan.price / 100).toFixed(2)}/${plan.interval}. Proceed to payment?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => proceedToPayment(plan) }
-      ]
-    );
-  };
-
-  const proceedToPayment = (plan: PricingPlan) => {
-    // Navigate to payment screen or process payment
-    console.log('Processing payment for plan:', plan.id);
-    Alert.alert('Payment', 'Redirecting to payment processor...');
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,7 +42,7 @@ export const PricingScreen: React.FC = () => {
               interval={plan.interval}
               features={plan.features}
               isPopular={plan.id === 'monthly'}
-              onSelect={handlePlanSelect}
+              onSelect={() => {/* TODO: Implement plan selection */}}
             />
           ))}
         </View>

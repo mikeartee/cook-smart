@@ -16,7 +16,6 @@ interface ShoppingItem {
 export const ShoppingListScreen: React.FC = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   // Mock data
   const mockItems: ShoppingItem[] = [

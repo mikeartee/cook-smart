@@ -68,7 +68,6 @@ class PerformanceMonitor {
   }
 
   generateReport(): PerformanceReport {
-    const loadMetrics = this.getMetrics('load');
     const renderMetrics = this.getMetrics('render');
     const memoryMetrics = this.getMetrics('memory');
     const networkMetrics = this.getMetrics('network');
