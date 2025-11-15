@@ -15,12 +15,12 @@ router.post('/test/:type', async (req, res) => {
     const success = await DiscordWebhookService.testWebhook(type as any);
     
     if (success) {
-      res.json({ success: true, message: `${type} webhook test successful` });
+      return res.json({ success: true, message: `${type} webhook test successful` });
     } else {
-      res.status(500).json({ error: `${type} webhook test failed` });
+      return res.status(500).json({ error: `${type} webhook test failed` });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to test webhook' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to test webhook' });
   }
 });
 
@@ -66,9 +66,9 @@ router.post('/notify', async (req, res) => {
         return res.status(400).json({ error: 'Invalid notification type' });
     }
     
-    res.json({ success: true, message: 'Notification sent successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to send notification' });
+    return res.json({ success: true, message: 'Notification sent successfully' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to send notification' });
   }
 });
 
@@ -88,7 +88,7 @@ router.get('/status', async (req, res) => {
       totalConfigured: Object.values(status).filter(Boolean).length,
       totalWebhooks: webhookTypes.length
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get webhook status' });
   }
 });

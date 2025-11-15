@@ -64,8 +64,9 @@ const SignupScreen: React.FC = () => {
       } else {
         Alert.alert('Welcome to Cook Smart!', 'Your account has been created successfully');
       }
-    } catch (error: any) {
-      Alert.alert('Signup Failed', error.message || 'Unable to create account');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unable to create account';
+      Alert.alert('Signup Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -90,6 +90,70 @@ functions:
           path: users/account
           method: delete
           cors: true
+  
+  getUserIngredients:
+    handler: functions/ingredients/getUserIngredients.handler
+    events:
+      - http:
+          path: ingredients
+          method: get
+          cors: true
+  
+  addIngredient:
+    handler: functions/ingredients/addIngredient.handler
+    events:
+      - http:
+          path: ingredients
+          method: post
+          cors: true
+  
+  updateIngredient:
+    handler: functions/ingredients/updateIngredient.handler
+    events:
+      - http:
+          path: ingredients/{id}
+          method: put
+          cors: true
+  
+  deleteIngredient:
+    handler: functions/ingredients/deleteIngredient.handler
+    events:
+      - http:
+          path: ingredients/{id}
+          method: delete
+          cors: true
+  
+  searchIngredients:
+    handler: functions/ingredients/searchIngredients.handler
+    events:
+      - http:
+          path: ingredients/search
+          method: get
+          cors: true
+  
+  getUserRecipes:
+    handler: functions/recipes/getUserRecipes.handler
+    events:
+      - http:
+          path: recipes
+          method: get
+          cors: true
+  
+  saveRecipe:
+    handler: functions/recipes/saveRecipe.handler
+    events:
+      - http:
+          path: recipes
+          method: post
+          cors: true
+  
+  deleteRecipe:
+    handler: functions/recipes/deleteRecipe.handler
+    events:
+      - http:
+          path: recipes/{id}
+          method: delete
+          cors: true
 
 plugins:
   - serverless-offline

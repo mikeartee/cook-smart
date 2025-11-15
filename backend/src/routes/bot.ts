@@ -8,7 +8,7 @@ router.post('/initialize', async (req, res) => {
   try {
     DiscordBotService.initializeCommands();
     res.json({ success: true, message: 'Bot commands initialized' });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to initialize bot commands' });
   }
 });
@@ -18,7 +18,7 @@ router.get('/commands', async (req, res) => {
   try {
     const commands = DiscordBotService.getRegisteredCommands();
     res.json({ commands });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get commands' });
   }
 });
@@ -33,9 +33,9 @@ router.post('/command', async (req, res) => {
     }
     
     await DiscordBotService.processCommand(commandName, interaction);
-    res.json({ success: true, message: 'Command processed' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to process command' });
+    return res.json({ success: true, message: 'Command processed' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to process command' });
   }
 });
 
@@ -51,12 +51,12 @@ router.post('/dm', async (req, res) => {
     const success = await DiscordBotService.sendDirectMessage(userId, message);
     
     if (success) {
-      res.json({ success: true, message: 'Direct message sent' });
+      return res.json({ success: true, message: 'Direct message sent' });
     } else {
-      res.status(500).json({ error: 'Failed to send direct message' });
+      return res.status(500).json({ error: 'Failed to send direct message' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to send direct message' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to send direct message' });
   }
 });
 
@@ -70,9 +70,9 @@ router.post('/status', async (req, res) => {
     }
     
     await DiscordBotService.updateBotStatus(activity);
-    res.json({ success: true, message: 'Bot status updated' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update bot status' });
+    return res.json({ success: true, message: 'Bot status updated' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to update bot status' });
   }
 });
 
@@ -87,7 +87,7 @@ router.get('/status', async (req, res) => {
       commandCount: commands.length,
       commands: commands.map(cmd => ({ name: cmd.name, description: cmd.description }))
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get bot status' });
   }
 });

@@ -11,7 +11,7 @@ router.post('/user/:userId/recipe/:recipeId', async (req, res) => {
     
     await FavoriteRecipeService.addFavorite(userId, recipeId, notes);
     res.json({ success: true, message: 'Recipe added to favorites' });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to add favorite' });
   }
 });
@@ -23,7 +23,7 @@ router.delete('/user/:userId/recipe/:recipeId', async (req, res) => {
     
     await FavoriteRecipeService.removeFavorite(userId, recipeId);
     res.json({ success: true, message: 'Recipe removed from favorites' });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to remove favorite' });
   }
 });
@@ -41,7 +41,7 @@ router.get('/user/:userId', async (req, res) => {
     );
     
     res.json(favorites);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get favorites' });
   }
 });
@@ -53,7 +53,7 @@ router.get('/user/:userId/recipe/:recipeId/status', async (req, res) => {
     
     const isFavorite = await FavoriteRecipeService.isFavorite(userId, recipeId);
     res.json({ isFavorite });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to check favorite status' });
   }
 });
@@ -65,7 +65,7 @@ router.get('/recipe/:recipeId/count', async (req, res) => {
     
     const count = await FavoriteRecipeService.getFavoriteCount(recipeId);
     res.json({ count });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get favorite count' });
   }
 });

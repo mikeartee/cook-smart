@@ -55,7 +55,7 @@ export class UserPointsModel {
       await client.query(updateQuery, [userId, points, this.calculateLevel(points)]);
       
       await client.query('COMMIT');
-    } catch (error) {
+    } catch (_error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -104,7 +104,7 @@ export class UserPointsModel {
       { name: 'Culinary Expert', icon: '⭐', minPoints: 5000, maxPoints: 9999 },
       { name: 'Kitchen Legend', icon: '👑', minPoints: 10000, maxPoints: Infinity }
     ];
-    return levels[level] || levels[0];
+    return levels[level] ?? levels[0]!;
   }
 
   static getPointsForAction(action: string): number {

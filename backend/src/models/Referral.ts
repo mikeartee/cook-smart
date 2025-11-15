@@ -85,7 +85,7 @@ export class ReferralModel {
       
       await client.query('COMMIT');
       return true;
-    } catch (error) {
+    } catch (_error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {

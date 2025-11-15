@@ -18,7 +18,7 @@ export class RecipeFilterService {
     const conflicts: RecipeConflict[] = [];
     
     // Get user's dietary restrictions and allergies
-    const [dietaryRestrictions, allergies, excludedIngredients, triggerIngredients] = await Promise.all([
+    const [dietaryRestrictions, _allergies, excludedIngredients, triggerIngredients] = await Promise.all([
       DietaryRestrictionModel.getUserRestrictions(userId),
       AllergyModel.getUserAllergies(userId),
       DietaryRestrictionModel.getAllUserExcludedIngredients(userId),

@@ -38,7 +38,9 @@ export class RecipeModificationService {
       const substitution = substitutions.find(s => s.original === ingredient);
       if (substitution && substitution.substitutes.length > 0) {
         const bestSub = substitution.substitutes[0];
-        return `${bestSub.ingredient} (${bestSub.ratio} ratio)`;
+        if (bestSub) {
+          return `${bestSub.ingredient} (${bestSub.ratio} ratio)`;
+        }
       }
       return ingredient;
     });
@@ -82,8 +84,9 @@ export class RecipeModificationService {
 
     // Add substitution notes
     substitutions.forEach(sub => {
-      if (sub.substitutes[0]?.notes) {
-        notes.push(`💡 ${sub.original} → ${sub.substitutes[0].ingredient}: ${sub.substitutes[0].notes}`);
+      const bestSub = sub.substitutes[0];
+      if (bestSub && bestSub.notes) {
+        notes.push(`💡 ${sub.original} → ${bestSub.ingredient}: ${bestSub.notes}`);
       }
     });
 

@@ -19,7 +19,7 @@ router.get('/', async (req: Request, res: Response) => {
         timestamp: dbResult.rows[0].timestamp
       }
     });
-  } catch (error) {
+  } catch (_error) {
     res.status(503).json({
       status: 'ERROR',
       message: 'Service unavailable',

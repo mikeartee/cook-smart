@@ -39,19 +39,35 @@
 
 ## Development Rules
 
-### Quality Assurance
+### Quality Assurance - ZERO TOLERANCE POLICY
 1. **MANDATORY**: Run verification scan after every code change
-2. **MANDATORY**: Fix all errors before proceeding to next task
+2. **MANDATORY**: Fix ALL errors before proceeding to next task
 3. **MANDATORY**: Test each feature immediately after implementation
 4. **MANDATORY**: No moving forward until current feature works and passes verification
 5. **MANDATORY**: Check cost implications for EVERY service/tool/API before implementation ($20/month emergency budget - use only when truly necessary)
 6. Document any issues and their solutions in fixes-log.md
 
+### ZERO TOLERANCE - What It Means
+**ZERO means ZERO. No exceptions. No compromises.**
+
+- ✅ **0 TypeScript errors** - Not 1, not "just warnings", ZERO
+- ✅ **0 ESLint errors** - Every single one must be fixed
+- ✅ **0 Build failures** - Code must compile successfully
+- ✅ **0 Runtime errors** - Code must execute without crashing
+- ✅ **0 Unused variables** - Clean code, no dead code
+- ✅ **0 Console warnings** - Production-ready means clean console
+- ✅ **0 Broken tests** - All tests must pass
+- ✅ **0 Security vulnerabilities** - Critical and high severity must be fixed
+
+**Every step becomes production-ready. Every commit is deployable.**
+
 ### Verification Process
 - Run `auto-verify.bat` or `node .kiro/verify-and-scan.js` after every change
 - Must show "ALL CHECKS PASSED" before marking task complete
 - Auto-fix available for common issues
-- Zero tolerance for syntax errors, build failures, or broken functionality
+- If verification shows ANY errors, stop and fix them immediately
+- Never proceed to next task with pending errors
+- "It's just a warning" is NOT acceptable - fix it
 
 ### User Experience
 - Clear BETA labeling throughout app

@@ -19,13 +19,13 @@ router.get('/recipes', async (req, res) => {
       servings
     } = req.query;
 
-    const filters = {
-      ingredients: ingredients ? (ingredients as string).split(',').map(i => i.trim()) : undefined,
-      cuisine: cuisine as string,
-      mealType: mealType as string,
-      cookingTime: cookingTime ? parseInt(cookingTime as string) : undefined,
-      difficulty: difficulty as string,
-      servings: servings ? parseInt(servings as string) : undefined
+    const filters: any = {
+      ...(ingredients && { ingredients: (ingredients as string).split(',').map(i => i.trim()) }),
+      ...(cuisine && { cuisine: cuisine as string }),
+      ...(mealType && { mealType: mealType as string }),
+      ...(cookingTime && { cookingTime: parseInt(cookingTime as string) }),
+      ...(difficulty && { difficulty: difficulty as string }),
+      ...(servings && { servings: parseInt(servings as string) })
     };
 
     const result = await RecipeSearchService.searchRecipes(
@@ -35,9 +35,9 @@ router.get('/recipes', async (req, res) => {
       parseInt(pageSize as string)
     );
 
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to search recipes' });
+    return res.json(result);
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to search recipes' });
   }
 });
 
@@ -51,9 +51,9 @@ router.get('/recipes/:id', async (req, res) => {
       return res.status(404).json({ error: 'Recipe not found' });
     }
     
-    res.json(recipe);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get recipe' });
+    return res.json(recipe);
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to get recipe' });
   }
 });
 
@@ -73,13 +73,13 @@ router.get('/recipes/filtered/:userId', async (req, res) => {
       servings
     } = req.query;
 
-    const filters = {
-      ingredients: ingredients ? (ingredients as string).split(',').map(i => i.trim()) : undefined,
-      cuisine: cuisine as string,
-      mealType: mealType as string,
-      cookingTime: cookingTime ? parseInt(cookingTime as string) : undefined,
-      difficulty: difficulty as string,
-      servings: servings ? parseInt(servings as string) : undefined
+    const filters: any = {
+      ...(ingredients && { ingredients: (ingredients as string).split(',').map(i => i.trim()) }),
+      ...(cuisine && { cuisine: cuisine as string }),
+      ...(mealType && { mealType: mealType as string }),
+      ...(cookingTime && { cookingTime: parseInt(cookingTime as string) }),
+      ...(difficulty && { difficulty: difficulty as string }),
+      ...(servings && { servings: parseInt(servings as string) })
     };
 
     // Get search results
@@ -103,12 +103,12 @@ router.get('/recipes/filtered/:userId', async (req, res) => {
       })
     );
 
-    res.json({
+    return res.json({
       ...searchResult,
       recipes: recipesWithAnalysis
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to search and filter recipes' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to search and filter recipes' });
   }
 });
 

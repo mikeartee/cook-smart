@@ -39,8 +39,8 @@ export class DiscordBotService {
     this.commands.set(command.name, command);
   }
 
-  static async handleRecipeCommand(interaction: any): Promise<void> {
-    const query = interaction.options?.getString('query') || 'random';
+  static async handleRecipeCommand(_interaction: any): Promise<void> {
+    // const query = _interaction.options?.getString('query') || 'random';
     
     // Mock recipe search
     const mockRecipes = [
@@ -50,6 +50,8 @@ export class DiscordBotService {
     ];
 
     const recipe = mockRecipes[Math.floor(Math.random() * mockRecipes.length)];
+    
+    if (!recipe) return;
     
     const embed = {
       title: `🍳 ${recipe.title}`,
@@ -62,7 +64,7 @@ export class DiscordBotService {
     console.log('Recipe command response:', embed);
   }
 
-  static async handleStatsCommand(interaction: any): Promise<void> {
+  static async handleStatsCommand(_interaction: any): Promise<void> {
     const stats: BotStats = {
       totalUsers: 1250,
       totalRecipes: 3400,
@@ -93,7 +95,7 @@ export class DiscordBotService {
     console.log('Stats command response:', embed);
   }
 
-  static async handleHelpCommand(interaction: any): Promise<void> {
+  static async handleHelpCommand(_interaction: any): Promise<void> {
     const commandList = Array.from(this.commands.values())
       .map(cmd => `\`/${cmd.name}\` - ${cmd.description}`)
       .join('\n');
@@ -118,7 +120,7 @@ export class DiscordBotService {
 
     try {
       await command.execute(interaction);
-    } catch (error) {
+    } catch (_error) {
       console.error(`Error executing command ${commandName}:`, error);
     }
   }

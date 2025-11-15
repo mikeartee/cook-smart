@@ -98,7 +98,7 @@ export class UserProfileModel {
       }
       
       await client.query('COMMIT');
-    } catch (error) {
+    } catch (_error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {

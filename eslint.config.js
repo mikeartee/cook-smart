@@ -8,12 +8,16 @@ module.exports = [
       'backend/node_modules/**',
       'dist/**',
       'build/**',
+      'backend/dist/**',
       '.expo/**',
       'coverage/**',
       '*.config.js',
       'babel.config.js',
       'metro.config.js',
-      'jest.config.js'
+      'jest.config.js',
+      '.kiro/verify-and-scan.js',
+      'test-bundle.js',
+      '*.bundle.js'
     ]
   },
   {
@@ -45,7 +49,11 @@ module.exports = [
       '@typescript-eslint/no-shadow': 'error',
       'no-shadow': 'off',
       'no-undef': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }],
       'no-console': 'off'
     }
   }

@@ -35,14 +35,15 @@ export class TestRunner {
       
       this.results.push(result);
       return result;
-    } catch (error: any) {
+    } catch (error) {
       const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       const result: TestResult = {
         testName,
         status: 'fail',
         duration,
-        error: error.message || 'Unknown error',
+        error: errorMessage,
         details: `Test failed after ${duration}ms`
       };
       
@@ -123,12 +124,13 @@ export const validateComponent = (componentName: string, requiredProps: string[]
       duration: Date.now() - startTime,
       details: `Component ${componentName} validated successfully`
     };
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Validation failed';
     return {
       testName: `${componentName} Component Validation`,
       status: 'fail',
       duration: Date.now() - startTime,
-      error: error.message
+      error: errorMessage
     };
   }
 };
@@ -146,12 +148,13 @@ export const testApiEndpoint = async (endpoint: string, expectedStatus: number =
       duration: Date.now() - startTime,
       details: `Endpoint responded with status ${expectedStatus}`
     };
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'API test failed';
     return {
       testName: `API Endpoint: ${endpoint}`,
       status: 'fail',
       duration: Date.now() - startTime,
-      error: error.message
+      error: errorMessage
     };
   }
 };
@@ -171,12 +174,13 @@ export const testUserFlow = async (flowName: string, steps: string[]): Promise<T
       duration: Date.now() - startTime,
       details: `Completed ${steps.length} steps successfully`
     };
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'User flow failed';
     return {
       testName: `User Flow: ${flowName}`,
       status: 'fail',
       duration: Date.now() - startTime,
-      error: error.message
+      error: errorMessage
     };
   }
 };

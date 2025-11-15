@@ -117,7 +117,7 @@ router.get('/find', authenticateToken, [
       },
       usage: recipeService.getSpoonacularUsage()
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Recipe search error:', error);
     res.status(500).json({
       error: 'Recipe search failed',
@@ -159,7 +159,7 @@ router.get('/suggestions', authenticateToken, async (req: AuthRequest, res: Resp
       suggestions: topSuggestions,
       usage: recipeService.getSpoonacularUsage()
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Recipe suggestions error:', error);
     res.status(500).json({
       error: 'Failed to get suggestions',
@@ -183,10 +183,10 @@ router.get('/search', [
       return;
     }
 
-    const { q: query, limit } = req.query;
+    const { q: searchQuery, limit } = req.query;
     
     // For now, use the main ingredient from the search query
-    const searchTerms = (query as string).split(' ').filter(term => term.length > 2);
+    const searchTerms = (searchQuery as string).split(' ').filter(term => term.length > 2);
     
     const recipes = await recipeService.findRecipes({
       ingredients: searchTerms
@@ -197,7 +197,7 @@ router.get('/search', [
       found: recipes.length,
       recipes: recipes.slice(0, parseInt(limit as string) || 20)
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Recipe search error:', error);
     res.status(500).json({
       error: 'Search failed',
@@ -218,7 +218,7 @@ router.get('/usage', authenticateToken, async (req: AuthRequest, res: Response) 
         'Approaching Spoonacular monthly limit, will use backup APIs' : 
         'All APIs available'
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Usage stats error:', error);
     res.status(500).json({
       error: 'Failed to get usage statistics'
@@ -250,7 +250,7 @@ router.get('/test', async (req: Request, res: Response) => {
       })),
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Recipe test error:', error);
     res.status(500).json({
       error: 'Test failed',
@@ -272,17 +272,16 @@ router.post('/:recipeId/favorite', authenticateToken, [
     const { recipeId } = req.params;
     
     // Add to user_recipes table
-    await db('user_recipes')
-      .insert({
-        user_id: req.user.id,
-        recipe_id: recipeId,
-        is_favorite: true
-      })
-      .onConflict(['user_id', 'recipe_id'])
-      .merge({ is_favorite: true, updated_at: new Date() });
+    await pool.query(
+      `INSERT INTO user_recipes (user_id, recipe_id, is_favorite)
+       VALUES ($1, $2, true)
+       ON CONFLICT (user_id, recipe_id)
+       DO UPDATE SET is_favorite = true, updated_at = NOW()`,
+      [req.user.id, recipeId]
+    );
 
     res.json({ message: 'Recipe added to favorites' });
-  } catch (error) {
+  } catch (_error) {
     console.error('Add favorite error:', error);
     res.status(500).json({ error: 'Failed to add favorite' });
   }
@@ -300,12 +299,15 @@ router.delete('/:recipeId/favorite', authenticateToken, [
 
     const { recipeId } = req.params;
     
-    await db('user_recipes')
-      .where({ user_id: req.user.id, recipe_id: recipeId })
-      .update({ is_favorite: false, updated_at: new Date() });
+    await pool.query(
+      `UPDATE user_recipes
+       SET is_favorite = false, updated_at = NOW()
+       WHERE user_id = $1 AND recipe_id = $2`,
+      [req.user.id, recipeId]
+    );
 
     res.json({ message: 'Recipe removed from favorites' });
-  } catch (error) {
+  } catch (_error) {
     console.error('Remove favorite error:', error);
     res.status(500).json({ error: 'Failed to remove favorite' });
   }
@@ -319,15 +321,17 @@ router.get('/favorites', authenticateToken, async (req: AuthRequest, res: Respon
       return;
     }
 
-    const favorites = await db('user_recipes as ur')
-      .join('recipes as r', 'ur.recipe_id', 'r.id')
-      .where('ur.user_id', req.user.id)
-      .where('ur.is_favorite', true)
-      .select('r.*', 'ur.rating', 'ur.notes', 'ur.last_cooked_at')
-      .orderBy('ur.updated_at', 'desc');
+    const result = await pool.query(
+      `SELECT r.*, ur.rating, ur.notes, ur.last_cooked_at
+       FROM user_recipes ur
+       JOIN recipes r ON ur.recipe_id = r.id
+       WHERE ur.user_id = $1 AND ur.is_favorite = true
+       ORDER BY ur.updated_at DESC`,
+      [req.user.id]
+    );
 
-    res.json({ favorites });
-  } catch (error) {
+    res.json({ favorites: result.rows });
+  } catch (_error) {
     console.error('Get favorites error:', error);
     res.status(500).json({ error: 'Failed to get favorites' });
   }
@@ -357,7 +361,7 @@ router.post('/submit', authenticateToken, [
     const {
       title,
       description,
-      ingredients,
+      // ingredients,
       instructions,
       prep_time_minutes,
       cook_time_minutes,
@@ -368,25 +372,32 @@ router.post('/submit', authenticateToken, [
 
     const totalTime = (parseInt(prep_time_minutes) || 0) + (parseInt(cook_time_minutes) || 0);
 
-    const [recipeId] = await db('recipes')
-      .insert({
+    const result = await pool.query(
+      `INSERT INTO recipes (
+        title, description, instructions, prep_time_minutes, cook_time_minutes,
+        total_time_minutes, servings, difficulty, source_api, is_user_submitted,
+        is_lolz_recipe, moderation_status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id`,
+      [
         title,
         description,
         instructions,
-        prep_time_minutes: parseInt(prep_time_minutes) || null,
-        cook_time_minutes: parseInt(cook_time_minutes) || null,
-        total_time_minutes: totalTime || null,
-        servings: parseInt(servings),
+        parseInt(prep_time_minutes) || null,
+        parseInt(cook_time_minutes) || null,
+        totalTime || null,
+        parseInt(servings),
         difficulty,
-        source_api: 'user',
-        is_user_submitted: true,
-        is_lolz_recipe: is_lolz_recipe || false,
-        moderation_status: 'pending'
-      })
-      .returning('id');
+        'user',
+        true,
+        is_lolz_recipe || false,
+        'pending'
+      ]
+    );
+    const recipeId = result.rows[0].id;
 
     // Parse and store ingredients
-    const ingredientLines = ingredients.split('\n').filter((line: string) => line.trim());
+    // const ingredientLines = ingredients.split('\n').filter((line: string) => line.trim());
     // For now, store as simple text - could be enhanced to parse amounts/units
 
     res.json({
@@ -394,7 +405,7 @@ router.post('/submit', authenticateToken, [
       recipe_id: recipeId.id,
       status: 'pending_review'
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Submit recipe error:', error);
     res.status(500).json({ error: 'Failed to submit recipe' });
   }

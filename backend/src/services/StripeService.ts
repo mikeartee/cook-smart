@@ -36,7 +36,7 @@ export class StripeService {
         price: 299, // cents
         interval: 'week',
         features: ['Unlimited recipes', 'Shopping lists', 'Dietary filters', 'Recipe ratings'],
-        stripePriceId: process.env.STRIPE_WEEKLY_PRICE_ID
+        stripePriceId: process.env.STRIPE_WEEKLY_PRICE_ID || ''
       },
       {
         id: 'monthly',
@@ -44,7 +44,7 @@ export class StripeService {
         price: 699, // cents
         interval: 'month',
         features: ['Unlimited recipes', 'Shopping lists', 'Dietary filters', 'Recipe ratings', 'Priority support'],
-        stripePriceId: process.env.STRIPE_MONTHLY_PRICE_ID
+        stripePriceId: process.env.STRIPE_MONTHLY_PRICE_ID || ''
       },
       {
         id: 'yearly',
@@ -52,7 +52,7 @@ export class StripeService {
         price: 3499, // cents
         interval: 'year',
         features: ['Unlimited recipes', 'Shopping lists', 'Dietary filters', 'Recipe ratings', 'Priority support', 'Advanced analytics'],
-        stripePriceId: process.env.STRIPE_YEARLY_PRICE_ID
+        stripePriceId: process.env.STRIPE_YEARLY_PRICE_ID || ''
       },
       {
         id: 'beta-presale',
@@ -60,12 +60,12 @@ export class StripeService {
         price: 2499, // cents (30% off yearly)
         interval: 'year',
         features: ['All yearly features', '30% discount', 'Lifetime BETA access', 'Early feature access'],
-        stripePriceId: process.env.STRIPE_BETA_PRICE_ID
+        stripePriceId: process.env.STRIPE_BETA_PRICE_ID || ''
       }
     ];
   }
 
-  static async createPaymentIntent(amount: number, currency: string = 'usd', metadata?: any): Promise<PaymentIntent> {
+  static async createPaymentIntent(amount: number, currency: string = 'usd', _metadata?: any): Promise<PaymentIntent> {
     // Mock Stripe payment intent creation
     const paymentIntent: PaymentIntent = {
       id: `pi_${Date.now()}`,
@@ -79,7 +79,7 @@ export class StripeService {
     return paymentIntent;
   }
 
-  static async createSubscription(userId: string, planId: string, paymentMethodId: string): Promise<Subscription> {
+  static async createSubscription(userId: string, planId: string, _paymentMethodId: string): Promise<Subscription> {
     const plan = this.getPricingPlans().find(p => p.id === planId);
     if (!plan) {
       throw new Error('Invalid plan ID');
@@ -134,7 +134,7 @@ export class StripeService {
     ];
   }
 
-  static async processWebhook(payload: any, signature: string): Promise<void> {
+  static async processWebhook(payload: any, _signature: string): Promise<void> {
     // Mock webhook processing
     console.log('Processing Stripe webhook:', payload.type);
     

@@ -89,7 +89,7 @@ export class CommunityActivityService {
           await this.sendContributionNotification(activity);
           break;
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to send Discord notification for activity:', error);
     }
   }

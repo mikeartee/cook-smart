@@ -9,9 +9,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// TODO: Re-enable when adding music - import { Audio } from 'expo-av';
+// TODO: Re-enable when adding music - import { useEffect, useState } from 'react';
 
 const CoFounderWelcomeScreen: React.FC = () => {
   const navigation = useNavigation();
+  // TODO: Music feature disabled temporarily - need to purchase song
+  // See: .kiro/TODO_ADD_MUSIC.md for instructions
+  // Uncomment these when re-enabling music:
+  // const [sound, setSound] = useState<Audio.Sound | null>(null);
+  // const [isPlaying, setIsPlaying] = useState(false);
 
   const handleContinue = async () => {
     // Mark that we've shown the welcome screen
@@ -75,6 +82,8 @@ const CoFounderWelcomeScreen: React.FC = () => {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>👑 CO-FOUNDER - LIFETIME ACCESS</Text>
           </View>
+
+          {/* Music button disabled - see .kiro/TODO_ADD_MUSIC.md */}
 
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
             <Text style={styles.continueButtonText}>Continue to Cook Smart 🍳</Text>
@@ -169,6 +178,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  musicButton: {
+    backgroundColor: '#8B5CF6',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  musicButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  songInfo: {
+    color: '#E9D5FF',
+    fontSize: 13,
+    fontStyle: 'italic',
   },
   continueButton: {
     backgroundColor: '#BE123C',

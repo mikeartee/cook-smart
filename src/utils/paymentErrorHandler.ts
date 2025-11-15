@@ -1,13 +1,16 @@
 import { PaymentError } from '../components/PaymentErrorModal';
 
 export class PaymentErrorHandler {
-  static parseError(error: any): PaymentError {
+  static parseError(error: unknown): PaymentError {
     // Handle different error types from various sources
-    if (error.response?.data?.error) {
-      return this.parseAPIError(error.response.data.error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const err = error as { response?: { data?: { error?: string } } };
+      if (err.response?.data?.error) {
+        return this.parseAPIError(err.response.data.error);
+      }
     }
     
-    if (error.message) {
+    if (error instanceof Error && error.message) {
       return this.parseGenericError(error.message);
     }
     

@@ -23,7 +23,7 @@ export const discordNotificationMiddleware = async (
       setImmediate(async () => {
         try {
           await sendDiscordNotification(req.notifyDiscord!.type, req.notifyDiscord!.data);
-        } catch (error) {
+        } catch (_error) {
           console.error('Discord notification failed:', error);
         }
       });

@@ -78,7 +78,10 @@ export class ShoppingListModel {
       if (!categorized[item.category]) {
         categorized[item.category] = [];
       }
-      categorized[item.category].push(item);
+      const categoryArray = categorized[item.category];
+      if (categoryArray) {
+        categoryArray.push(item);
+      }
     });
     
     return categorized;

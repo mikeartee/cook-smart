@@ -91,6 +91,6 @@ export class IngredientSubstitutionService {
     if (!this.substitutions[key]) {
       this.substitutions[key] = [];
     }
-    this.substitutions[key].push({ ingredient: substitute, ratio, notes });
+    this.substitutions[key].push({ ingredient: substitute, ratio, ...(notes && { notes }) });
   }
 }

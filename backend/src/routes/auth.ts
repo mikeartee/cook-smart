@@ -68,7 +68,7 @@ router.post('/register', [
         lifetime_access: true
       })
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Registration error:', error);
     res.status(500).json({
       error: 'Registration failed',
@@ -129,7 +129,7 @@ router.post('/login', [
         points: user.points
       }
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Login error:', error);
     res.status(500).json({
       error: 'Login failed',
@@ -166,7 +166,7 @@ router.get('/export-data', authenticateToken, async (req: AuthRequest, res: Resp
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="cook-smart-data-${req.user.id}.json"`);
     res.json(userData);
-  } catch (error) {
+  } catch (_error) {
     console.error('Data export error:', error);
     res.status(500).json({
       error: 'Export failed',
@@ -184,7 +184,7 @@ router.delete('/delete-account', authenticateToken, async (req: AuthRequest, res
       message: 'Account deleted successfully',
       note: 'All your data has been permanently removed from our systems'
     });
-  } catch (error) {
+  } catch (_error) {
     console.error('Account deletion error:', error);
     res.status(500).json({
       error: 'Deletion failed',

@@ -40,8 +40,8 @@ export const PrePurchaseScreen: React.FC = () => {
         [{ text: 'Continue', onPress: () => {/* Navigate back */} }]
       );
       // Payment successful
-    } catch (error: any) {
-      setPaymentError(error);
+    } catch (error) {
+      setPaymentError(error as PaymentError);
     } finally {
       setLoading(false);
     }

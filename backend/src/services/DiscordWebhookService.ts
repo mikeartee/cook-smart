@@ -92,11 +92,11 @@ export class DiscordWebhookService {
   }
 
   static async sendErrorNotification(error: string, context?: string): Promise<void> {
-    const embed: DiscordEmbed = {
+    const embed: any = {
       title: '🚨 Application Error',
       description: error,
       color: 0xF44336,
-      fields: context ? [{ name: 'Context', value: context }] : undefined,
+      ...(context && { fields: [{ name: 'Context', value: context }] }),
       timestamp: new Date().toISOString()
     };
 
@@ -121,7 +121,7 @@ export class DiscordWebhookService {
         },
         timeout: 5000
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(`Failed to send Discord webhook (${type}):`, error);
     }
   }
@@ -133,7 +133,7 @@ export class DiscordWebhookService {
         username: 'Cook Smart Test Bot'
       });
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

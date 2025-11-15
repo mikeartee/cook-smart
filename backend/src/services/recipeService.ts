@@ -79,7 +79,7 @@ class RecipeService {
       // Apply dietary filtering if userId provided
       if (userId) {
         // const filteredRecipes = await dietaryFilterService.filterRecipesForUser(userId, dedupedRecipes);
-        const filteredRecipes = dedupedRecipes.map(recipe => ({ recipe, conflicts: [], safety_level: 'safe', match_type: 'exact' }));
+        const filteredRecipes = dedupedRecipes.map(recipe => ({ recipe, conflicts: [], safety_level: 'safe' as const, match_type: 'exact' as const }));
         return filteredRecipes.map(fr => ({
           ...fr.recipe,
           dietary_conflicts: fr.conflicts,
@@ -90,7 +90,7 @@ class RecipeService {
       
       return dedupedRecipes.slice(0, 20);
 
-    } catch (error) {
+    } catch (_error) {
       console.error('Recipe search error:', error);
       return [];
     }
@@ -147,7 +147,7 @@ class RecipeService {
       }
 
       return recipes;
-    } catch (error) {
+    } catch (_error) {
       console.error('Spoonacular API error:', error);
       return [];
     }
@@ -198,7 +198,7 @@ class RecipeService {
           }
         };
       });
-    } catch (error) {
+    } catch (_error) {
       console.error('Edamam API error:', error);
       return [];
     }
@@ -243,7 +243,7 @@ class RecipeService {
       }
 
       return recipes;
-    } catch (error) {
+    } catch (_error) {
       console.error('TheMealDB API error:', error);
       return [];
     }

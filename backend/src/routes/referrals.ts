@@ -11,7 +11,7 @@ router.post('/user/:userId', async (req, res) => {
     
     const referralCode = await ReferralModel.createReferral(userId, email);
     res.json({ success: true, referralCode });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to create referral' });
   }
 });
@@ -22,7 +22,7 @@ router.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const referrals = await ReferralModel.getUserReferrals(userId);
     res.json(referrals);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get referrals' });
   }
 });
@@ -33,7 +33,7 @@ router.get('/user/:userId/stats', async (req, res) => {
     const { userId } = req.params;
     const stats = await ReferralModel.getReferralStats(userId);
     res.json(stats);
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get referral stats' });
   }
 });
@@ -50,12 +50,12 @@ router.post('/complete', async (req, res) => {
     const success = await ReferralModel.completeReferral(referralCode, newUserId);
     
     if (success) {
-      res.json({ success: true, message: 'Referral completed successfully' });
+      return res.json({ success: true, message: 'Referral completed successfully' });
     } else {
-      res.status(400).json({ error: 'Invalid or expired referral code' });
+      return res.status(400).json({ error: 'Invalid or expired referral code' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to complete referral' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to complete referral' });
   }
 });
 
@@ -73,13 +73,13 @@ router.get('/validate/:referralCode', async (req, res) => {
       return res.status(400).json({ error: 'Referral code is not valid' });
     }
     
-    res.json({ 
+    return res.json({ 
       valid: true, 
       referrerId: referral.referrerId,
       message: 'Valid referral code' 
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to validate referral code' });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Failed to validate referral code' });
   }
 });
 

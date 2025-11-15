@@ -91,9 +91,9 @@ class PaymentService {
       }
       
       return data.paymentIntent;
-    } catch (error: any) {
-      if ((error as any).type) throw error; // Already a PaymentError
-      const paymentError = PaymentErrorHandler.parseError(error as any);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'type' in error) throw error; // Already a PaymentError
+      const paymentError = PaymentErrorHandler.parseError(error);
       PaymentErrorHandler.logError(paymentError, 'createPaymentIntent');
       throw paymentError;
     }
@@ -119,9 +119,9 @@ class PaymentService {
       }
       
       return data.subscription;
-    } catch (error: any) {
-      if ((error as any).type) throw error; // Already a PaymentError
-      const paymentError = PaymentErrorHandler.parseError(error as any);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'type' in error) throw error; // Already a PaymentError
+      const paymentError = PaymentErrorHandler.parseError(error);
       PaymentErrorHandler.logError(paymentError, 'createSubscription');
       throw paymentError;
     }

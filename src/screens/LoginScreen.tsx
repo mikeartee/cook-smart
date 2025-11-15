@@ -29,8 +29,9 @@ const LoginScreen: React.FC = () => {
     setIsLoading(true);
     try {
       await login(email.trim().toLowerCase(), password);
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Unable to log in');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unable to log in';
+      Alert.alert('Login Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }
