@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import CoFounderWelcomeScreen from './screens/CoFounderWelcomeScreen';
 import CookieConsent from './components/CookieConsent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -19,16 +21,6 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
-  </Stack.Navigator>
-);
-
-const MainStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen 
-      name="Home" 
-      component={HomeScreen}
-      options={{ title: 'Cook Smart 🍳' }}
-    />
   </Stack.Navigator>
 );
 
@@ -61,9 +53,27 @@ const HomeScreen = () => {
 };
 
 const AppContent = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [showCoFounderWelcome, setShowCoFounderWelcome] = useState(false);
+  const [checkingWelcome, setCheckingWelcome] = useState(true);
 
-  if (isLoading) {
+  useEffect(() => {
+    const checkCoFounderWelcome = async () => {
+      if (user?.is_co_founder) {
+        const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
+        setShowCoFounderWelcome(!hasShown);
+      }
+      setCheckingWelcome(false);
+    };
+
+    if (!isLoading && isAuthenticated) {
+      checkCoFounderWelcome();
+    } else {
+      setCheckingWelcome(false);
+    }
+  }, [user, isAuthenticated, isLoading]);
+
+  if (isLoading || checkingWelcome) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#10B981" />
@@ -75,7 +85,28 @@ const AppContent = () => {
   return (
     <>
       <NavigationContainer>
-        {isAuthenticated ? <MainStack /> : <AuthStack />}
+        {isAuthenticated ? (
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {showCoFounderWelcome ? (
+              <>
+                <Stack.Screen name="CoFounderWelcome" component={CoFounderWelcomeScreen} />
+                <Stack.Screen 
+                  name="Home" 
+                  component={HomeScreen}
+                  options={{ headerShown: true, title: 'Cook Smart 🍳' }}
+                />
+              </>
+            ) : (
+              <Stack.Screen 
+                name="Home" 
+                component={HomeScreen}
+                options={{ headerShown: true, title: 'Cook Smart 🍳' }}
+              />
+            )}
+          </Stack.Navigator>
+        ) : (
+          <AuthStack />
+        )}
       </NavigationContainer>
       <CookieConsent />
     </>
