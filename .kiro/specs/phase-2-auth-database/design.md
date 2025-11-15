@@ -2,7 +2,7 @@
 
 ## Overview
 
-This phase implements the core data layer and authentication system for Cook Smart. The design follows a layered architecture with PostgreSQL as the database, Express.js for the API layer, and React Native for the frontend. All subsequent features depend on this foundation.
+This phase implements the core data layer and authentication system for Cook Smart. The design follows a serverless architecture with AWS Lambda for compute, PostgreSQL for data storage, and React Native for the frontend. All subsequent features depend on this foundation.
 
 ## Architecture
 
@@ -15,16 +15,24 @@ This phase implements the core data layer and authentication system for Cook Sma
 │   - Auth Context (JWT storage)      │
 │   - Protected Routes                │
 └──────────────┬──────────────────────┘
-               │ HTTP/REST
+               │ HTTPS/REST
 ┌──────────────▼──────────────────────┐
-│   Express.js Backend                │
-│   - Auth Routes                     │
+│   AWS API Gateway                   │
+│   - Route Management                │
+│   - Request/Response Transformation │
+│   - CORS Configuration              │
+└──────────────┬──────────────────────┘
+               │ Invoke
+┌──────────────▼──────────────────────┐
+│   AWS Lambda Functions              │
+│   - Auth Functions (register/login) │
+│   - User Functions (profile/GDPR)   │
 │   - JWT Middleware                  │
-│   - User Service                    │
+│   - Shared Utilities                │
 └──────────────┬──────────────────────┘
                │ SQL Queries
 ┌──────────────▼──────────────────────┐
-│   PostgreSQL Database               │
+│   AWS RDS PostgreSQL                │
 │   - Users Table                     │
 │   - Ingredients Tables              │
 │   - Recipes Tables                  │
@@ -34,14 +42,118 @@ This phase implements the core data layer and authentication system for Cook Sma
 
 ### Technology Stack
 
-- **Database**: PostgreSQL 14+ with pg library
+- **Compute**: AWS Lambda (Node.js 18+) - FREE forever
+- **API Gateway**: AWS API Gateway - FREE forever
+- **Database**: AWS RDS PostgreSQL (t3.micro) - FREE for 7 months (credits)
 - **Migrations**: node-pg-migrate for versioned schema changes
 - **Authentication**: JWT tokens with bcrypt password hashing
-- **API**: Express.js REST endpoints
+- **Deployment**: Serverless Framework for infrastructure as code
 - **Frontend State**: React Context API for auth state
 - **Storage**: AsyncStorage for JWT persistence
 
+### AWS Cost Structure
+
+**Always Free (Forever):**
+- Lambda: 1M requests/month + 400K GB-seconds
+- API Gateway: 1M API calls/month
+- S3: 5GB storage + 20K GET requests
+
+**Credit-Covered (7 months):**
+- RDS PostgreSQL t3.micro: ~$15/month
+
+**After Credits:**
+- RDS only: $15/month
+- Everything else: FREE
+
 ## Components and Interfaces
+
+### Serverless Framework Configuration
+
+**Purpose**: Define and deploy Lambda functions and API Gateway
+
+**Configuration** (`serverless.yml`):
+```yaml
+service: cook-smart-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+
+functions:
+  register:
+    handler: functions/auth/register.handler
+    events:
+      - http:
+          path: auth/register
+          method: post
+          cors: true
+          
+  login:
+    handler: functions/auth/login.handler
+    events:
+      - http:
+          path: auth/login
+          method: post
+          cors: true
+```
+
+### Lambda Function Structure
+
+**Purpose**: Handle individual API endpoints as separate functions
+
+**Pattern**:
+```typescript
+// functions/auth/register.ts
+import { APIGatewayProxyHandler } from 'aws-lambda';
+import { AuthService } from '../shared/services/AuthService';
+
+export const handler: APIGatewayProxyHandler = async (event) => {
+  try {
+    const { email, password, firstName, lastName } = JSON.parse(event.body || '{}');
+    
+    const result = await AuthService.register(email, password, firstName, lastName);
+    
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(result)
+    };
+  } catch (error) {
+    return {
+      statusCode: error.statusCode || 500,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
+};
+```
+
+### Database Connection Pooling
+
+**Purpose**: Reuse database connections across Lambda invocations
+
+**Implementation**:
+```typescript
+// functions/shared/db.ts
+import { Pool } from 'pg';
+
+let pool: Pool | null = null;
+
+export const getPool = (): Pool => {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 1, // Lambda: 1 connection per instance
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    });
+  }
+  return pool;
+};
+```
 
 ### Database Migration System
 
@@ -266,53 +378,61 @@ class UserService {
 }
 ```
 
-### API Endpoints
+### API Endpoints (via API Gateway)
+
+**Base URL**: `https://{api-id}.execute-api.us-east-1.amazonaws.com/dev`
 
 #### Authentication Endpoints
 
 ```
-POST /api/v1/auth/register
+POST /auth/register
 Body: { email, password, firstName, lastName }
 Response: { user: {...}, token: "jwt..." }
+Lambda: functions/auth/register.handler
 
-POST /api/v1/auth/login
+POST /auth/login
 Body: { email, password }
 Response: { user: {...}, token: "jwt..." }
+Lambda: functions/auth/login.handler
 
-GET /api/v1/auth/me
+GET /auth/me
 Headers: Authorization: Bearer <token>
 Response: { user: {...} }
-
-POST /api/v1/auth/logout
-Headers: Authorization: Bearer <token>
-Response: { message: "Logged out successfully" }
+Lambda: functions/auth/me.handler
 ```
 
 #### User Profile Endpoints
 
 ```
-GET /api/v1/users/profile
+GET /users/profile
 Headers: Authorization: Bearer <token>
 Response: { user: {...} }
+Lambda: functions/users/getProfile.handler
 
-PUT /api/v1/users/profile
+PUT /users/profile
 Headers: Authorization: Bearer <token>
 Body: { firstName, lastName }
 Response: { user: {...} }
+Lambda: functions/users/updateProfile.handler
 
-PUT /api/v1/users/password
+PUT /users/password
 Headers: Authorization: Bearer <token>
 Body: { currentPassword, newPassword }
 Response: { message: "Password updated" }
+Lambda: functions/users/changePassword.handler
 
-GET /api/v1/users/export
+GET /users/export
 Headers: Authorization: Bearer <token>
 Response: { userData: {...} }
+Lambda: functions/users/exportData.handler
 
-DELETE /api/v1/users/account
+DELETE /users/account
 Headers: Authorization: Bearer <token>
 Response: { message: "Account deleted" }
+Lambda: functions/users/deleteAccount.handler
 ```
+
+**Note**: API Gateway automatically provides HTTPS, CORS, and request/response transformation
 
 ### Frontend Authentication Context
 

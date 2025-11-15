@@ -64,30 +64,38 @@ Set up the migration infrastructure that will manage all database schema changes
 
 ---
 
-## 2. Authentication Service Implementation
+## 2. Serverless Framework Setup
 
-Build the core authentication logic for user registration and login.
+Set up AWS Lambda deployment infrastructure using Serverless Framework.
 
-- [ ] 2.1 Create User model with database queries
-  - Create `backend/src/models/User.ts`
-  - Implement `create()` method to insert new user
-  - Implement `findByEmail()` method to query by email
-  - Implement `findById()` method to query by ID
-  - Use pool.query() pattern from fixes-log.md
-  - Test with mocked database, verify queries are correct
-  - _Requirements: 2.1, 2.2, 2.3_
+- [ ] 2.1 Install and configure Serverless Framework
+  - Install `serverless` globally: `npm install -g serverless`
+  - Install in backend: `npm install --save-dev serverless serverless-offline`
+  - Create `backend/serverless.yml` configuration file
+  - Configure AWS provider, region (us-east-1), runtime (nodejs18.x)
+  - Add environment variables: DATABASE_URL, JWT_SECRET
+  - Test configuration: `serverless print`
+  - _Requirements: 1.1, 1.2_
 
-- [ ] 2.2 Implement password hashing utilities
+- [ ] 2.2 Create shared database connection module
+  - Create `backend/functions/shared/db.ts`
+  - Implement connection pooling with pg library
+  - Use single connection per Lambda instance (max: 1)
+  - Export `getPool()` function for reuse across functions
+  - Test connection with simple query
+  - _Requirements: 1.1, 1.3_
+
+- [ ] 2.3 Create shared utilities module
+  - Create `backend/functions/shared/utils/passwordUtils.ts`
   - Install `bcrypt` package
-  - Create `backend/src/utils/passwordUtils.ts`
   - Implement `hashPassword()` function using bcrypt with 10 salt rounds
   - Implement `comparePassword()` function to verify passwords
   - Test both functions with sample passwords
   - _Requirements: 2.3, 3.3, 4.2_
 
-- [ ] 2.3 Implement JWT token utilities
+- [ ] 2.4 Create JWT utilities module
+  - Create `backend/functions/shared/utils/jwtUtils.ts`
   - Install `jsonwebtoken` package
-  - Create `backend/src/utils/jwtUtils.ts`
   - Implement `generateToken()` function with 7-day expiration
   - Implement `verifyToken()` function to decode and validate tokens
   - Include userId, email, isCoFounder in JWT payload
@@ -95,81 +103,76 @@ Build the core authentication logic for user registration and login.
   - Test token generation and verification
   - _Requirements: 4.1, 4.3, 4.4, 4.5_
 
-- [ ] 2.4 Create AuthService with registration logic
-  - Create `backend/src/services/AuthService.ts`
-  - Implement `register()` method
+- [ ] 2.5 Create User model for database operations
+  - Create `backend/functions/shared/models/User.ts`
+  - Implement `create()` method to insert new user
+  - Implement `findByEmail()` method to query by email
+  - Implement `findById()` method to query by ID
+  - Use pool.query() pattern from fixes-log.md
+  - Test with mocked database, verify queries are correct
+  - _Requirements: 2.1, 2.2, 2.3_
+
+- [ ] 2.6 Create AuthService with business logic
+  - Create `backend/functions/shared/services/AuthService.ts`
+  - Implement `register()` method with email validation
   - Check if email already exists (return error if so)
-  - Validate email format and password length (min 8 chars)
+  - Validate password length (min 8 chars)
   - Detect Co-Founder email (brianaolszewski1@gmail.com)
   - Hash password before storing
   - Set is_co_founder=true and subscription_status='lifetime' for Co-Founder
-  - Create user in database
   - Generate and return JWT token
-  - Test with mocked User model
-  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 2.4, 2.5, 2.6_
-
-- [ ] 2.5 Create AuthService login logic
-  - Implement `login()` method in AuthService
-  - Find user by email
-  - Return error if user not found
-  - Compare provided password with stored hash
-  - Return error if password doesn't match
-  - Generate and return JWT token with user data
-  - Test with mocked User model and various scenarios
-  - _Requirements: 4.1, 4.2, 4.3_
-
-- [ ] 2.6 Create authentication middleware
-  - Create `backend/src/middleware/authMiddleware.ts`
-  - Implement `authenticate` middleware function
-  - Extract JWT token from Authorization header
-  - Verify token using jwtUtils
-  - Attach user data to request object
-  - Return 401 error for invalid/missing tokens
-  - Test middleware with valid and invalid tokens
-  - _Requirements: 4.4, 4.5, 10.1, 10.2, 10.3_
+  - Implement `login()` method with password verification
+  - Test both methods with mocked User model
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3_
 
 ---
 
-## 3. Authentication API Endpoints
+## 3. Lambda Functions for Authentication
 
-Create the REST API endpoints for user authentication.
+Create Lambda function handlers for authentication endpoints.
 
-- [ ] 3.1 Create registration endpoint
-  - Create or update `backend/src/routes/auth.ts`
-  - Implement POST /api/v1/auth/register endpoint
-  - Validate request body (email, password, firstName, lastName)
+- [ ] 3.1 Create registration Lambda function
+  - Create `backend/functions/auth/register.ts`
+  - Implement handler function with APIGatewayProxyHandler type
+  - Parse request body (email, password, firstName, lastName)
   - Call AuthService.register()
-  - Return user data and JWT token
+  - Return 200 with user data and JWT token
   - Handle errors (duplicate email, validation failures)
-  - Test endpoint with curl or Postman
+  - Add function to serverless.yml with POST /auth/register endpoint
+  - Test locally with `serverless invoke local -f register`
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 3.2 Create login endpoint
-  - Implement POST /api/v1/auth/login in auth routes
-  - Validate request body (email, password)
+- [ ] 3.2 Create login Lambda function
+  - Create `backend/functions/auth/login.ts`
+  - Implement handler function
+  - Parse request body (email, password)
   - Call AuthService.login()
-  - Return user data and JWT token
-  - Handle authentication errors
-  - Test endpoint with valid and invalid credentials
+  - Return 200 with user data and JWT token
+  - Handle authentication errors (401 for invalid credentials)
+  - Add function to serverless.yml with POST /auth/login endpoint
+  - Test locally with valid and invalid credentials
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 3.3 Create "get current user" endpoint
-  - Implement GET /api/v1/auth/me in auth routes
-  - Apply authenticate middleware
-  - Return current user data from request.user
-  - Exclude password hash from response
-  - Test endpoint with valid token
-  - Test endpoint without token (should return 401)
-  - _Requirements: 5.1, 10.2, 10.3_
+- [ ] 3.3 Create "get current user" Lambda function
+  - Create `backend/functions/auth/me.ts`
+  - Implement handler function
+  - Extract JWT token from Authorization header
+  - Verify token using jwtUtils
+  - Fetch user by ID from token payload
+  - Return user data (exclude password hash)
+  - Return 401 for invalid/missing tokens
+  - Add function to serverless.yml with GET /auth/me endpoint
+  - Test with valid and invalid tokens
+  - _Requirements: 5.1, 4.4, 4.5, 10.2, 10.3_
 
 ---
 
-## 4. User Profile Management
+## 4. Lambda Functions for User Profile
 
 Implement user profile viewing and updating functionality.
 
 - [ ] 4.1 Create UserService for profile operations
-  - Create `backend/src/services/UserService.ts`
+  - Create `backend/functions/shared/services/UserService.ts`
   - Implement `getProfile()` method to fetch user by ID
   - Implement `updateProfile()` method to update firstName/lastName
   - Implement `changePassword()` method with current password verification
@@ -177,47 +180,110 @@ Implement user profile viewing and updating functionality.
   - Test all methods with mocked User model
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 4.2 Create user profile endpoints
-  - Create `backend/src/routes/users.ts`
-  - Implement GET /api/v1/users/profile (protected)
-  - Implement PUT /api/v1/users/profile (protected)
-  - Implement PUT /api/v1/users/password (protected)
-  - Apply authenticate middleware to all routes
+- [ ] 4.2 Create get profile Lambda function
+  - Create `backend/functions/users/getProfile.ts`
+  - Extract and verify JWT token from Authorization header
+  - Call UserService.getProfile() with user ID from token
+  - Return user data (exclude password hash)
+  - Return 401 for invalid tokens
+  - Add function to serverless.yml with GET /users/profile endpoint
+  - Test with valid token
+  - _Requirements: 5.1_
+
+- [ ] 4.3 Create update profile Lambda function
+  - Create `backend/functions/users/updateProfile.ts`
+  - Extract and verify JWT token
+  - Parse request body (firstName, lastName)
+  - Call UserService.updateProfile()
+  - Return updated user data
   - Validate input data
-  - Test all endpoints with valid tokens
-  - _Requirements: 5.1, 5.2, 5.3_
+  - Add function to serverless.yml with PUT /users/profile endpoint
+  - Test profile updates
+  - _Requirements: 5.2, 5.3_
+
+- [ ] 4.4 Create change password Lambda function
+  - Create `backend/functions/users/changePassword.ts`
+  - Extract and verify JWT token
+  - Parse request body (currentPassword, newPassword)
+  - Call UserService.changePassword()
+  - Return success message
+  - Handle incorrect current password error
+  - Add function to serverless.yml with PUT /users/password endpoint
+  - Test password change flow
+  - _Requirements: 5.3_
 
 ---
 
-## 5. GDPR Compliance Features
+## 5. Lambda Functions for GDPR Compliance
 
 Implement data export and account deletion for GDPR compliance.
 
-- [ ] 5.1 Implement data export functionality
+- [ ] 5.1 Create data export Lambda function
   - Add `exportUserData()` method to UserService
   - Gather all user data: profile, ingredients, recipes, shopping lists, points
   - Format as JSON with clear structure
-  - Implement GET /api/v1/users/export endpoint (protected)
+  - Create `backend/functions/users/exportData.ts`
+  - Extract and verify JWT token
+  - Call UserService.exportUserData()
+  - Return complete user data as JSON
+  - Add function to serverless.yml with GET /users/export endpoint
   - Test export returns complete user data
   - _Requirements: 6.1, 6.5_
 
-- [ ] 5.2 Implement account deletion functionality
+- [ ] 5.2 Create account deletion Lambda function
   - Add `deleteAccount()` method to UserService
   - Delete user record (cascades to related tables via foreign keys)
   - Anonymize referral records (set referred_user_id to NULL)
   - Log deletion request with timestamp
-  - Implement DELETE /api/v1/users/account endpoint (protected)
+  - Create `backend/functions/users/deleteAccount.ts`
+  - Extract and verify JWT token
+  - Call UserService.deleteAccount()
+  - Return success message
+  - Add function to serverless.yml with DELETE /users/account endpoint
   - Test deletion removes user and related data
   - Verify referral records are anonymized, not deleted
   - _Requirements: 6.2, 6.3, 6.4, 6.5_
 
 ---
 
-## 6. Frontend Authentication Context
+## 6. Deploy and Test Lambda Backend
+
+Deploy the Lambda functions to AWS and verify they work.
+
+- [ ] 6.1 Deploy Lambda functions to AWS
+  - Configure AWS credentials: `aws configure`
+  - Deploy with Serverless Framework: `serverless deploy`
+  - Note the API Gateway endpoint URL
+  - Verify all functions deployed successfully
+  - Check AWS Lambda console to confirm functions exist
+  - _Requirements: 1.1, 1.2_
+
+- [ ] 6.2 Test deployed endpoints
+  - Test POST /auth/register with curl or Postman
+  - Test POST /auth/login with valid credentials
+  - Test GET /auth/me with JWT token
+  - Test GET /users/profile with JWT token
+  - Test PUT /users/profile with updates
+  - Test PUT /users/password with password change
+  - Test GET /users/export for data export
+  - Test DELETE /users/account for account deletion
+  - Document API Gateway base URL for frontend
+  - _Requirements: All authentication and user requirements_
+
+- [ ] 6.3 Configure environment variables
+  - Set DATABASE_URL in AWS Lambda environment
+  - Set JWT_SECRET in AWS Lambda environment
+  - Verify functions can connect to RDS database
+  - Test that environment variables are loaded correctly
+  - _Requirements: 1.1, 1.2, 1.4_
+
+---
+
+## 7. Frontend Authentication Context
 
 Build the React Native authentication state management.
 
-- [ ] 6.1 Create AuthContext with state management
+- [ ] 7.1 Create AuthContext with state management
   - Create or update `src/contexts/AuthContext.tsx`
   - Define AuthContextType interface
   - Implement useState for user, token, isLoading
@@ -225,32 +291,32 @@ Build the React Native authentication state management.
   - Provide context to app via AuthProvider
   - _Requirements: 9.2, 9.3, 10.5_
 
-- [ ] 6.2 Implement login function in AuthContext
+- [ ] 7.2 Implement login function in AuthContext
   - Add `login()` function to AuthContext
-  - Call POST /api/v1/auth/login endpoint
+  - Call POST /auth/login endpoint (API Gateway URL)
   - Store JWT token in AsyncStorage
   - Update user and token state
   - Handle errors and display messages
   - _Requirements: 9.1, 9.2, 9.4_
 
-- [ ] 6.3 Implement register function in AuthContext
+- [ ] 7.3 Implement register function in AuthContext
   - Add `register()` function to AuthContext
-  - Call POST /api/v1/auth/register endpoint
+  - Call POST /auth/register endpoint (API Gateway URL)
   - Store JWT token in AsyncStorage
   - Update user and token state
   - Handle errors and display messages
   - _Requirements: 9.1, 9.2, 9.4_
 
-- [ ] 6.4 Implement logout function in AuthContext
+- [ ] 7.4 Implement logout function in AuthContext
   - Add `logout()` function to AuthContext
   - Clear JWT token from AsyncStorage
   - Reset user and token state to null
   - Redirect to login screen
   - _Requirements: 9.3_
 
-- [ ] 6.5 Implement token verification on app startup
+- [ ] 7.5 Implement token verification on app startup
   - In useEffect, check if token exists in AsyncStorage
-  - If token exists, call GET /api/v1/auth/me to verify
+  - If token exists, call GET /auth/me to verify
   - If valid, set user and token state
   - If invalid, clear token and show login screen
   - Handle token expiration gracefully
@@ -258,11 +324,11 @@ Build the React Native authentication state management.
 
 ---
 
-## 7. Frontend Authentication Screens
+## 8. Frontend Authentication Screens
 
 Update and connect the authentication screens to the backend.
 
-- [ ] 7.1 Update LoginScreen with API integration
+- [ ] 8.1 Update LoginScreen with API integration
   - Update `src/screens/LoginScreen.tsx`
   - Connect form to AuthContext.login()
   - Add form validation (email format, required fields)
@@ -272,7 +338,7 @@ Update and connect the authentication screens to the backend.
   - Test login flow end-to-end
   - _Requirements: 9.1, 9.3, 9.4_
 
-- [ ] 7.2 Update SignupScreen with API integration
+- [ ] 8.2 Update SignupScreen with API integration
   - Update `src/screens/SignupScreen.tsx`
   - Connect form to AuthContext.register()
   - Add form validation (email format, password length, required fields)
@@ -282,7 +348,7 @@ Update and connect the authentication screens to the backend.
   - Test registration flow end-to-end
   - _Requirements: 9.1, 9.3, 9.4_
 
-- [ ] 7.3 Create Co-Founder welcome screen
+- [ ] 8.3 Create Co-Founder welcome screen
   - Create `src/screens/CoFounderWelcomeScreen.tsx`
   - Display special welcome message for Briana
   - Show Co-Founder badge prominently
@@ -291,7 +357,7 @@ Update and connect the authentication screens to the backend.
   - Store flag in AsyncStorage to prevent showing again
   - _Requirements: 3.5, 9.5_
 
-- [ ] 7.4 Update App.tsx with Co-Founder detection
+- [ ] 8.4 Update App.tsx with Co-Founder detection
   - Check if user.isCoFounder is true after login
   - Show CoFounderWelcomeScreen before main app
   - After welcome screen, navigate to main app
@@ -300,11 +366,11 @@ Update and connect the authentication screens to the backend.
 
 ---
 
-## 8. Protected Routes Implementation
+## 9. Protected Routes Implementation
 
 Implement route protection to require authentication.
 
-- [ ] 8.1 Create PrivateRoute wrapper component
+- [ ] 9.1 Create PrivateRoute wrapper component
   - Create `src/components/PrivateRoute.tsx`
   - Check if user is authenticated via AuthContext
   - If authenticated, render the protected component
@@ -312,7 +378,7 @@ Implement route protection to require authentication.
   - Show loading indicator while checking auth state
   - _Requirements: 10.1, 10.2, 10.3_
 
-- [ ] 8.2 Apply PrivateRoute to protected screens
+- [ ] 9.2 Apply PrivateRoute to protected screens
   - Wrap all main app screens with PrivateRoute
   - Keep Login and Signup screens public
   - Test that unauthenticated users are redirected to login
@@ -321,11 +387,11 @@ Implement route protection to require authentication.
 
 ---
 
-## 9. Integration Testing and Verification
+## 10. Integration Testing and Verification
 
 Test the complete authentication flow end-to-end.
 
-- [ ] 9.1 Test complete registration flow
+- [ ] 10.1 Test complete registration flow
   - Start app without authentication
   - Navigate to signup screen
   - Fill out registration form with valid data
@@ -335,7 +401,7 @@ Test the complete authentication flow end-to-end.
   - Close and reopen app, verify user stays logged in
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 9.1, 9.2, 9.3, 10.5_
 
-- [ ] 9.2 Test Co-Founder registration flow
+- [ ] 10.2 Test Co-Founder registration flow
   - Register with email brianaolszewski1@gmail.com
   - Verify is_co_founder is set to true in database
   - Verify subscription_status is set to 'lifetime'
@@ -343,7 +409,7 @@ Test the complete authentication flow end-to-end.
   - Verify Co-Founder badge appears in app
   - _Requirements: 2.4, 2.5, 2.6, 3.5, 9.5_
 
-- [ ] 9.3 Test login flow
+- [ ] 10.3 Test login flow
   - Logout from app
   - Navigate to login screen
   - Enter valid credentials
@@ -352,7 +418,7 @@ Test the complete authentication flow end-to-end.
   - Test with invalid credentials, verify error message
   - _Requirements: 4.1, 4.2, 4.3, 9.1, 9.3, 9.4_
 
-- [ ] 9.4 Test profile management
+- [ ] 10.4 Test profile management
   - Login as authenticated user
   - Navigate to profile screen
   - Update first name and last name
@@ -362,7 +428,7 @@ Test the complete authentication flow end-to-end.
   - Verify new password works
   - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 9.5 Test GDPR features
+- [ ] 10.5 Test GDPR features
   - Login as authenticated user
   - Request data export
   - Verify exported JSON contains all user data
@@ -372,7 +438,7 @@ Test the complete authentication flow end-to-end.
   - Verify referral records are anonymized
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 9.6 Test protected routes
+- [ ] 10.6 Test protected routes
   - Logout from app
   - Attempt to access protected screen directly
   - Verify redirect to login screen
@@ -383,31 +449,31 @@ Test the complete authentication flow end-to-end.
 
 ---
 
-## 10. Cleanup and Documentation
+## 11. Cleanup and Documentation
 
 Clean up test files and document the implementation.
 
-- [ ] 10.1 Remove all test files
+- [ ] 11.1 Remove all test files
   - Delete any .test.ts or .spec.ts files created during development
   - Keep only production code
   - Verify app still works after cleanup
   - _Testing Strategy: Test Cleanup_
 
-- [ ] 10.2 Update fixes-log.md with successful patterns
+- [ ] 11.2 Update fixes-log.md with successful patterns
   - Document database migration pattern
   - Document authentication service pattern
   - Document JWT token handling
   - Document any issues encountered and solutions
   - _Testing Strategy: Test Cleanup_
 
-- [ ] 10.3 Verify all Phase 2 requirements are met
+- [ ] 11.3 Verify all Phase 2 requirements are met
   - Review requirements.md
   - Confirm each requirement has been implemented
   - Test each requirement manually
   - Mark any incomplete requirements for follow-up
   - _All Requirements_
 
-- [ ] 10.4 Update master-checklist.md progress
+- [ ] 11.4 Update master-checklist.md progress
   - Mark all Phase 2 tasks as complete
   - Update progress percentage
   - Document completion date
