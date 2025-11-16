@@ -60,6 +60,16 @@ const HomeScreen: React.FC = () => {
     },
   ];
 
+  // Special button for Briana ❤️
+  const brianaAction = {
+    id: 'briana-love',
+    title: '💕 Love Note',
+    subtitle: 'From your partner',
+    icon: 'favorite',
+    color: '#EC4899',
+    onPress: () => navigation.navigate('CoFounderWelcome' as never),
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -93,6 +103,20 @@ const HomeScreen: React.FC = () => {
               <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
             </TouchableOpacity>
           ))}
+          {/* Special button for Briana ❤️ */}
+          {user?.is_co_founder && (
+            <TouchableOpacity
+              key={brianaAction.id}
+              style={[styles.actionCard, styles.specialCard]}
+              onPress={brianaAction.onPress}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: `${brianaAction.color}15` }]}>
+                <Icon name={brianaAction.icon} size={32} color={brianaAction.color} />
+              </View>
+              <Text style={styles.actionTitle}>{brianaAction.title}</Text>
+              <Text style={styles.actionSubtitle}>{brianaAction.subtitle}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -275,6 +299,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#047857',
     lineHeight: 20,
+  },
+  specialCard: {
+    borderColor: '#EC4899',
+    borderWidth: 2,
+    shadowColor: '#EC4899',
+    shadowOpacity: 0.2,
   },
 });
 
