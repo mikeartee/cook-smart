@@ -15,7 +15,7 @@ router.post('/activity/recipe-share', async (req, res) => {
     
     await CommunityActivityService.trackRecipeShare(userId, username, recipeTitle, platform);
     return res.json({ success: true, message: 'Recipe share tracked' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to track recipe share' });
   }
 });
@@ -33,7 +33,7 @@ router.post('/activity/achievement', async (req, res) => {
     await NotificationService.notifyAchievement(userId, achievement, description);
     
     return res.json({ success: true, message: 'Achievement tracked' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to track achievement' });
   }
 });
@@ -49,7 +49,7 @@ router.post('/activity/milestone', async (req, res) => {
     
     await CommunityActivityService.trackMilestoneReached(userId, username, milestone, value);
     return res.json({ success: true, message: 'Milestone tracked' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to track milestone' });
   }
 });
@@ -65,7 +65,7 @@ router.post('/activity/contribution', async (req, res) => {
     
     await CommunityActivityService.trackCommunityContribution(userId, username, contribution, impact);
     return res.json({ success: true, message: 'Contribution tracked' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to track contribution' });
   }
 });
@@ -85,7 +85,7 @@ router.get('/notifications/user/:userId', async (req, res) => {
     const unreadCount = await NotificationService.getUnreadCount(userId);
     
     res.json({ notifications, unreadCount });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get notifications' });
   }
 });
@@ -107,7 +107,7 @@ router.patch('/notifications/:notificationId/read', async (req, res) => {
     } else {
       return res.status(404).json({ error: 'Notification not found' });
     }
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to mark notification as read' });
   }
 });
@@ -118,7 +118,7 @@ router.patch('/notifications/user/:userId/read-all', async (req, res) => {
     const { userId } = req.params;
     const count = await NotificationService.markAllAsRead(userId);
     res.json({ success: true, markedCount: count });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to mark all notifications as read' });
   }
 });
@@ -140,7 +140,7 @@ router.delete('/notifications/:notificationId', async (req, res) => {
     } else {
       return res.status(404).json({ error: 'Notification not found' });
     }
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ error: 'Failed to delete notification' });
   }
 });
@@ -150,7 +150,7 @@ router.get('/activity/types', async (req, res) => {
   try {
     const types = CommunityActivityService.getActivityTypes();
     res.json({ types });
-  } catch (error) {
+  } catch (_error) {
     res.status(500).json({ error: 'Failed to get activity types' });
   }
 });

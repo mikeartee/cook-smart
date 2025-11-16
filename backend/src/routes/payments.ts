@@ -10,7 +10,7 @@ router.get('/plans', async (req: Request, res: Response) => {
   try {
     const plans = StripeService.getPricingPlans();
     return res.json({ success: true, plans });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Failed to get pricing plans' });
   }
 });
@@ -32,7 +32,7 @@ router.post('/create-payment-intent', authenticateToken, async (req: Request & {
     });
 
     return res.json({ success: true, paymentIntent });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Failed to create payment intent' });
   }
 });
@@ -57,7 +57,7 @@ router.post('/subscribe', authenticateToken, async (req: Request & { user?: any 
     );
 
     return res.json({ success: true, subscription });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Failed to create subscription' });
   }
 });
@@ -76,7 +76,7 @@ router.get('/subscriptions', authenticateToken, async (req: Request & { user?: a
     );
 
     return res.json({ success: true, subscriptions: result.rows });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Failed to get subscriptions' });
   }
 });
@@ -106,7 +106,7 @@ router.post('/cancel-subscription', authenticateToken, async (req: Request & { u
     );
 
     return res.json({ success: true, message: 'Subscription canceled successfully' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, error: 'Failed to cancel subscription' });
   }
 });
@@ -121,7 +121,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
     
     await StripeService.processWebhook(req.body, signature);
     return res.json({ received: true });
-  } catch (error) {
+  } catch (_error) {
     console.error('Webhook error:', error);
     return res.status(400).json({ success: false, error: 'Webhook processing failed' });
   }
