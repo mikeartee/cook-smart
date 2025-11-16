@@ -107,8 +107,8 @@ export const requireSuperAdmin = async (
     }
 
     next();
-  } catch (error) {
-    console.error('Super admin auth middleware error:', error);
+  } catch (_error) {
+    console.error('Super admin auth middleware error:', _error);
     res.status(500).json({ error: 'Authorization error' });
   }
 };

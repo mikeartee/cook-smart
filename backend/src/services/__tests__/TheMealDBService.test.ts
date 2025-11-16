@@ -83,8 +83,8 @@ describe('TheMealDBService', () => {
         dishTypes: ['Chicken'],
         provider: 'themealdb',
       });
-      expect(results[0].ingredients).toContain('1 lb chicken');
-      expect(results[0].ingredients).toContain('2 tbsp soy sauce');
+      expect(results[0]?.ingredients).toContain('1 lb chicken');
+      expect(results[0]?.ingredients).toContain('2 tbsp soy sauce');
     });
 
     it('should handle empty ingredient list', async () => {

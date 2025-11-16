@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { FeedbackModal, FeedbackData } from '../components/FeedbackModal';
-import { feedbackService, FeedbackItem } from '../services/feedbackService';
+import { FeedbackModal } from '../components/FeedbackModal';
+import feedbackService from '../services/feedbackService';
+
+interface FeedbackData {
+  message: string;
+  rating?: number;
+  category?: string;
+}
+
+interface FeedbackItem {
+  id: string;
+  message: string;
+  rating?: number;
+  category?: string;
+  status: string;
+  createdAt: string;
+}
 
 export const BetaFeedbackScreen: React.FC = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -10,7 +25,7 @@ export const BetaFeedbackScreen: React.FC = () => {
 
   const loadUserFeedback = async () => {
     try {
-      const feedback = await feedbackService.getUserFeedback();
+      const feedback = await feedbackService.getMyFeedback();
       setUserFeedback(feedback);
     } catch {
       console.error('Failed to load user feedback');
@@ -32,22 +47,40 @@ export const BetaFeedbackScreen: React.FC = () => {
     }
   };
 
+  const getRatingStars = (rating?: number) => {
+    if (!rating) return '☆☆☆☆☆';
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return '#FFA500';
+      case 'reviewed': return '#4CAF50';
+      case 'resolved': return '#2196F3';
+      default: return '#9E9E9E';
+    }
+  };
+
+  const getCategoryLabel = (category?: string) => {
+    return category || 'General';
+  };
+
   const FeedbackCard = ({ item }: { item: FeedbackItem }) => (
     <View style={styles.feedbackCard}>
       <View style={styles.feedbackHeader}>
         <Text style={styles.feedbackRating}>
-          {feedbackService.getRatingStars(item.rating)}
+          {getRatingStars(item.rating)}
         </Text>
         <View style={[
           styles.statusBadge,
-          { backgroundColor: feedbackService.getStatusColor(item.status) }
+          { backgroundColor: getStatusColor(item.status) }
         ]}>
           <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
         </View>
       </View>
       
       <Text style={styles.feedbackCategory}>
-        {feedbackService.getCategoryLabel(item.category)}
+        {getCategoryLabel(item.category)}
       </Text>
       
       <Text style={styles.feedbackMessage}>{item.message}</Text>

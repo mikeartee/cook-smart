@@ -11,7 +11,7 @@ import {
 import { Camera, useCameraDevice, useCodeScanner } from 'react-native-vision-camera';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { barcodeService, PermissionStatus } from '../../services/barcodeService';
+import { barcodeService } from '../../services/barcodeService';
 import { productLookupService, ScannedProduct } from '../../services/productLookupService';
 
 export interface BarcodeScannerModalProps {

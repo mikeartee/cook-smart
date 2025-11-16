@@ -1,8 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_BASE_URL = __DEV__ 
-  ? 'http://192.168.12.196:3000' 
-  : 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
+import { API_BASE_URL } from '../config/api';
 
 export interface Recipe {
   id: number;

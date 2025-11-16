@@ -63,9 +63,9 @@ export const ManualBarcodeEntryModal: React.FC<ManualBarcodeEntryModalProps> = (
           ]
         );
       }
-    } catch (error) {
-      console.error('Manual barcode lookup error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to lookup product';
+    } catch (err) {
+      console.error('Manual barcode lookup error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to lookup product';
       
       Alert.alert(
         'Lookup Failed',

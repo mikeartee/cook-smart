@@ -2,11 +2,20 @@
  * Integration Tests for Recipe Routes
  */
 
-import request from 'supertest';
 import express from 'express';
 import recipeRoutes from '../recipes';
-import { RecipeProviderService } from '../../services/RecipeProviderService';
 import { APIUsageLogModel } from '../../models/APIUsageLog';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
+import { request } from 'http';
 
 // Mock the services
 jest.mock('../../services/EdamamService');

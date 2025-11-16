@@ -1,11 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// API Configuration for Lambda Backend
-// Development: Use serverless-offline local server
-// Production: Use API Gateway endpoint (to be configured after deployment)
-const API_BASE_URL = __DEV__ 
-  ? 'http://192.168.12.196:3000' 
-  : 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev';
+import { API_ENDPOINTS, getAuthHeader } from '../config/api';
 
 export interface User {
   id: string;
@@ -30,7 +24,7 @@ class AuthService {
   private token: string | null = null;
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+    const response = await fetch(API_ENDPOINTS.auth.login, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +52,7 @@ class AuthService {
     last_name?: string;
     age_verified: boolean;
   }): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
+    const response = await fetch(API_ENDPOINTS.auth.register, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,10 +98,8 @@ class AuthService {
       throw new Error('No authentication token');
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+    const response = await fetch(API_ENDPOINTS.auth.me, {
+      headers: getAuthHeader(token),
     });
 
     const data = await response.json();

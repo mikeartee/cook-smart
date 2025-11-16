@@ -99,6 +99,162 @@
       "protein_per_100g": 6.4,
       "carbs_per_100g": 33,
       "fat_per_100g": 0.5
+    },
+    {
+      "name": "Unknown",
+      "category": "Vegetables",
+      "common_unit": "piece",
+      "id": "ing_1763245135883_ifh0z7ah0"
+    },
+    {
+      "name": "Unknown",
+      "category": "Vegetables",
+      "common_unit": "piece",
+      "id": "ing_1763245207412_os17ooagm"
+    },
+    {
+      "name": "strawberry",
+      "category": "Fruits",
+      "common_unit": "8oz container",
+      "id": "ing_1763245304203_9lby1jiak"
+    },
+    {
+      "name": "Corn",
+      "category": "Vegetables",
+      "common_unit": "12 oz can",
+      "id": "ing_1763245372954_c4s12mubz"
+    },
+    {
+      "name": "chicken",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249210249_nga0xc0d9"
+    },
+    {
+      "name": "rice",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249210253_kdhrglnk2"
+    },
+    {
+      "name": "tomato",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249210257_h7z5wav7o"
+    },
+    {
+      "name": "chicken",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249224554_49ojqrpka"
+    },
+    {
+      "name": "rice",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249224558_a48jij1vy"
+    },
+    {
+      "name": "tomato",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249224562_pmtricby9"
+    },
+    {
+      "name": "chicken",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249236671_hrgxe5z69"
+    },
+    {
+      "name": "rice",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249236675_elzauik7w"
+    },
+    {
+      "name": "tomato",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249236678_aiba20ucm"
+    },
+    {
+      "name": "chicken",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249251479_piwp4lgke"
+    },
+    {
+      "name": "rice",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249251483_l0upztg79"
+    },
+    {
+      "name": "tomato",
+      "category": "Other",
+      "common_unit": "piece",
+      "id": "ing_1763249251486_99ltx2bpc"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254462691_3mh9mykkg"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254490996_dvcr0dcgo"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254599344_khuz1eta3"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254608691_99hjzvciy"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254622020_0laeio2k9"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254717377_j65brxkfo"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254729130_zh84ai0jn"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254739243_fzyoy0lmz"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254895619_ze6se2ksx"
+    },
+    {
+      "name": "Unknown",
+      "category": "Other",
+      "common_unit": "unit",
+      "id": "ing_1763254977185_rqrm6s9s4"
     }
   ]
 }

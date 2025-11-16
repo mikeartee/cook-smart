@@ -11,6 +11,114 @@
       "points": 0,
       "id": "user_1763193749099_9aea8k205",
       "created_at": "2025-11-15T08:02:29.099Z"
+    },
+    {
+      "email": "brianaolszewski1@gmail.com",
+      "password_hash": "$2a$10$HRJX1hedxqvm4rJweVb7hOrTlYCuW6m8mCorC3wdzUMz7yE/W0Ene",
+      "first_name": "briana",
+      "last_name": "olszewski",
+      "is_co_founder": true,
+      "has_lifetime_subscription": true,
+      "subscription_status": "lifetime",
+      "points": 1000,
+      "id": "user_1763246668214_jg258qsjn",
+      "created_at": "2025-11-15T22:44:28.215Z"
+    },
+    {
+      "email": "test1763249210095@cooktest.com",
+      "password_hash": "$2a$10$338aan3oVnV.MXhsrsc3hOfBqmDd99c1r.GOjC2EZ6cca/md.Jm3.",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249210234_95w7o3mpc",
+      "created_at": "2025-11-15T23:26:50.234Z"
+    },
+    {
+      "email": "test1763249224405@cooktest.com",
+      "password_hash": "$2a$10$qeabLYAwSAMG1vRpGX27SekDFDSu1/A7iFmpM/Tc4NL7fildJap2.",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249224541_5mbu780py",
+      "created_at": "2025-11-15T23:27:04.541Z"
+    },
+    {
+      "email": "test1763249236501@cooktest.com",
+      "password_hash": "$2a$10$oq1Ikxwmb7RGox/ZV3IfJu77wCaJBy368Kp/OeLt7wSNTmxuBTIYa",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249236656_2g1iq7p0z",
+      "created_at": "2025-11-15T23:27:16.656Z"
+    },
+    {
+      "email": "test1763249251317@cooktest.com",
+      "password_hash": "$2a$10$O8dYZmdkjPUl4yW0CksLVuPsU7H5i1JAPm0L2Uz5H7YWnVgeT.wmK",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249251464_a1wxppo9r",
+      "created_at": "2025-11-15T23:27:31.464Z"
+    },
+    {
+      "email": "test1763249268030@test.com",
+      "password_hash": "$2a$10$bK0IgkCrtgK2ztJvwi9v1ufVhMsTb9cqoGUTNBNeZC29sB9.NywMW",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249268179_3opx447fs",
+      "created_at": "2025-11-15T23:27:48.179Z"
+    },
+    {
+      "email": "test1763249389083@test.com",
+      "password_hash": "$2a$10$fFfQXDru2zRssGygHwrPzOU4Q1aisWWGYR7cjCAvv7xbQ9VHok66y",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249389246_0mug1p6m7",
+      "created_at": "2025-11-15T23:29:49.246Z"
+    },
+    {
+      "email": "test1763249402938@test.com",
+      "password_hash": "$2a$10$UgeoUy5eAbCduFKd9lOyt.yUZPWEAZChBavkNekmdV1jLCfeISCGm",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763249403094_5zry46iwu",
+      "created_at": "2025-11-15T23:30:03.094Z"
+    },
+    {
+      "email": "testuser@example.com",
+      "password_hash": "$2a$10$ERyVvzgO.mxx/33lPBZZFuD0ZFHPuOKzvfNJVVmLKkxz7o4wjXI5W",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_co_founder": false,
+      "has_lifetime_subscription": false,
+      "subscription_status": "free",
+      "points": 0,
+      "id": "user_1763252540014_5l9iub76u",
+      "created_at": "2025-11-16T00:22:20.014Z"
     }
   ]
 }

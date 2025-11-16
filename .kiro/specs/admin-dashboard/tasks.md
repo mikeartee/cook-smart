@@ -18,31 +18,54 @@
 
 
 
+
+
+
+
   - _Requirements: 1.2, 1.3, 1.14, 10.1, 10.2_
+
+
 
 - [ ] 2. Implement admin authentication backend
   - [x] 2.1 Create AdminUser model (backend/src/models/AdminUser.ts)
+
 
 
     - Implement database queries (create, findByEmail, findByUsername, findById, update)
     - Add password hashing with bcrypt
     - Add email verification token generation
     - Add password reset token generation
+
+
+
     - _Requirements: 1.2, 1.6, 1.7_
 
   - [ ] 2.2 Create admin authentication routes (backend/src/routes/adminAuth.ts)
     - POST /api/admin/auth/signup - Check approved emails, create admin, send verification email
 
 
+
+
+
     - POST /api/admin/auth/verify-email - Verify email token and activate account
     - POST /api/admin/auth/login - Validate credentials, create JWT token, log activity
+
+
     - POST /api/admin/auth/logout - Invalidate session, log activity
+
+
     - GET /api/admin/auth/me - Return current admin user
+
     - POST /api/admin/auth/forgot-password - Generate reset token, send email
 
 
     - POST /api/admin/auth/reset-password - Validate token, update password
+
+
     - _Requirements: 1.3, 1.4, 1.5, 1.6, 1.7, 1.8_
+
+
+
 
 
 
@@ -50,6 +73,9 @@
 
   - [ ] 2.3 Create admin authentication middleware (backend/src/middleware/adminAuth.ts)
     - Implement requireAdmin middleware (verify JWT, check admin status)
+
+
+
     - Implement requireSuperAdmin middleware (verify super admin status)
 
 
@@ -59,6 +85,9 @@
 
   - [ ] 2.4 Create admin activity logging service (backend/src/services/AdminActivityLogger.ts)
     - Log successful logins with IP and user agent
+
+
+
     - Log failed login attempts
     - Log logout events
     - Log signup attempts
@@ -67,6 +96,8 @@
 - [ ] 3. Implement admin management backend (super admin only)
   - [ ] 3.1 Create ApprovedAdminEmail model (backend/src/models/ApprovedAdminEmail.ts)
     - Implement database queries (getAll, add, remove, checkApproved)
+
+
     - _Requirements: 1.2, 1.11, 1.12_
 
   - [ ] 3.2 Create admin management routes (backend/src/routes/adminManagement.ts)
@@ -75,11 +106,16 @@
     - POST /api/admin/management/approved-emails - Add email to approved list
     - DELETE /api/admin/management/approved-emails/:email - Remove email from list
     - PATCH /api/admin/management/admins/:id/remove - Remove admin access
+
+
     - PATCH /api/admin/management/super-admin/change-email - Change super admin email
     - POST /api/admin/management/admins/:id/reset-password - Reset admin password
     - GET /api/admin/management/activity-log - View admin activity logs
     - All routes protected with requireSuperAdmin middleware
     - _Requirements: 1.10, 1.11, 1.12, 1.13, 1.14_
+
+
+
 
 ## Phase 2: Backend API Endpoints
 
@@ -89,6 +125,8 @@
   - GET /api/admin/users/:id - User details with stats, subscription, referrals
   - PATCH /api/admin/users/:id/co-founder - Mark user as co-founder
   - PATCH /api/admin/users/:id/suspend - Suspend/unsuspend user account
+
+
   - DELETE /api/admin/users/:id - Delete user account (requires "DELETE" confirmation)
   - Add audit logging for all user management actions
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
@@ -96,6 +134,8 @@
 - [ ] 5. Implement subscription management API
   - Create backend/src/routes/adminSubscriptions.ts
   - GET /api/admin/subscriptions - List all subscriptions with filters
+
+
   - GET /api/admin/subscriptions/overview - Subscription metrics (MRR, active, cancelled, trial)
   - POST /api/admin/subscriptions/grant - Grant subscription to user
   - PATCH /api/admin/subscriptions/:id/cancel - Cancel subscription with reason
@@ -104,6 +144,9 @@
   - GET /api/admin/subscriptions/billing-history - View all transactions
   - Add audit logging for all subscription actions
   - _Requirements: 2.4, 2.5_
+
+
+
 
 - [ ] 6. Implement analytics API
   - Create backend/src/routes/adminAnalytics.ts
@@ -143,6 +186,8 @@
   - GET /api/admin/health/external-services - External service status checks
   - GET /api/admin/health/cache - Cache performance metrics
   - Implement system metrics collection service
+
+
   - _Requirements: 5.5, 5.6, 5.7_
 
 - [ ] 10. Implement cache management API

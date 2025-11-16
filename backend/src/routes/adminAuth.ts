@@ -1,18 +1,38 @@
-import express from 'express';
-import AdminAuthController from '../controllers/AdminAuthController';
-import { requireAdmin } from '../middleware/adminAuth';
+import express, { Request, Response } from 'express';
+import { AdminAuthController } from '../controllers/AdminAuthController';
+import { requireAdmin, rateLimitLogin } from '../middleware/adminAuth';
 
 const router = express.Router();
+const controller = new AdminAuthController();
 
-// Public routes (no authentication required)
-router.post('/signup', AdminAuthController.signup.bind(AdminAuthController));
-router.post('/verify-email', AdminAuthController.verifyEmail.bind(AdminAuthController));
-router.post('/login', AdminAuthController.login.bind(AdminAuthController));
-router.post('/forgot-password', AdminAuthController.forgotPassword.bind(AdminAuthController));
-router.post('/reset-password', AdminAuthController.resetPassword.bind(AdminAuthController));
+// Public routes
+router.post('/signup', async (req: Request, res: Response) => {
+  await controller.signup(req, res);
+});
 
-// Protected routes (authentication required)
-router.post('/logout', requireAdmin, AdminAuthController.logout.bind(AdminAuthController));
-router.get('/me', requireAdmin, AdminAuthController.me.bind(AdminAuthController));
+router.post('/verify-email', async (req: Request, res: Response) => {
+  await controller.verifyEmail(req, res);
+});
+
+router.post('/login', rateLimitLogin, async (req: Request, res: Response) => {
+  await controller.login(req, res);
+});
+
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  await controller.forgotPassword(req, res);
+});
+
+router.post('/reset-password', async (req: Request, res: Response) => {
+  await controller.resetPassword(req, res);
+});
+
+// Protected routes
+router.post('/logout', requireAdmin, async (req: Request, res: Response) => {
+  await controller.logout(req, res);
+});
+
+router.get('/me', requireAdmin, async (req: Request, res: Response) => {
+  await controller.me(req, res);
+});
 
 export default router;

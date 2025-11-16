@@ -1,27 +1,48 @@
-import express from 'express';
-import AdminManagementController from '../controllers/AdminManagementController';
+import express, { Request, Response } from 'express';
+import { AdminManagementController } from '../controllers/AdminManagementController';
 import { requireAdmin, requireSuperAdmin } from '../middleware/adminAuth';
 
 const router = express.Router();
+const controller = new AdminManagementController();
 
 // All routes require super admin access
 router.use(requireAdmin);
 router.use(requireSuperAdmin);
 
 // Admin management
-router.get('/admins', AdminManagementController.getAdmins.bind(AdminManagementController));
-router.patch('/admins/:id/remove', AdminManagementController.removeAdmin.bind(AdminManagementController));
-router.post('/admins/:id/reset-password', AdminManagementController.resetAdminPassword.bind(AdminManagementController));
+router.get('/admins', async (req: Request, res: Response) => {
+  await controller.listAdmins(req, res);
+});
+
+router.delete('/admins/:id', async (req: Request, res: Response) => {
+  await controller.removeAdmin(req, res);
+});
+
+router.post('/admins/:id/reset-password', async (req: Request, res: Response) => {
+  await controller.resetAdminPassword(req, res);
+});
 
 // Approved emails management
-router.get('/approved-emails', AdminManagementController.getApprovedEmails.bind(AdminManagementController));
-router.post('/approved-emails', AdminManagementController.addApprovedEmail.bind(AdminManagementController));
-router.delete('/approved-emails/:email', AdminManagementController.removeApprovedEmail.bind(AdminManagementController));
+router.get('/approved-emails', async (req: Request, res: Response) => {
+  await controller.listApprovedEmails(req, res);
+});
 
-// Super admin settings
-router.patch('/super-admin/change-email', AdminManagementController.changeSuperAdminEmail.bind(AdminManagementController));
+router.post('/approved-emails', async (req: Request, res: Response) => {
+  await controller.addApprovedEmail(req, res);
+});
 
-// Activity log
-router.get('/activity-log', AdminManagementController.getActivityLog.bind(AdminManagementController));
+router.delete('/approved-emails/:email', async (req: Request, res: Response) => {
+  await controller.removeApprovedEmail(req, res);
+});
+
+// Super admin management
+router.patch('/super-admin/change-email', async (req: Request, res: Response) => {
+  await controller.changeSuperAdminEmail(req, res);
+});
+
+// Activity logs
+router.get('/activity-log', async (req: Request, res: Response) => {
+  await controller.getActivityLog(req, res);
+});
 
 export default router;

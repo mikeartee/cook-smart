@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { IngredientProvider } from './src/contexts/IngredientContext';
+import { RecipeProvider } from './src/contexts/RecipeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
@@ -32,14 +33,15 @@ const AppContent = () => {
 
   useEffect(() => {
     const checkCoFounderWelcome = async () => {
-      if (user?.is_co_founder) {
-        const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
-        setShowCoFounderWelcome(!hasShown);
-      }
+      // TEMPORARY: Always show welcome screen for testing
+      const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
+      console.log('Welcome screen check:', { hasShown });
+      setShowCoFounderWelcome(hasShown === null || hasShown === undefined);
       setCheckingWelcome(false);
     };
 
-    if (!isLoading && isAuthenticated) {
+    // TEMPORARY: Run check even without auth for testing
+    if (!isLoading) {
       checkCoFounderWelcome();
     } else {
       setCheckingWelcome(false);
@@ -88,7 +90,9 @@ const App = () => {
   return (
     <AuthProvider>
       <IngredientProvider>
-        <AppContent />
+        <RecipeProvider>
+          <AppContent />
+        </RecipeProvider>
       </IngredientProvider>
     </AuthProvider>
   );
