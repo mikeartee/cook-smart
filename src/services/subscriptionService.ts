@@ -1,0 +1,196 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+
+interface SubscriptionPlan {
+  id: number;
+  name: string;
+  displayName: string;
+  initialPrice: number;
+  renewalPrice: number;
+  billingInterval: string;
+  trialDays: number;
+  features: string[];
+}
+
+interface SubscriptionResult {
+  subscriptionId: string;
+  clientSecret: string;
+  initialPrice: number;
+  renewalPrice: number;
+  trialEndDate?: string;
+}
+
+interface PhaseInfo {
+  phase: string;
+  isBeta: boolean;
+  updatedAt: string;
+}
+
+class SubscriptionService {
+  /**
+   * Get available subscription plans
+   */
+  async getAvailablePlans(referralCode?: string): Promise<SubscriptionPlan[]> {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const url = referralCode
+        ? `${API_URL}/subscriptions/plans?referralCode=${referralCode}`
+        : `${API_URL}/subscriptions/plans`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && {Authorization: `Bearer ${token}`}),
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch subscription plans');
+      }
+
+      return data.plans;
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a subscription
+   */
+  async createSubscription(
+    planType: 'yearly' | 'monthly' | 'weekly',
+    referralCode?: string,
+  ): Promise<SubscriptionResult> {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+
+      if (!token) {
+        throw new Error('User must be logged in to subscribe');
+      }
+
+      const response = await fetch(`${API_URL}/subscriptions/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          planType,
+          referralCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create subscription');
+      }
+
+      return data.subscription;
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get current phase (beta or post-beta)
+   */
+  async getPhase(): Promise<PhaseInfo> {
+    try {
+      const response = await fetch(`${API_URL}/subscriptions/phase`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch phase info');
+      }
+
+      return {
+        phase: data.phase,
+        isBeta: data.isBeta,
+        updatedAt: data.updatedAt,
+      };
+    } catch (error) {
+      console.error('Error fetching phase info:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user's active subscription
+   */
+  async getUserSubscription(): Promise<any> {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+
+      if (!token) {
+        return null;
+      }
+
+      const response = await fetch(`${API_URL}/subscriptions/me`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.subscription;
+    } catch (error) {
+      console.error('Error fetching user subscription:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cancel subscription
+   */
+  async cancelSubscription(subscriptionId: string): Promise<void> {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+
+      if (!token) {
+        throw new Error('User must be logged in');
+      }
+
+      const response = await fetch(
+        `${API_URL}/subscriptions/${subscriptionId}/cancel`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to cancel subscription');
+      }
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      throw error;
+    }
+  }
+}
+
+export const subscriptionService = new SubscriptionService();

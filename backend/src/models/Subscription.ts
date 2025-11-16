@@ -10,6 +10,10 @@ export interface Subscription {
   cancel_at_period_end: boolean;
   canceled_at?: Date;
   cancellation_reason?: string;
+  promotional_price_used: boolean;
+  referral_code_used?: string;
+  initial_price: number;
+  renewal_price: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -37,7 +41,7 @@ export class SubscriptionModel {
     planId?: string;
     page?: number;
     limit?: number;
-  }): Promise<{ subscriptions: any[]; total: number }> {
+  }): Promise<{subscriptions: any[]; total: number}> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 50;
     const offset = (page - 1) * limit;
@@ -58,7 +62,8 @@ export class SubscriptionModel {
       paramCount++;
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Get total count
     const countQuery = `SELECT COUNT(*) FROM subscriptions s ${whereClause}`;
@@ -114,8 +119,9 @@ export class SubscriptionModel {
     // Calculate MRR (simplified - assumes $9.99/month)
     const monthlyPrice = 9.99;
     const annualMonthlyPrice = 7.99; // $95.88/year = $7.99/month
-    const mrr = (parseInt(stats.monthly_count) * monthlyPrice) + 
-                (parseInt(stats.annual_count) * annualMonthlyPrice);
+    const mrr =
+      parseInt(stats.monthly_count) * monthlyPrice +
+      parseInt(stats.annual_count) * annualMonthlyPrice;
 
     return {
       totalActive: parseInt(stats.total_active),
@@ -123,8 +129,8 @@ export class SubscriptionModel {
       totalTrial: parseInt(stats.total_trial),
       mrr: Math.round(mrr * 100) / 100,
       byPlan: [
-        { plan: 'monthly', count: parseInt(stats.monthly_count) },
-        { plan: 'annual', count: parseInt(stats.annual_count) },
+        {plan: 'monthly', count: parseInt(stats.monthly_count)},
+        {plan: 'annual', count: parseInt(stats.annual_count)},
       ],
     };
   }
@@ -150,21 +156,14 @@ export class SubscriptionModel {
     `;
 
     const id = `sub_${Date.now()}_${data.userId}`;
-    const values = [
-      id,
-      data.userId,
-      data.planId,
-      'active',
-      startDate,
-      endDate,
-    ];
+    const values = [id, data.userId, data.planId, 'active', startDate, endDate];
 
     const result = await pool.query(query, values);
 
     // Update user subscription status
     await pool.query(
       `UPDATE users SET subscription_status = 'active', subscription_expires_at = $1 WHERE id = $2`,
-      [endDate, data.userId]
+      [endDate, data.userId],
     );
 
     return result.rows[0];
@@ -173,7 +172,10 @@ export class SubscriptionModel {
   /**
    * Cancel subscription
    */
-  static async cancel(subscriptionId: string, reason?: string): Promise<Subscription> {
+  static async cancel(
+    subscriptionId: string,
+    reason?: string,
+  ): Promise<Subscription> {
     const query = `
       UPDATE subscriptions
       SET 
@@ -198,7 +200,10 @@ export class SubscriptionModel {
   /**
    * Extend subscription
    */
-  static async extend(subscriptionId: string, months: number): Promise<Subscription> {
+  static async extend(
+    subscriptionId: string,
+    months: number,
+  ): Promise<Subscription> {
     const query = `
       UPDATE subscriptions
       SET 
@@ -217,7 +222,7 @@ export class SubscriptionModel {
     // Update user subscription expiry
     await pool.query(
       `UPDATE users SET subscription_expires_at = $1 WHERE id = $2`,
-      [result.rows[0].current_period_end, result.rows[0].user_id]
+      [result.rows[0].current_period_end, result.rows[0].user_id],
     );
 
     return result.rows[0];
@@ -231,7 +236,7 @@ export class SubscriptionModel {
     status?: string;
     page?: number;
     limit?: number;
-  }): Promise<{ transactions: SubscriptionTransaction[]; total: number }> {
+  }): Promise<{transactions: SubscriptionTransaction[]; total: number}> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 50;
     const offset = (page - 1) * limit;
@@ -252,7 +257,8 @@ export class SubscriptionModel {
       paramCount++;
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Get total count
     const countQuery = `SELECT COUNT(*) FROM subscription_transactions ${whereClause}`;
@@ -285,7 +291,11 @@ export class SubscriptionModel {
   /**
    * Process refund
    */
-  static async refund(transactionId: number, amount: number, reason: string): Promise<SubscriptionTransaction> {
+  static async refund(
+    transactionId: number,
+    amount: number,
+    reason: string,
+  ): Promise<SubscriptionTransaction> {
     const query = `
       UPDATE subscription_transactions
       SET 
@@ -301,6 +311,101 @@ export class SubscriptionModel {
 
     if (result.rows.length === 0) {
       throw new Error('Transaction not found');
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Update renewal price for a subscription
+   */
+  static async updateRenewalPrice(
+    subscriptionId: string,
+    newPrice: number,
+  ): Promise<void> {
+    const query = `
+      UPDATE subscriptions
+      SET 
+        renewal_price = $2,
+        updated_at = NOW()
+      WHERE id = $1
+    `;
+
+    const result = await pool.query(query, [subscriptionId, newPrice]);
+
+    if (result.rowCount === 0) {
+      throw new Error('Subscription not found');
+    }
+  }
+
+  /**
+   * Apply promotion to a subscription
+   */
+  static async applyPromotion(
+    subscriptionId: string,
+    referralCode?: string,
+  ): Promise<void> {
+    const query = `
+      UPDATE subscriptions
+      SET 
+        promotional_price_used = true,
+        referral_code_used = $2,
+        updated_at = NOW()
+      WHERE id = $1
+    `;
+
+    const result = await pool.query(query, [
+      subscriptionId,
+      referralCode || null,
+    ]);
+
+    if (result.rowCount === 0) {
+      throw new Error('Subscription not found');
+    }
+  }
+
+  /**
+   * Get subscription by ID with all details
+   */
+  static async getById(subscriptionId: string): Promise<Subscription | null> {
+    const query = `
+      SELECT 
+        s.*,
+        u.email as user_email,
+        u.first_name,
+        u.last_name
+      FROM subscriptions s
+      LEFT JOIN users u ON s.user_id = u.id
+      WHERE s.id = $1
+    `;
+
+    const result = await pool.query(query, [subscriptionId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  }
+
+  /**
+   * Get user's active subscription
+   */
+  static async getUserActiveSubscription(
+    userId: number,
+  ): Promise<Subscription | null> {
+    const query = `
+      SELECT * FROM subscriptions
+      WHERE user_id = $1 
+      AND status IN ('active', 'trial')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    const result = await pool.query(query, [userId]);
+
+    if (result.rows.length === 0) {
+      return null;
     }
 
     return result.rows[0];

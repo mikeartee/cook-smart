@@ -1,30 +1,35 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, StyleSheet } from 'react-native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createStackNavigator} from '@react-navigation/stack';
+import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAuth } from '../contexts/AuthContext';
+import {useAuth} from '../contexts/AuthContext';
 import HomeScreen from '../screens/HomeScreen';
-import { IngredientInventoryScreen } from '../screens/ingredients/IngredientInventoryScreen';
-import { AddIngredientScreen } from '../screens/ingredients/AddIngredientScreen';
-import { RecipeSearchScreen } from '../screens/recipes/RecipeSearchScreen';
-import { RecipeDetailScreen } from '../screens/recipes/RecipeDetailScreen';
-import { SavedRecipesScreen } from '../screens/recipes/SavedRecipesScreen';
+import {IngredientInventoryScreen} from '../screens/ingredients/IngredientInventoryScreen';
+import {AddIngredientScreen} from '../screens/ingredients/AddIngredientScreen';
+import {RecipeSearchScreen} from '../screens/recipes/RecipeSearchScreen';
+import {RecipeDetailScreen} from '../screens/recipes/RecipeDetailScreen';
+import {SavedRecipesScreen} from '../screens/recipes/SavedRecipesScreen';
+import SubscriptionPlansScreen from '../screens/SubscriptionPlansScreen';
+import SubscriptionDetailsScreen from '../screens/SubscriptionDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Ingredients Stack Navigator
 const IngredientsStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="IngredientInventory" component={IngredientInventoryScreen} />
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen
+      name="IngredientInventory"
+      component={IngredientInventoryScreen}
+    />
     <Stack.Screen name="AddIngredient" component={AddIngredientScreen} />
   </Stack.Navigator>
 );
 
 // Recipes Stack Navigator
 const RecipesStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="RecipeSearch" component={RecipeSearchScreen} />
     <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
   </Stack.Navigator>
@@ -32,13 +37,27 @@ const RecipesStack = () => (
 
 // Saved Recipes Stack Navigator
 const SavedRecipesStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="SavedRecipesList" component={SavedRecipesScreen} />
   </Stack.Navigator>
 );
 
+// Account Stack Navigator (with subscription screens)
+const AccountStack = () => (
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen
+      name="SubscriptionDetails"
+      component={SubscriptionDetailsScreen}
+    />
+    <Stack.Screen
+      name="SubscriptionPlans"
+      component={SubscriptionPlansScreen}
+    />
+  </Stack.Navigator>
+);
+
 const MainTabNavigator = () => {
-  const { user } = useAuth();
+  const {user} = useAuth();
 
   return (
     <Tab.Navigator
@@ -77,15 +96,14 @@ const MainTabNavigator = () => {
             )}
           </View>
         ),
-      }}
-    >
+      }}>
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
           title: 'Cook Smart 🍳',
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Icon name="home" size={size} color={color} />
           ),
         }}
@@ -96,7 +114,7 @@ const MainTabNavigator = () => {
         options={{
           title: 'My Ingredients',
           tabBarLabel: 'Ingredients',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Icon name="kitchen" size={size} color={color} />
           ),
         }}
@@ -107,7 +125,7 @@ const MainTabNavigator = () => {
         options={{
           title: 'Find Recipes',
           tabBarLabel: 'Recipes',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Icon name="restaurant" size={size} color={color} />
           ),
         }}
@@ -118,8 +136,19 @@ const MainTabNavigator = () => {
         options={{
           title: 'Saved Recipes',
           tabBarLabel: 'Saved',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({color, size}) => (
             <Icon name="favorite" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={AccountStack}
+        options={{
+          title: 'Account',
+          tabBarLabel: 'Account',
+          tabBarIcon: ({color, size}) => (
+            <Icon name="person" size={size} color={color} />
           ),
         }}
       />

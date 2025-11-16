@@ -4,9 +4,11 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {AuthProvider, useAuth} from './src/contexts/AuthContext';
 import {IngredientProvider} from './src/contexts/IngredientContext';
 import {RecipeProvider} from './src/contexts/RecipeContext';
+import {SubscriptionProvider} from './src/contexts/SubscriptionContext';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
+import SpecialUserWelcomeScreen from './src/screens/SpecialUserWelcomeScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import CookieConsent from './src/components/CookieConsent';
 // Recipe API Migration Complete - TheMealDB Active
@@ -26,6 +28,7 @@ const AuthStack = () => (
 const AppContent = () => {
   const {isAuthenticated, isLoading, user} = useAuth();
   const [showCoFounderWelcome, setShowCoFounderWelcome] = useState(false);
+  const [showSpecialUserWelcome, setShowSpecialUserWelcome] = useState(false);
   const [checkingWelcome, setCheckingWelcome] = useState(true);
 
   // Cleanup expired barcode cache on app startup
@@ -36,16 +39,21 @@ const AppContent = () => {
   }, []);
 
   useEffect(() => {
-    const checkCoFounderWelcome = async () => {
+    const checkWelcomeScreens = async () => {
       if (user?.is_co_founder) {
         const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
         setShowCoFounderWelcome(!hasShown);
+      } else if (user?.is_special_user) {
+        const hasShown = await AsyncStorage.getItem(
+          'special_user_welcome_shown',
+        );
+        setShowSpecialUserWelcome(!hasShown);
       }
       setCheckingWelcome(false);
     };
 
     if (!isLoading && isAuthenticated) {
-      checkCoFounderWelcome();
+      checkWelcomeScreens();
     } else {
       setCheckingWelcome(false);
     }
@@ -73,6 +81,14 @@ const AppContent = () => {
                 />
                 <Stack.Screen name="Main" component={MainTabNavigator} />
               </>
+            ) : showSpecialUserWelcome ? (
+              <>
+                <Stack.Screen
+                  name="SpecialUserWelcome"
+                  component={SpecialUserWelcomeScreen}
+                />
+                <Stack.Screen name="Main" component={MainTabNavigator} />
+              </>
             ) : (
               <Stack.Screen name="Main" component={MainTabNavigator} />
             )}
@@ -89,11 +105,13 @@ const AppContent = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <IngredientProvider>
-        <RecipeProvider>
-          <AppContent />
-        </RecipeProvider>
-      </IngredientProvider>
+      <SubscriptionProvider>
+        <IngredientProvider>
+          <RecipeProvider>
+            <AppContent />
+          </RecipeProvider>
+        </IngredientProvider>
+      </SubscriptionProvider>
     </AuthProvider>
   );
 };
