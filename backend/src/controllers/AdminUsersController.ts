@@ -179,6 +179,11 @@ export class AdminUsersController {
       const { id } = req.params;
       const { isCoFounder } = req.body;
 
+      if (!id) {
+        res.status(400).json({ error: 'User ID is required' });
+        return;
+      }
+
       if (typeof isCoFounder !== 'boolean') {
         res.status(400).json({ error: 'isCoFounder must be a boolean' });
         return;
@@ -230,6 +235,11 @@ export class AdminUsersController {
     try {
       const { id } = req.params;
       const { suspend, reason } = req.body;
+
+      if (!id) {
+        res.status(400).json({ error: 'User ID is required' });
+        return;
+      }
 
       if (typeof suspend !== 'boolean') {
         res.status(400).json({ error: 'suspend must be a boolean' });
@@ -287,6 +297,11 @@ export class AdminUsersController {
     try {
       const { id } = req.params;
       const { confirmation } = req.query;
+
+      if (!id) {
+        res.status(400).json({ error: 'User ID is required' });
+        return;
+      }
 
       if (confirmation !== 'DELETE') {
         res.status(400).json({ 

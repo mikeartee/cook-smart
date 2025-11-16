@@ -21,6 +21,7 @@ export interface MockUser {
   first_name?: string;
   last_name?: string;
   is_co_founder: boolean;
+  is_special_user: boolean;
   has_lifetime_subscription: boolean;
   subscription_status: string;
   points: number;

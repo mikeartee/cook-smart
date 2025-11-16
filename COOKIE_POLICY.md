@@ -42,8 +42,7 @@ Remember your preferences:
 ## 4. Third-Party Cookies
 
 Third-party services may set cookies:
-- Spoonacular (recipes)
-- Edamam (recipes)
+- TheMealDB (recipes)
 - Open Food Facts (barcode)
 - Stripe (payments)
 

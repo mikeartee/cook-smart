@@ -48,7 +48,7 @@
 
 ### 3.1 Third-Party APIs
 We share minimal data with:
-- **Recipe APIs** (Spoonacular, Edamam, TheMealDB): Ingredient lists for recipe matching
+- **Recipe API** (TheMealDB): Ingredient lists for recipe matching
 - **Food Database** (Open Food Facts): Barcode data for product identification
 - **Payment Processing** (Stripe): Payment information only
 

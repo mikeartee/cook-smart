@@ -70,6 +70,16 @@ const HomeScreen: React.FC = () => {
     onPress: () => navigation.navigate('CoFounderWelcome' as never),
   };
 
+  // Special button for Mom 💐
+  const momAction = {
+    id: 'mom-letter',
+    title: '💐 Thank You, Mom',
+    subtitle: 'From Brad',
+    icon: 'favorite',
+    color: '#DB2777',
+    onPress: () => navigation.navigate('SpecialUserWelcome' as never),
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -115,6 +125,20 @@ const HomeScreen: React.FC = () => {
               </View>
               <Text style={styles.actionTitle}>{brianaAction.title}</Text>
               <Text style={styles.actionSubtitle}>{brianaAction.subtitle}</Text>
+            </TouchableOpacity>
+          )}
+          {/* Special button for Mom 💐 */}
+          {user?.is_special_user && (
+            <TouchableOpacity
+              key={momAction.id}
+              style={[styles.actionCard, styles.specialCard]}
+              onPress={momAction.onPress}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: `${momAction.color}15` }]}>
+                <Icon name={momAction.icon} size={32} color={momAction.color} />
+              </View>
+              <Text style={styles.actionTitle}>{momAction.title}</Text>
+              <Text style={styles.actionSubtitle}>{momAction.subtitle}</Text>
             </TouchableOpacity>
           )}
         </View>

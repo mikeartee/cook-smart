@@ -3,22 +3,11 @@
  */
 
 import express from 'express';
+import request from 'supertest';
 import recipeRoutes from '../recipes';
 import { APIUsageLogModel } from '../../models/APIUsageLog';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
-import { request } from 'http';
 
 // Mock the services
-jest.mock('../../services/EdamamService');
 jest.mock('../../services/TheMealDBService');
 jest.mock('../../models/APIUsageLog');
 

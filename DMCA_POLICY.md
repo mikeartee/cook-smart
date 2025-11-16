@@ -53,9 +53,7 @@ False DMCA notices may result in legal liability and account termination.
 
 ## 8. Third-Party Content
 
-Cook Smart aggregates recipes from third-party APIs. We are not responsible for copyright issues with:
-- Spoonacular
-- Edamam
+Cook Smart aggregates recipes from third-party API:
 - TheMealDB
 - Open Food Facts
 

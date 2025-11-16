@@ -20,7 +20,7 @@ export interface RecipeSearchCache {
 }
 
 export class RecipeCacheModel {
-  // Get cached recipe by Spoonacular recipe ID
+  // Get cached recipe by recipe ID
   static async getCachedRecipe(recipeId: string): Promise<CachedRecipe | null> {
     const result = await pool.query(
       `SELECT * FROM cached_recipes WHERE recipe_id = $1`,

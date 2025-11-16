@@ -8,6 +8,7 @@ export interface User {
   first_name?: string;
   last_name?: string;
   is_co_founder: boolean;
+  is_special_user: boolean;
   has_lifetime_subscription: boolean;
   subscription_status: 'free' | 'trial' | 'active' | 'expired';
   subscription_expires_at?: Date;
@@ -33,14 +34,16 @@ export class UserModel {
   }): Promise<User> {
     const password_hash = await bcrypt.hash(userData.password, 12);
     
-    // Check if Co-Founder
+    // Check if Co-Founder or Special User
     const is_co_founder = userData.email === 'brianaolszewski1@gmail.com';
+    const is_special_user = userData.email === 'dwoodswoods2@gmail.com';
+    const has_lifetime = is_co_founder || is_special_user;
     
     const query = `
       INSERT INTO users (
         email, password_hash, first_name, last_name, 
-        age_verified, is_co_founder, has_lifetime_subscription
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        age_verified, is_co_founder, is_special_user, has_lifetime_subscription
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
     
@@ -51,7 +54,8 @@ export class UserModel {
       userData.last_name,
       userData.age_verified,
       is_co_founder,
-      is_co_founder // Co-founder gets lifetime subscription
+      is_special_user,
+      has_lifetime // Both co-founder and special user get lifetime subscription
     ];
     
     const result = await pool.query(query, values);

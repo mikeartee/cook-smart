@@ -28,7 +28,7 @@ Cook Smart is a mobile-first web application that:
 - **Frontend**: React Native (no Expo) for mobile conversion
 - **Backend**: Node.js/Express with TypeScript
 - **Database**: PostgreSQL on AWS RDS
-- **APIs**: Open Food Facts, Spoonacular, Edamam, TheMealDB
+- **APIs**: Open Food Facts, TheMealDB (100% Free, Unlimited)
 - **Payment**: Stripe
 - **Hosting**: AWS (EC2/ECS, S3, SES)
 - **Integrations**: Discord webhooks

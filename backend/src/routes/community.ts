@@ -1,6 +1,6 @@
 import express from 'express';
 import { CommunityActivityService } from '../services/CommunityActivityService';
-import { NotificationService } from '../services/NotificationService';
+import NotificationService from '../services/NotificationService';
 
 const router = express.Router();
 

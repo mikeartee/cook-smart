@@ -55,8 +55,7 @@ Response time: Within 30 days
 |-----------|---------|----------|
 | AWS | Hosting | USA |
 | Stripe | Payments | USA |
-| Spoonacular | Recipes | USA |
-| Edamam | Recipes | USA |
+| TheMealDB | Recipes | UK |
 | Open Food Facts | Barcode | France |
 
 All sub-processors are contractually required to comply with data protection laws.

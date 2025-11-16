@@ -551,6 +551,36 @@ class NotificationService {
       console.error('Failed to log notification:', error);
     }
   }
+
+  // Stub methods for community features (to be implemented)
+  async notifyAchievement(userId: string, achievement: string, description: string): Promise<void> {
+    console.log(`Achievement notification stub: ${userId} - ${achievement}`);
+  }
+
+  async getUserNotifications(userId: string, page: number, limit: number): Promise<any[]> {
+    console.log(`Get notifications stub: ${userId}`);
+    return [];
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    console.log(`Get unread count stub: ${userId}`);
+    return 0;
+  }
+
+  async markAsRead(userId: string, notificationId: string): Promise<boolean> {
+    console.log(`Mark as read stub: ${userId} - ${notificationId}`);
+    return true;
+  }
+
+  async markAllAsRead(userId: string): Promise<number> {
+    console.log(`Mark all as read stub: ${userId}`);
+    return 0;
+  }
+
+  async deleteNotification(userId: string, notificationId: string): Promise<boolean> {
+    console.log(`Delete notification stub: ${userId} - ${notificationId}`);
+    return true;
+  }
 }
 
 export default new NotificationService();

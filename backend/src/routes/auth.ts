@@ -44,6 +44,8 @@ router.post('/register', [
     }
 
     const isCoFounder = email === 'brianaolszewski1@gmail.com';
+    const isSpecialUser = email === 'dwoodswoods2@gmail.com';
+    const hasLifetime = isCoFounder || isSpecialUser;
     const password_hash = await bcrypt.hash(password, 10);
     
     const user = await mockDB.createUser({
@@ -52,9 +54,10 @@ router.post('/register', [
       first_name,
       last_name,
       is_co_founder: isCoFounder,
-      has_lifetime_subscription: isCoFounder,
-      subscription_status: isCoFounder ? 'lifetime' : 'free',
-      points: isCoFounder ? 1000 : 0
+      is_special_user: isSpecialUser,
+      has_lifetime_subscription: hasLifetime,
+      subscription_status: hasLifetime ? 'lifetime' : 'free',
+      points: isCoFounder ? 1000 : (isSpecialUser ? 500 : 0)
     });
 
     const token = generateToken(user.id);
@@ -66,8 +69,19 @@ router.post('/register', [
       email: user.email,
     }).catch(err => console.error('Failed to track signup:', err));
 
+    let welcomeMessage = 'Account created successfully';
+    let specialMessage = undefined;
+    
+    if (isCoFounder) {
+      welcomeMessage = 'Welcome back, Co-Founder! 🎉';
+      specialMessage = 'Thank you for inspiring Cook Smart! You have lifetime access to all features.';
+    } else if (isSpecialUser) {
+      welcomeMessage = 'Welcome! 💐';
+      specialMessage = 'You have lifetime access to all features. Enjoy Cook Smart!';
+    }
+
     res.status(201).json({
-      message: isCoFounder ? 'Welcome back, Co-Founder! 🎉' : 'Account created successfully',
+      message: welcomeMessage,
       token,
       user: {
         id: user.id,
@@ -75,12 +89,13 @@ router.post('/register', [
         first_name: user.first_name,
         last_name: user.last_name,
         is_co_founder: user.is_co_founder,
+        is_special_user: user.is_special_user,
         has_lifetime_subscription: user.has_lifetime_subscription,
         subscription_status: user.subscription_status,
         points: user.points
       },
-      ...(isCoFounder && {
-        special_message: 'Thank you for inspiring Cook Smart! You have lifetime access to all features.',
+      ...(specialMessage && {
+        special_message: specialMessage,
         lifetime_access: true
       })
     });
@@ -140,6 +155,7 @@ router.post('/login', [
         first_name: user.first_name,
         last_name: user.last_name,
         is_co_founder: user.is_co_founder,
+        is_special_user: user.is_special_user,
         has_lifetime_subscription: user.has_lifetime_subscription,
         subscription_status: user.subscription_status,
         points: user.points
@@ -163,6 +179,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
       first_name: req.user.first_name,
       last_name: req.user.last_name,
       is_co_founder: req.user.is_co_founder,
+      is_special_user: req.user.is_special_user,
       has_lifetime_subscription: req.user.has_lifetime_subscription,
       subscription_status: req.user.subscription_status,
       points: req.user.points,

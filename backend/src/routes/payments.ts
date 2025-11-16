@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { StripeService } from '../services/StripeService';
 import { authenticateToken } from '../middleware/auth';
 import pool from '../config/database';
@@ -111,13 +111,18 @@ router.post('/cancel-subscription', authenticateToken, async (req: Request & { u
   }
 });
 
-// Stripe webhook
-router.post('/webhook', async (req: Request, res: Response) => {
+// Stripe webhook (requires raw body)
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
   try {
     const signature = req.headers['stripe-signature'] as string;
+    if (!signature) {
+      return res.status(400).json({ success: false, error: 'Missing stripe-signature header' });
+    }
+    
     await StripeService.processWebhook(req.body, signature);
     return res.json({ received: true });
   } catch (error) {
+    console.error('Webhook error:', error);
     return res.status(400).json({ success: false, error: 'Webhook processing failed' });
   }
 });

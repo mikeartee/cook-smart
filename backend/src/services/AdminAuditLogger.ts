@@ -18,8 +18,8 @@ export interface LogAuditData {
   resourceType: string;
   resourceId: string;
   details?: object;
-  ipAddress?: string;
-  userAgent?: string;
+  ipAddress?: string | undefined;
+  userAgent?: string | undefined;
 }
 
 class AdminAuditLoggerService {

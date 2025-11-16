@@ -11,7 +11,7 @@ router.use(requireSuperAdmin);
 
 // Admin management
 router.get('/admins', async (req: Request, res: Response) => {
-  await controller.listAdmins(req, res);
+  await controller.getAdmins(req, res);
 });
 
 router.delete('/admins/:id', async (req: Request, res: Response) => {
@@ -24,7 +24,7 @@ router.post('/admins/:id/reset-password', async (req: Request, res: Response) =>
 
 // Approved emails management
 router.get('/approved-emails', async (req: Request, res: Response) => {
-  await controller.listApprovedEmails(req, res);
+  await controller.getApprovedEmails(req, res);
 });
 
 router.post('/approved-emails', async (req: Request, res: Response) => {

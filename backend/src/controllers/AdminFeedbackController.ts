@@ -162,6 +162,11 @@ export class AdminFeedbackController {
       const { id } = req.params;
       const { status } = req.body;
 
+      if (!id) {
+        res.status(400).json({ error: 'Feedback ID is required' });
+        return;
+      }
+
       const validStatuses = ['new', 'in_progress', 'resolved', 'ignored'];
       if (!validStatuses.includes(status)) {
         res.status(400).json({ 
@@ -214,6 +219,11 @@ export class AdminFeedbackController {
     try {
       const { id } = req.params;
       const { notes } = req.body;
+
+      if (!id) {
+        res.status(400).json({ error: 'Feedback ID is required' });
+        return;
+      }
 
       if (typeof notes !== 'string') {
         res.status(400).json({ error: 'notes must be a string' });

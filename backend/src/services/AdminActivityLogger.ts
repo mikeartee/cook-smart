@@ -14,8 +14,8 @@ export interface AdminActivityLog {
 export interface LogActivityData {
   adminId?: number;
   action: string;
-  ipAddress?: string;
-  userAgent?: string;
+  ipAddress?: string | undefined;
+  userAgent?: string | undefined;
   success: boolean;
   details?: object;
 }

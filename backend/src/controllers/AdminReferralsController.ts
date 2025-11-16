@@ -151,6 +151,11 @@ export class AdminReferralsController {
     try {
       const { code } = req.params;
 
+      if (!code) {
+        res.status(400).json({ error: 'Referral code is required' });
+        return;
+      }
+
       await AdminAuditLogger.log({
         adminId: req.admin!.id,
         action: 'disable_referral_code',

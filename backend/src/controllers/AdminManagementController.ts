@@ -73,6 +73,11 @@ export class AdminManagementController {
     try {
       const { email } = req.params;
 
+      if (!email) {
+        res.status(400).json({ error: 'Email parameter is required' });
+        return;
+      }
+
       const success = await ApprovedAdminEmailModel.remove(email);
 
       if (!success) {
@@ -93,6 +98,11 @@ export class AdminManagementController {
    */
   async removeAdmin(req: Request, res: Response): Promise<void> {
     try {
+      if (!req.params.id) {
+        res.status(400).json({ error: 'Admin ID is required' });
+        return;
+      }
+
       const adminId = parseInt(req.params.id);
 
       if (isNaN(adminId)) {
@@ -164,6 +174,11 @@ export class AdminManagementController {
    */
   async resetAdminPassword(req: Request, res: Response): Promise<void> {
     try {
+      if (!req.params.id) {
+        res.status(400).json({ error: 'Admin ID is required' });
+        return;
+      }
+
       const adminId = parseInt(req.params.id);
       const { newPassword } = req.body;
 

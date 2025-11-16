@@ -114,6 +114,11 @@ export class AdminSubscriptionsController {
       const { id } = req.params;
       const { reason } = req.body;
 
+      if (!id) {
+        res.status(400).json({ error: 'Subscription ID is required' });
+        return;
+      }
+
       if (!reason) {
         res.status(400).json({ error: 'Cancellation reason is required' });
         return;
@@ -157,6 +162,11 @@ export class AdminSubscriptionsController {
       const { id } = req.params;
       const { months } = req.body;
 
+      if (!id) {
+        res.status(400).json({ error: 'Subscription ID is required' });
+        return;
+      }
+
       if (!months || typeof months !== 'number' || months <= 0) {
         res.status(400).json({ 
           error: 'months must be a positive number' 
@@ -199,16 +209,21 @@ export class AdminSubscriptionsController {
   async getBillingHistory(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-      const status = req.query.status as string;
+      const status = req.query.status as string | undefined;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
 
-      const result = await SubscriptionModel.getBillingHistory({
-        userId,
-        status,
-        page,
-        limit,
-      });
+      const filters: {
+        userId?: number;
+        status?: string;
+        page?: number;
+        limit?: number;
+      } = { page, limit };
+
+      if (userId !== undefined) filters.userId = userId;
+      if (status !== undefined) filters.status = status;
+
+      const result = await SubscriptionModel.getBillingHistory(filters);
 
       res.json({
         transactions: result.transactions,
@@ -232,6 +247,11 @@ export class AdminSubscriptionsController {
    */
   async processRefund(req: Request, res: Response): Promise<void> {
     try {
+      if (!req.params.transactionId) {
+        res.status(400).json({ error: 'Transaction ID is required' });
+        return;
+      }
+
       const transactionId = parseInt(req.params.transactionId);
       const { amount, reason } = req.body;
 
