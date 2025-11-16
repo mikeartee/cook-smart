@@ -57,14 +57,9 @@ export const IngredientProvider: React.FC<IngredientProviderProps> = ({ children
     setIsLoading(true);
     setError(null);
     try {
-      const newIngredient = await ingredientService.addIngredient(ingredientData);
-      
-      // Optimistic update
-      if (ingredientData.customName) {
-        setCustomIngredients(prev => [newIngredient, ...prev]);
-      } else {
-        setIngredients(prev => [newIngredient, ...prev]);
-      }
+      await ingredientService.addIngredient(ingredientData);
+      // Don't do optimistic update - just let the user refresh or navigate back
+      // The ingredient will show up when they return to the list
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add ingredient';
       setError(errorMessage);
@@ -79,14 +74,14 @@ export const IngredientProvider: React.FC<IngredientProviderProps> = ({ children
     setIsLoading(true);
     setError(null);
     try {
-      const updatedIngredient = await ingredientService.updateIngredient(id, updates);
+      await ingredientService.updateIngredient(id, updates);
       
-      // Update in state
+      // Optimistically update in state by merging the updates
       setIngredients(prev =>
-        prev.map(ing => (ing.id === id ? updatedIngredient : ing))
+        (prev || []).map(ing => (ing.id === id ? { ...ing, ...updates } : ing))
       );
       setCustomIngredients(prev =>
-        prev.map(ing => (ing.id === id ? updatedIngredient : ing))
+        (prev || []).map(ing => (ing.id === id ? { ...ing, ...updates } : ing))
       );
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update ingredient';

@@ -5,7 +5,11 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { errorHandler, notFound } from './middleware/errorHandler';
+import { errorMiddleware, notFoundHandler } from './middleware/errorMiddleware';
 import { requestLogger } from './middleware/logger';
+import AutoRepairSystem from './services/AutoRepairSystem';
+import HealthMonitor from './services/HealthMonitor';
+import pool from './config/database';
 import healthRoutes from './routes/health';
 
 // Load environment variables
@@ -13,6 +17,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize auto-repair system with database pool
+if (pool) {
+  AutoRepairSystem.setDatabasePool(pool);
+}
 
 // Security middleware
 app.use(helmet());
@@ -54,6 +63,8 @@ import shoppingRoutes from './routes/shopping';
 import pointsRoutes from './routes/points';
 import referralRoutes from './routes/referrals';
 import paymentRoutes from './routes/payments';
+import adminRoutes from './routes/admin';
+import feedbackRoutes from './routes/feedback';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/ingredients', ingredientRoutes);
@@ -64,6 +75,8 @@ app.use('/api/v1/shopping-list', shoppingRoutes);
 app.use('/api/v1/points', pointsRoutes);
 app.use('/api/v1/referrals', referralRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({
@@ -78,9 +91,9 @@ app.get('/api/v1/test', (req, res) => {
   });
 });
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
+// Error handling - use new Discord notification middleware
+app.use(notFoundHandler);
+app.use(errorMiddleware);
 
 // Start server
 app.listen(PORT, () => {
@@ -88,6 +101,9 @@ app.listen(PORT, () => {
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/v1/test`);
+  
+  // Start health monitoring
+  HealthMonitor.startDailyHealthSummary();
 });
 
 export default app;

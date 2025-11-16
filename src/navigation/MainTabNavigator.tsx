@@ -4,8 +4,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../contexts/AuthContext';
+import HomeScreen from '../screens/HomeScreen';
 import { IngredientInventoryScreen } from '../screens/ingredients/IngredientInventoryScreen';
 import { AddIngredientScreen } from '../screens/ingredients/AddIngredientScreen';
+import { RecipeSearchScreen } from '../screens/recipes/RecipeSearchScreen';
+import { RecipeDetailScreen } from '../screens/recipes/RecipeDetailScreen';
+import { SavedRecipesScreen } from '../screens/recipes/SavedRecipesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -18,21 +22,19 @@ const IngredientsStack = () => (
   </Stack.Navigator>
 );
 
-// Placeholder screens - will be replaced with actual screens
-const RecipesPlaceholder = () => (
-  <View style={styles.placeholder}>
-    <Icon name="restaurant" size={48} color="#10B981" />
-    <Text style={styles.placeholderText}>Recipes</Text>
-    <Text style={styles.placeholderSubtext}>Coming soon...</Text>
-  </View>
+// Recipes Stack Navigator
+const RecipesStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="RecipeSearch" component={RecipeSearchScreen} />
+    <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+  </Stack.Navigator>
 );
 
-const SavedRecipesPlaceholder = () => (
-  <View style={styles.placeholder}>
-    <Icon name="favorite" size={48} color="#10B981" />
-    <Text style={styles.placeholderText}>Saved Recipes</Text>
-    <Text style={styles.placeholderSubtext}>Coming soon...</Text>
-  </View>
+// Saved Recipes Stack Navigator
+const SavedRecipesStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SavedRecipesList" component={SavedRecipesScreen} />
+  </Stack.Navigator>
 );
 
 const MainTabNavigator = () => {
@@ -78,10 +80,22 @@ const MainTabNavigator = () => {
       }}
     >
       <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'Cook Smart 🍳',
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Ingredients"
         component={IngredientsStack}
         options={{
-          title: 'Cook Smart 🍳',
+          title: 'My Ingredients',
+          tabBarLabel: 'Ingredients',
           tabBarIcon: ({ color, size }) => (
             <Icon name="kitchen" size={size} color={color} />
           ),
@@ -89,9 +103,10 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Recipes"
-        component={RecipesPlaceholder}
+        component={RecipesStack}
         options={{
-          title: 'Cook Smart 🍳',
+          title: 'Find Recipes',
+          tabBarLabel: 'Recipes',
           tabBarIcon: ({ color, size }) => (
             <Icon name="restaurant" size={size} color={color} />
           ),
@@ -99,9 +114,9 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="SavedRecipes"
-        component={SavedRecipesPlaceholder}
+        component={SavedRecipesStack}
         options={{
-          title: 'Cook Smart 🍳',
+          title: 'Saved Recipes',
           tabBarLabel: 'Saved',
           tabBarIcon: ({ color, size }) => (
             <Icon name="favorite" size={size} color={color} />

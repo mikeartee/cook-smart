@@ -4,6 +4,7 @@ import { UserModel } from '../models/User';
 import { generateToken, authenticateToken, AuthRequest } from '../middleware/auth';
 import mockDB from '../config/mockDatabase';
 import * as bcrypt from 'bcryptjs';
+import ActivityTracker from '../services/ActivityTracker';
 
 const router = Router();
 
@@ -58,6 +59,13 @@ router.post('/register', [
 
     const token = generateToken(user.id);
 
+    // Track signup activity (async, non-blocking)
+    ActivityTracker.trackSignup({
+      id: user.id,
+      name: user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'New User',
+      email: user.email,
+    }).catch(err => console.error('Failed to track signup:', err));
+
     res.status(201).json({
       message: isCoFounder ? 'Welcome back, Co-Founder! 🎉' : 'Account created successfully',
       token,
@@ -102,7 +110,8 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    const user = await UserModel.findByEmail(email);
+    // Use mock database in development
+    const user = await mockDB.findUserByEmail(email);
     if (!user) {
       res.status(401).json({
         error: 'Invalid credentials',
@@ -111,7 +120,7 @@ router.post('/login', [
       return;
     }
 
-    const isValidPassword = await UserModel.verifyPassword(password, user.password_hash);
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
       res.status(401).json({
         error: 'Invalid credentials',
@@ -120,7 +129,6 @@ router.post('/login', [
       return;
     }
 
-    await UserModel.updateLastLogin(user.id);
     const token = generateToken(user.id);
 
     res.json({

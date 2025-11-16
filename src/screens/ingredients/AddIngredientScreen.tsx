@@ -15,6 +15,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SearchBar } from '../../components/common/SearchBar';
 import { useIngredients } from '../../contexts/IngredientContext';
 import { Ingredient } from '../../services/ingredientService';
+import { BarcodeScannerModal } from '../../components/barcode/BarcodeScannerModal';
+import { ManualBarcodeEntryModal } from '../../components/barcode/ManualBarcodeEntryModal';
+import { ScannedProduct } from '../../services/productLookupService';
+import { barcodeService } from '../../services/barcodeService';
 
 export const AddIngredientScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -25,11 +29,22 @@ export const AddIngredientScreen: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
 
+  // Barcode scanner state
+  const [showScannerModal, setShowScannerModal] = useState(false);
+  const [showManualEntryModal, setShowManualEntryModal] = useState(false);
+  const [scannedProduct, setScannedProduct] = useState<ScannedProduct | null>(null);
+  const [hasCameraAvailable, setHasCameraAvailable] = useState(true);
+
   // Custom ingredient form state
   const [customName, setCustomName] = useState('');
   const [customCategory, setCustomCategory] = useState('Other');
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('unit');
+
+  // Check camera availability on mount
+  useEffect(() => {
+    checkCameraAvailability();
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -53,6 +68,63 @@ export const AddIngredientScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery, searchIngredients]);
 
+  // Pre-populate form when product is scanned
+  useEffect(() => {
+    if (scannedProduct) {
+      setCustomName(scannedProduct.name);
+      setCustomCategory(scannedProduct.category || 'Other');
+      setQuantity('1');
+      setUnit('item');
+      setShowCustomModal(true);
+    }
+  }, [scannedProduct]);
+
+  const checkCameraAvailability = async () => {
+    try {
+      const status = await barcodeService.checkCameraPermission();
+      setHasCameraAvailable(status !== 'unavailable');
+    } catch (error) {
+      console.error('Error checking camera availability:', error);
+      setHasCameraAvailable(false);
+    }
+  };
+
+  const handleScanBarcode = () => {
+    // Check if form has data
+    if (customName.trim()) {
+      Alert.alert(
+        'Discard Changes?',
+        'Scanning a barcode will replace the current form data. Continue?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Continue',
+            onPress: () => {
+              setCustomName('');
+              setCustomCategory('Other');
+              setQuantity('1');
+              setUnit('unit');
+              setShowScannerModal(true);
+            },
+          },
+        ]
+      );
+    } else {
+      setShowScannerModal(true);
+    }
+  };
+
+  const handleBarcodeScanned = (productData: ScannedProduct) => {
+    setScannedProduct(productData);
+  };
+
+  const handleManualEntry = () => {
+    setShowManualEntryModal(true);
+  };
+
   const handleSelectIngredient = async (ingredient: Ingredient) => {
     try {
       await addIngredient({
@@ -60,8 +132,20 @@ export const AddIngredientScreen: React.FC = () => {
         quantity: 1,
         unit: 'unit',
       });
-      Alert.alert('Success', 'Ingredient added to your inventory');
-      navigation.goBack();
+      
+      Alert.alert(
+        'Success', 
+        'Ingredient added to your inventory',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigate back to ingredients list
+              navigation.navigate('IngredientInventory' as never);
+            }
+          }
+        ]
+      );
     } catch (_error) {
       Alert.alert('Error', 'Failed to add ingredient');
     }
@@ -80,9 +164,30 @@ export const AddIngredientScreen: React.FC = () => {
         quantity: parseFloat(quantity) || 1,
         unit: unit.trim() || 'unit',
       });
-      Alert.alert('Success', 'Custom ingredient added');
+      
+      // Close modal first
       setShowCustomModal(false);
-      navigation.goBack();
+      
+      // Reset form
+      setCustomName('');
+      setCustomCategory('Other');
+      setQuantity('1');
+      setUnit('unit');
+      
+      // Show success and navigate back
+      Alert.alert(
+        'Success', 
+        'Custom ingredient added! Pull down to refresh the list.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigate back to ingredients list
+              navigation.goBack();
+            }
+          }
+        ]
+      );
     } catch (_error) {
       Alert.alert('Error', 'Failed to add custom ingredient');
     }
@@ -125,6 +230,17 @@ export const AddIngredientScreen: React.FC = () => {
         <Text style={styles.headerTitle}>Add Ingredient</Text>
         <View style={styles.placeholder} />
       </View>
+
+      {/* Scan Barcode Button */}
+      {hasCameraAvailable && (
+        <TouchableOpacity
+          style={styles.scanButton}
+          onPress={handleScanBarcode}
+        >
+          <Icon name="qr-code-scanner" size={24} color="#10B981" />
+          <Text style={styles.scanButtonText}>Scan Barcode</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.searchContainer}>
         <SearchBar
@@ -171,6 +287,21 @@ export const AddIngredientScreen: React.FC = () => {
         <Icon name="add" size={20} color="#FFFFFF" />
         <Text style={styles.customButtonText}>Add Custom Ingredient</Text>
       </TouchableOpacity>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        visible={showScannerModal}
+        onClose={() => setShowScannerModal(false)}
+        onBarcodeScanned={handleBarcodeScanned}
+        onManualEntry={handleManualEntry}
+      />
+
+      {/* Manual Barcode Entry Modal */}
+      <ManualBarcodeEntryModal
+        visible={showManualEntryModal}
+        onClose={() => setShowManualEntryModal(false)}
+        onBarcodeScanned={handleBarcodeScanned}
+      />
 
       {/* Custom Ingredient Modal */}
       <Modal
@@ -287,6 +418,24 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 32,
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#D1FAE5',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10B981',
+  },
+  scanButtonText: {
+    color: '#10B981',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   searchContainer: {
     padding: 16,

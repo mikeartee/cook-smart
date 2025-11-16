@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,18 +9,67 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// TODO: Re-enable when adding music - import { Audio } from 'expo-av';
-// TODO: Re-enable when adding music - import { useEffect, useState } from 'react';
+import Sound from 'react-native-sound';
 
 const CoFounderWelcomeScreen: React.FC = () => {
   const navigation = useNavigation();
-  // TODO: Music feature disabled temporarily - need to purchase song
-  // See: .kiro/TODO_ADD_MUSIC.md for instructions
-  // Uncomment these when re-enabling music:
-  // const [sound, setSound] = useState<Audio.Sound | null>(null);
-  // const [isPlaying, setIsPlaying] = useState(false);
+  const [sound, setSound] = useState<Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [musicLoaded, setMusicLoaded] = useState(false);
+
+  useEffect(() => {
+    // Enable playback in silence mode
+    Sound.setCategory('Playback');
+
+    // Load the music file
+    const music = new Sound('briana_song.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.log('Failed to load the sound', error);
+        return;
+      }
+      setMusicLoaded(true);
+      setSound(music);
+      // Auto-play when loaded
+      music.play((success) => {
+        if (success) {
+          setIsPlaying(false);
+          music.setCurrentTime(0); // Reset to beginning
+        }
+      });
+      setIsPlaying(true);
+    });
+
+    // Cleanup
+    return () => {
+      if (sound) {
+        sound.release();
+      }
+    };
+  }, []);
+
+  const toggleMusic = () => {
+    if (!sound) return;
+
+    if (isPlaying) {
+      sound.pause();
+      setIsPlaying(false);
+    } else {
+      sound.play((success) => {
+        if (success) {
+          setIsPlaying(false);
+          sound.setCurrentTime(0);
+        }
+      });
+      setIsPlaying(true);
+    }
+  };
 
   const handleContinue = async () => {
+    // Stop music before leaving
+    if (sound) {
+      sound.stop();
+      sound.release();
+    }
     // Mark that we've shown the welcome screen
     await AsyncStorage.setItem('cofounder_welcome_shown', 'true');
     // Navigate to main app - will be handled by navigation state
@@ -83,7 +132,16 @@ const CoFounderWelcomeScreen: React.FC = () => {
             <Text style={styles.badgeText}>👑 CO-FOUNDER - LIFETIME ACCESS</Text>
           </View>
 
-          {/* Music button disabled - see .kiro/TODO_ADD_MUSIC.md */}
+          {musicLoaded && (
+            <TouchableOpacity style={styles.musicButton} onPress={toggleMusic}>
+              <Text style={styles.musicButtonText}>
+                {isPlaying ? '⏸️ Pause Music' : '▶️ Play Music'}
+              </Text>
+              <Text style={styles.songInfo}>
+                A special song for you 💕
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
             <Text style={styles.continueButtonText}>Continue to Cook Smart 🍳</Text>

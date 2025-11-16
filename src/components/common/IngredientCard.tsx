@@ -6,6 +6,7 @@ import { Ingredient } from '../../services/ingredientService';
 interface IngredientCardProps {
   ingredient: Ingredient;
   onDelete: (id: number) => void;
+  onEdit?: (ingredient: Ingredient) => void;
 }
 
 const getCategoryIcon = (category: string): string => {
@@ -24,12 +25,17 @@ const getCategoryIcon = (category: string): string => {
 export const IngredientCard: React.FC<IngredientCardProps> = ({
   ingredient,
   onDelete,
+  onEdit,
 }) => {
   const displayName = ingredient.ingredient_name || ingredient.name || 'Unknown';
   const iconName = getCategoryIcon(ingredient.category);
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => onEdit?.(ingredient)}
+      activeOpacity={onEdit ? 0.7 : 1}
+    >
       <View style={styles.iconContainer}>
         <Icon name={iconName} size={24} color="#10B981" />
       </View>
@@ -46,12 +52,15 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => onDelete(ingredient.id)}
+        onPress={(e) => {
+          e.stopPropagation();
+          onDelete(ingredient.id);
+        }}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Icon name="delete" size={20} color="#EF4444" />
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 };
 

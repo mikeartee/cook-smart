@@ -1,143 +1,188 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface FeedbackModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (feedback: FeedbackData) => void;
+  onSubmit: (feedback: {
+    message: string;
+    rating?: number;
+    category?: string;
+  }) => Promise<void>;
 }
 
-export interface FeedbackData {
-  rating: number;
-  category: 'bug' | 'feature' | 'ui' | 'performance' | 'general';
-  message: string;
-  email?: string;
-}
+const CATEGORIES = ['Bug', 'Feature Request', 'General', 'Improvement', 'Other'];
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   visible,
   onClose,
-  onSubmit
+  onSubmit,
 }) => {
-  const [rating, setRating] = useState(5);
-  const [category, setCategory] = useState<FeedbackData['category']>('general');
   const [message, setMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [rating, setRating] = useState<number | undefined>(undefined);
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!message.trim()) {
-      Alert.alert('Error', 'Please enter your feedback');
+      Alert.alert('Error', 'Please enter your feedback message');
       return;
     }
 
-    onSubmit({
-      rating,
-      category,
-      message: message.trim(),
-      email: email.trim() || undefined
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        message: message.trim(),
+        rating,
+        category,
+      });
 
-    // Reset form
-    setRating(5);
-    setCategory('general');
-    setMessage('');
-    setEmail('');
-    onClose();
+      // Reset form
+      setMessage('');
+      setRating(undefined);
+      setCategory(undefined);
+
+      Alert.alert(
+        'Thank You!',
+        'Your feedback has been submitted successfully. We appreciate your input!',
+        [{ text: 'OK', onPress: onClose }]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to submit feedback'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const categories = [
-    { id: 'bug', label: '🐛 Bug Report', color: '#F44336' },
-    { id: 'feature', label: '💡 Feature Request', color: '#4CAF50' },
-    { id: 'ui', label: '🎨 UI/UX Feedback', color: '#2196F3' },
-    { id: 'performance', label: '⚡ Performance', color: '#FF9800' },
-    { id: 'general', label: '💬 General Feedback', color: '#9C27B0' }
-  ];
+  const handleCancel = () => {
+    setMessage('');
+    setRating(undefined);
+    setCategory(undefined);
+    onClose();
+  };
 
   return (
     <Modal
       visible={visible}
-      transparent
       animationType="slide"
-      onRequestClose={onClose}
+      transparent={true}
+      onRequestClose={handleCancel}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <View style={styles.modalContainer}>
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>🚧 BETA Feedback</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeText}>×</Text>
+            <Text style={styles.headerTitle}>Send Feedback</Text>
+            <TouchableOpacity onPress={handleCancel} style={styles.closeButton}>
+              <Icon name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
-          
-          <View style={styles.content}>
-            <Text style={styles.sectionTitle}>How would you rate Cook Smart?</Text>
-            <View style={styles.ratingContainer}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <TouchableOpacity
-                  key={star}
-                  onPress={() => setRating(star)}
-                  style={styles.starButton}
-                >
-                  <Text style={[
-                    styles.star,
-                    { color: star <= rating ? '#FFD700' : '#ddd' }
-                  ]}>
-                    ⭐
-                  </Text>
-                </TouchableOpacity>
-              ))}
+
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Rating */}
+            <View style={styles.section}>
+              <Text style={styles.label}>How would you rate your experience?</Text>
+              <View style={styles.ratingContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                    style={styles.starButton}
+                  >
+                    <Icon
+                      name={rating && rating >= star ? 'star' : 'star-border'}
+                      size={36}
+                      color={rating && rating >= star ? '#F59E0B' : '#D1D5DB'}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-            
-            <Text style={styles.sectionTitle}>Category</Text>
-            <View style={styles.categoriesContainer}>
-              {categories.map(cat => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[
-                    styles.categoryButton,
-                    category === cat.id && { backgroundColor: cat.color }
-                  ]}
-                  onPress={() => setCategory(cat.id as any)}
-                >
-                  <Text style={[
-                    styles.categoryText,
-                    category === cat.id && styles.selectedCategoryText
-                  ]}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+
+            {/* Category */}
+            <View style={styles.section}>
+              <Text style={styles.label}>Category (Optional)</Text>
+              <View style={styles.categoryContainer}>
+                {CATEGORIES.map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    onPress={() => setCategory(cat)}
+                    style={[
+                      styles.categoryChip,
+                      category === cat && styles.categoryChipSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        category === cat && styles.categoryChipTextSelected,
+                      ]}
+                    >
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-            
-            <Text style={styles.sectionTitle}>Your Feedback</Text>
-            <TextInput
-              style={styles.messageInput}
-              value={message}
-              onChangeText={setMessage}
-              placeholder="Tell us what you think about Cook Smart..."
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-            
-            <Text style={styles.sectionTitle}>Email (Optional)</Text>
-            <TextInput
-              style={styles.emailInput}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="your@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
-          
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
+
+            {/* Message */}
+            <View style={styles.section}>
+              <Text style={styles.label}>Your Feedback *</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Tell us what you think..."
+                placeholderTextColor="#9CA3AF"
+                multiline
+                numberOfLines={6}
+                value={message}
+                onChangeText={setMessage}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Info */}
+            <View style={styles.infoBox}>
+              <Icon name="info-outline" size={20} color="#3B82F6" />
+              <Text style={styles.infoText}>
+                Your feedback helps us improve Cook Smart. Thank you for taking the time to share your thoughts!
+              </Text>
+            </View>
+          </ScrollView>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitText}>Send Feedback</Text>
+
+            <TouchableOpacity
+              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit Feedback</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -149,16 +194,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-  modal: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 500,
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     maxHeight: '90%',
   },
   header: {
@@ -167,106 +209,117 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E5E7EB',
   },
-  title: {
+  headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '600',
+    color: '#111827',
   },
   closeButton: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeText: {
-    fontSize: 24,
-    color: '#999',
+    padding: 4,
   },
   content: {
     padding: 20,
   },
-  sectionTitle: {
+  section: {
+    marginBottom: 24,
+  },
+  label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#374151',
     marginBottom: 12,
-    marginTop: 8,
   },
   ratingContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    gap: 8,
   },
   starButton: {
     padding: 4,
   },
-  star: {
-    fontSize: 32,
-  },
-  categoriesContainer: {
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+  },
+  categoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  categoryChipSelected: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  categoryChipTextSelected: {
+    color: '#FFFFFF',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827',
+    minHeight: 120,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
     marginBottom: 20,
   },
-  categoryButton: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  categoryText: {
+  infoText: {
+    flex: 1,
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: '#1E40AF',
+    lineHeight: 20,
   },
-  selectedCategoryText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  messageInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 100,
-    marginBottom: 16,
-  },
-  emailInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  actions: {
+  footer: {
     flexDirection: 'row',
-    padding: 20,
     gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   cancelButton: {
     flex: 1,
-    padding: 16,
+    paddingVertical: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#D1D5DB',
     alignItems: 'center',
   },
-  cancelText: {
-    color: '#666',
+  cancelButtonText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#6B7280',
   },
   submitButton: {
-    flex: 2,
-    padding: 16,
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: 8,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     alignItems: 'center',
   },
-  submitText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  submitButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

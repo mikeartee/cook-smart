@@ -84,7 +84,15 @@ class IngredientService {
       throw new Error(data.error || 'Failed to add ingredient');
     }
 
-    return data.ingredient;
+    // Handle both data.ingredient and direct ingredient response
+    const ingredient = data.ingredient || data;
+    
+    if (!ingredient || !ingredient.id) {
+      console.error('Invalid ingredient response:', data);
+      throw new Error('Invalid response from server');
+    }
+
+    return ingredient;
   }
 
   async updateIngredient(id: number, updates: UpdateIngredientDto): Promise<Ingredient> {
@@ -129,7 +137,7 @@ class IngredientService {
     const token = await this.getAuthToken();
 
     const response = await fetch(
-      `${API_BASE_URL}/ingredients/search?q=${encodeURIComponent(query)}`,
+      `${API_BASE_URL}/api/v1/ingredients/search?q=${encodeURIComponent(query)}`,
       {
         method: 'GET',
         headers: {

@@ -3,13 +3,16 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {AuthProvider, useAuth} from './src/contexts/AuthContext';
 import {IngredientProvider} from './src/contexts/IngredientContext';
+import {RecipeProvider} from './src/contexts/RecipeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import CookieConsent from './src/components/CookieConsent';
+// Recipe API Migration Complete - TheMealDB Active
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import {productLookupService} from './src/services/productLookupService';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +27,13 @@ const AppContent = () => {
   const {isAuthenticated, isLoading, user} = useAuth();
   const [showCoFounderWelcome, setShowCoFounderWelcome] = useState(false);
   const [checkingWelcome, setCheckingWelcome] = useState(true);
+
+  // Cleanup expired barcode cache on app startup
+  useEffect(() => {
+    productLookupService.clearExpiredCache().catch(error => {
+      console.error('Failed to clear expired barcode cache:', error);
+    });
+  }, []);
 
   useEffect(() => {
     const checkCoFounderWelcome = async () => {
@@ -80,7 +90,9 @@ const App = () => {
   return (
     <AuthProvider>
       <IngredientProvider>
-        <AppContent />
+        <RecipeProvider>
+          <AppContent />
+        </RecipeProvider>
       </IngredientProvider>
     </AuthProvider>
   );
