@@ -31,7 +31,7 @@ router.post('/register', [
       return;
     }
 
-    const { email, password, first_name, last_name, age_verified } = req.body;
+    const { email, password, first_name, last_name } = req.body;
 
     // Use mock database in development
     const existingUser = await mockDB.findUserByEmail(email);

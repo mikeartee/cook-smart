@@ -553,11 +553,11 @@ class NotificationService {
   }
 
   // Stub methods for community features (to be implemented)
-  async notifyAchievement(userId: string, achievement: string, description: string): Promise<void> {
+  async notifyAchievement(userId: string, achievement: string, _description: string): Promise<void> {
     console.log(`Achievement notification stub: ${userId} - ${achievement}`);
   }
 
-  async getUserNotifications(userId: string, page: number, limit: number): Promise<any[]> {
+  async getUserNotifications(userId: string, _page: number, _limit: number): Promise<any[]> {
     console.log(`Get notifications stub: ${userId}`);
     return [];
   }
