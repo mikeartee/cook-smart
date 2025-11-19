@@ -1,7 +1,26 @@
-import { Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import {Request, Response} from 'express';
+import {body, validationResult} from 'express-validator';
 import FeedbackModel from '../models/Feedback';
 import NotificationService from '../services/NotificationService';
+import {User} from '../models/User';
+
+/**
+ * Helper function to get user's display name
+ */
+function getUserDisplayName(user: User | null | undefined): string {
+  if (!user) return 'Anonymous User';
+
+  if (user.first_name && user.last_name) {
+    return `${user.first_name} ${user.last_name}`;
+  } else if (user.first_name) {
+    return user.first_name;
+  } else if (user.email) {
+    const emailParts = user.email.split('@');
+    return emailParts[0] || 'Anonymous User'; // Use email username as fallback
+  }
+
+  return 'Anonymous User';
+}
 
 class FeedbackController {
   /**
@@ -9,9 +28,18 @@ class FeedbackController {
    */
   validateFeedback = [
     body('message').trim().notEmpty().withMessage('Message is required'),
-    body('rating').optional().isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-    body('category').optional().isString().withMessage('Category must be a string'),
-    body('screenshot').optional().isString().withMessage('Screenshot must be a string'),
+    body('rating')
+      .optional()
+      .isInt({min: 1, max: 5})
+      .withMessage('Rating must be between 1 and 5'),
+    body('category')
+      .optional()
+      .isString()
+      .withMessage('Category must be a string'),
+    body('screenshot')
+      .optional()
+      .isString()
+      .withMessage('Screenshot must be a string'),
   ];
 
   /**
@@ -30,11 +58,11 @@ class FeedbackController {
       }
 
       const user = (req as any).user;
-      
+
       // For public endpoint, user is optional (BETA feature)
       // For authenticated endpoint, user is required
       const isPublicEndpoint = req.path.includes('/public');
-      
+
       if (!user && !isPublicEndpoint) {
         res.status(401).json({
           error: 'Unauthorized',
@@ -43,18 +71,18 @@ class FeedbackController {
         return;
       }
 
-      const { message, rating, category, screenshot } = req.body;
+      const {message, rating, category, screenshot} = req.body;
 
       // Create feedback in database
       const params: any = {
         user_id: user?.id || null, // Allow null for public submissions
         message,
       };
-      
+
       if (rating) params.rating = parseInt(rating);
       if (category) params.category = category;
       if (screenshot) params.screenshot_url = screenshot;
-      
+
       const feedback = await FeedbackModel.create(params);
 
       // Send Discord notification asynchronously (don't block response)
@@ -62,16 +90,17 @@ class FeedbackController {
         try {
           const notifData: any = {
             userId: user?.id || 'anonymous',
-            userName: user?.name || 'Anonymous User',
+            userName: getUserDisplayName(user),
             userEmail: user?.email || 'anonymous@cooksmartapp.com',
             message: feedback.message,
             timestamp: feedback.created_at,
           };
-          
+
           if (feedback.rating) notifData.rating = feedback.rating;
           if (feedback.category) notifData.category = feedback.category;
-          if (feedback.screenshot_url) notifData.screenshot = feedback.screenshot_url;
-          
+          if (feedback.screenshot_url)
+            notifData.screenshot = feedback.screenshot_url;
+
           await NotificationService.sendFeedbackNotification(notifData);
         } catch (error) {
           console.error('Failed to send feedback notification:', error);
@@ -180,17 +209,20 @@ class FeedbackController {
       }
 
       const id = req.params.id as string;
-      const { status } = req.body;
+      const {status} = req.body;
 
-      if (!['new', 'read', 'in_progress', 'resolved', 'ignored'].includes(status)) {
+      if (
+        !['new', 'read', 'in_progress', 'resolved', 'ignored'].includes(status)
+      ) {
         res.status(400).json({
           error: 'Invalid status',
-          message: 'Status must be one of: new, read, in_progress, resolved, ignored',
+          message:
+            'Status must be one of: new, read, in_progress, resolved, ignored',
         });
         return;
       }
 
-      const feedback = await FeedbackModel.updateStatus({ id, status });
+      const feedback = await FeedbackModel.updateStatus({id, status});
 
       res.json({
         success: true,

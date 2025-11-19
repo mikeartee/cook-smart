@@ -2,23 +2,43 @@ import NotificationService from './NotificationService';
 
 interface User {
   id: string;
-  name: string;
+  first_name?: string | undefined;
+  last_name?: string | undefined;
   email: string;
+}
+
+/**
+ * Helper function to get user's display name
+ */
+function getUserDisplayName(user: User): string {
+  if (user.first_name && user.last_name) {
+    return `${user.first_name} ${user.last_name}`;
+  } else if (user.first_name) {
+    return user.first_name;
+  } else if (user.email) {
+    const emailParts = user.email.split('@');
+    return emailParts[0] || 'Unknown User';
+  }
+  return 'Unknown User';
 }
 
 class ActivityTracker {
   /**
    * Track user signup
    */
-  async trackSignup(user: User, referralCode?: string, referredBy?: string): Promise<void> {
+  async trackSignup(
+    user: User,
+    referralCode?: string,
+    referredBy?: string,
+  ): Promise<void> {
     try {
       console.log(`📊 Tracking signup for user: ${user.email}`);
 
       const signupData: any = {
-        userName: user.name || 'Unknown User',
+        userName: getUserDisplayName(user),
         userEmail: user.email,
       };
-      
+
       if (referredBy) signupData.referredBy = referredBy;
       if (referralCode) signupData.referralCode = referralCode;
 
@@ -36,17 +56,13 @@ class ActivityTracker {
   /**
    * Track purchase
    */
-  async trackPurchase(
-    user: User,
-    plan: string,
-    amount: number
-  ): Promise<void> {
+  async trackPurchase(user: User, plan: string, amount: number): Promise<void> {
     try {
       console.log(`📊 Tracking purchase for user: ${user.email}`);
 
       await NotificationService.sendActivityNotification('purchase', {
         purchase: {
-          userName: user.name || 'Unknown User',
+          userName: getUserDisplayName(user),
           userEmail: user.email,
           plan,
           amount,
@@ -66,16 +82,16 @@ class ActivityTracker {
   async trackReferral(
     referrer: User,
     referee: User,
-    referralCode: string
+    referralCode: string,
   ): Promise<void> {
     try {
       console.log(`📊 Tracking referral: ${referrer.email} → ${referee.email}`);
 
       await NotificationService.sendActivityNotification('referral', {
         referral: {
-          referrerName: referrer.name || 'Unknown User',
+          referrerName: getUserDisplayName(referrer),
           referrerEmail: referrer.email,
-          refereeName: referee.name || 'Unknown User',
+          refereeName: getUserDisplayName(referee),
           refereeEmail: referee.email,
           referralCode,
         },
