@@ -26,8 +26,9 @@ export class TheMealDBService implements IRecipeProvider {
       return [];
     }
 
-    // Use the first ingredient for search
-    const mainIngredient = ingredients[0];
+    // Use the first ingredient for search and simplify the name
+    // Remove brand names, parentheses, and extra details
+    const mainIngredient = this.simplifyIngredientName(ingredients[0] || '');
 
     try {
       const response = await axios.get(`${THEMEALDB_BASE_URL}/filter.php`, {
