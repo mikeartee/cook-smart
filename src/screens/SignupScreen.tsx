@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,8 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import {useAuth} from '../contexts/AuthContext';
+import {useNavigation} from '@react-navigation/native';
 
 const SignupScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ const SignupScreen: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [ageVerified, setAgeVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const {register} = useAuth();
 
   const handleSignup = async () => {
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -41,7 +41,10 @@ const SignupScreen: React.FC = () => {
     }
 
     if (!ageVerified) {
-      Alert.alert('Age Verification Required', 'You must verify that you are 13 years or older to use Cook Smart');
+      Alert.alert(
+        'Age Verification Required',
+        'You must verify that you are 13 years or older to use Cook Smart',
+      );
       return;
     }
 
@@ -59,13 +62,17 @@ const SignupScreen: React.FC = () => {
         Alert.alert(
           'Welcome Co-Founder! 🎉',
           result.specialMessage || 'Thank you for inspiring Cook Smart!',
-          [{ text: 'Amazing!', style: 'default' }]
+          [{text: 'Amazing!', style: 'default'}],
         );
       } else {
-        Alert.alert('Welcome to Cook Smart!', 'Your account has been created successfully');
+        Alert.alert(
+          'Welcome to Cook Smart!',
+          'Your account has been created successfully',
+        );
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unable to create account';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unable to create account';
       Alert.alert('Signup Failed', errorMessage);
     } finally {
       setIsLoading(false);
@@ -149,7 +156,8 @@ const SignupScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.checkboxContainer}
             onPress={() => setAgeVerified(!ageVerified)}>
-            <View style={[styles.checkbox, ageVerified && styles.checkboxChecked]}>
+            <View
+              style={[styles.checkbox, ageVerified && styles.checkboxChecked]}>
               {ageVerified && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={styles.checkboxLabel}>
@@ -172,7 +180,7 @@ const SignupScreen: React.FC = () => {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.loginButton}
             onPress={() => navigation.navigate('Login' as never)}>
             <Text style={styles.loginButtonText}>
@@ -183,7 +191,18 @@ const SignupScreen: React.FC = () => {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By creating an account, you agree to our Terms of Service and Privacy Policy
+            By creating an account, you agree to our{' '}
+            <Text
+              style={styles.footerLink}
+              onPress={() => navigation.navigate('TermsOfService' as never)}>
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text
+              style={styles.footerLink}
+              onPress={() => navigation.navigate('PrivacyPolicy' as never)}>
+              Privacy Policy
+            </Text>
           </Text>
         </View>
       </ScrollView>
@@ -280,7 +299,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
@@ -325,6 +344,11 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  footerLink: {
+    color: '#10B981',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
 

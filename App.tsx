@@ -9,6 +9,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
 import SpecialUserWelcomeScreen from './src/screens/SpecialUserWelcomeScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import CookieConsent from './src/components/CookieConsent';
 // Recipe API Migration Complete - TheMealDB Active
@@ -22,6 +24,8 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
+    <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+    <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
   </Stack.Navigator>
 );
 

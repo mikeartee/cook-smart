@@ -5,27 +5,31 @@
 ### 1. ✅ Recipe Click Crashes App (FIXED)
 **Problem**: App crashes when clicking on recipes from TheMealDB
 **Root Cause**: RecipeDetailScreen expects `extendedIngredients` and `analyzedInstructions` but TheMealDB returns `ingredients` (array) and `instructions` (string)
-**Fix Applied**: Updated RecipeDetailScreen.tsx to handle both data formats
-**Status**: Code fixed, needs testing
+**Fix Applied**: 
+- Updated RecipeDetailScreen.tsx to handle both data formats
+- Updated RecipeDetails interface to include optional `ingredients` property
+- Added explicit type annotations
+**Status**: ✅ FIXED - Ready for testing in new APK
 
-### 2. ⏳ Points System Not Tracking (PARTIALLY FIXED)
+### 2. ✅ Points System Not Tracking (FIXED)
 **Problem**: Points not showing for users
 **Root Cause**: 
 - Backend tracking is working (points awarded on ingredient add and recipe search)
-- Frontend is using mock data instead of fetching real points
-**Fix Applied**: Created `src/services/pointsService.ts`
-**Still Needed**: Update ProfileScreen to use real points data instead of mock data
-**Status**: Service created, needs integration
+- Frontend was using mock data instead of fetching real points
+**Fix Applied**: 
+- Created `src/services/pointsService.ts`
+- Updated ProfileScreen to fetch real points from backend
+- Falls back to mock data if API fails
+**Status**: ✅ FIXED - Ready for testing in new APK
 
-### 3. ❌ Privacy Policy & Terms of Service Missing (NOT FIXED)
+### 3. ✅ Privacy Policy & Terms of Service Missing (FIXED)
 **Problem**: No actual Privacy Policy or Terms of Service documents
-**Current State**: Screens reference them but they don't exist
-**Needed**: 
-- Create PrivacyPolicyScreen.tsx
-- Create TermsOfServiceScreen.tsx
-- Add legal documents content
-- Link from signup/login screens
-**Status**: Not started
+**Fix Applied**: 
+- Created PrivacyPolicyScreen.tsx with complete privacy policy
+- Created TermsOfServiceScreen.tsx with complete terms of service
+- Both screens include proper legal language and formatting
+**Still Needed**: Add navigation links from signup/login screens
+**Status**: ✅ SCREENS CREATED - Need to add navigation links
 
 ### 4. ✅ Special User Pages Not Showing (VERIFIED WORKING)
 **Problem**: Briana and mom's special pages not appearing
@@ -52,27 +56,29 @@
 
 ## Priority Order
 
-1. **HIGH**: Recipe crash fix (DONE - needs APK)
-2. **HIGH**: Points system integration (service created, needs ProfileScreen update)
-3. **MEDIUM**: Privacy/TOS documents (legal requirement)
-4. **LOW**: Special user verification (likely just needs re-login)
-5. **MEDIUM**: Subscription testing (needs investigation)
+1. ✅ **HIGH**: Recipe crash fix - COMPLETED
+2. ✅ **HIGH**: Points system integration - COMPLETED
+3. ✅ **MEDIUM**: Privacy/TOS documents - COMPLETED (need navigation links)
+4. ⏳ **LOW**: Special user verification (likely just needs re-login)
+5. ⏳ **MEDIUM**: Subscription testing (needs investigation)
 
 ## Next Steps
 
-1. Update ProfileScreen to use real points data
-2. Create Privacy Policy and Terms of Service screens
-3. Test special user login with correct emails
-4. Test subscription flow with Stripe
-5. Build new APK when all fixes are complete
+1. ✅ Update ProfileScreen to use real points data - DONE
+2. ✅ Create Privacy Policy and Terms of Service screens - DONE
+3. Add navigation links to Privacy/TOS from signup/login screens
+4. Test special user login with correct emails (brianaolszewski1@gmail.com and dwoodswoods2@gmail.com)
+5. Test subscription flow with Stripe
+6. **Build new APK with all fixes**
 
 ## Files Modified
 
-- ✅ src/screens/recipes/RecipeDetailScreen.tsx
-- ✅ src/services/pointsService.ts (created)
-- ⏳ src/screens/ProfileScreen.tsx (needs update)
-- ❌ src/screens/PrivacyPolicyScreen.tsx (needs creation)
-- ❌ src/screens/TermsOfServiceScreen.tsx (needs creation)
+- ✅ src/screens/recipes/RecipeDetailScreen.tsx - Fixed recipe crash
+- ✅ src/services/recipeService.ts - Updated RecipeDetails interface
+- ✅ src/services/pointsService.ts - Created points API service
+- ✅ src/screens/ProfileScreen.tsx - Integrated real points data
+- ✅ src/screens/PrivacyPolicyScreen.tsx - Created complete privacy policy
+- ✅ src/screens/TermsOfServiceScreen.tsx - Created complete terms of service
 
 ---
 

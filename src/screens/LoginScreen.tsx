@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,15 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import {useAuth} from '../contexts/AuthContext';
+import {useNavigation} from '@react-navigation/native';
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const {login} = useAuth();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -30,7 +30,8 @@ const LoginScreen: React.FC = () => {
     try {
       await login(email.trim().toLowerCase(), password);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unable to log in';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unable to log in';
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setIsLoading(false);
@@ -71,7 +72,7 @@ const LoginScreen: React.FC = () => {
                   Alert.alert(
                     'Reset Password',
                     'To reset your password, please contact support at support@cooksmartapp.com with your registered email address.',
-                    [{text: 'OK'}]
+                    [{text: 'OK'}],
                   )
                 }>
                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
@@ -102,7 +103,7 @@ const LoginScreen: React.FC = () => {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.signupButton}
             onPress={() => navigation.navigate('Signup' as never)}>
             <Text style={styles.signupButtonText}>
@@ -113,7 +114,18 @@ const LoginScreen: React.FC = () => {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By signing in, you agree to our{' '}
+            <Text
+              style={styles.footerLink}
+              onPress={() => navigation.navigate('TermsOfService' as never)}>
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text
+              style={styles.footerLink}
+              onPress={() => navigation.navigate('PrivacyPolicy' as never)}>
+              Privacy Policy
+            </Text>
           </Text>
         </View>
       </ScrollView>
@@ -193,7 +205,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
@@ -238,6 +250,11 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 18,
+  },
+  footerLink: {
+    color: '#10B981',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
 
