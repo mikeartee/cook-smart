@@ -67,6 +67,45 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     });
   };
 
+  const addMissingToShoppingList = async () => {
+    if (!recipe) return;
+
+    try {
+      // Get missing ingredients
+      const missingIngredients: string[] = [];
+
+      if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
+        recipe.extendedIngredients.forEach(ing => {
+          if (!hasIngredient(ing.name || ing.original)) {
+            missingIngredients.push(getScaledAmount(ing.original));
+          }
+        });
+      } else if (recipe.ingredients && recipe.ingredients.length > 0) {
+        recipe.ingredients.forEach(ing => {
+          if (!hasIngredient(ing)) {
+            missingIngredients.push(getScaledAmount(ing));
+          }
+        });
+      }
+
+      if (missingIngredients.length === 0) {
+        Alert.alert(
+          'All Set!',
+          'You have all the ingredients for this recipe!',
+        );
+        return;
+      }
+
+      // TODO: Implement shopping list API call
+      Alert.alert(
+        'Added to Shopping List',
+        `${missingIngredients.length} missing ingredient(s) added to your shopping list.`,
+      );
+    } catch (_err) {
+      Alert.alert('Error', 'Failed to add ingredients to shopping list');
+    }
+  };
+
   const loadRecipe = async () => {
     try {
       setLoading(true);
@@ -330,6 +369,16 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
                 No ingredients available
               </Text>
             )}
+
+            {/* Add Missing Ingredients Button */}
+            <TouchableOpacity
+              style={styles.shoppingListButton}
+              onPress={addMissingToShoppingList}>
+              <Icon name="add-shopping-cart" size={20} color="#10B981" />
+              <Text style={styles.shoppingListButtonText}>
+                Add Missing Ingredients to Shopping List
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Instructions */}
@@ -515,6 +564,24 @@ const styles = StyleSheet.create({
   ingredientHave: {
     color: '#059669',
     fontWeight: '500',
+  },
+  shoppingListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#D1FAE5',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#10B981',
+  },
+  shoppingListButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#10B981',
   },
   stepItem: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config/api';
+import {API_BASE_URL} from '../config/api';
 
 export interface FeedbackSubmission {
   message: string;
@@ -24,9 +24,11 @@ class FeedbackService {
   }
 
   /**
-   * Submit feedback (using public endpoint for BETA)
+   * Submit feedback (uses authenticated endpoint when logged in)
    */
-  async submitFeedback(feedback: FeedbackSubmission): Promise<FeedbackResponse> {
+  async submitFeedback(
+    feedback: FeedbackSubmission,
+  ): Promise<FeedbackResponse> {
     // Try to get token, but don't fail if not available
     let token: string | null = null;
     try {
@@ -35,11 +37,15 @@ class FeedbackService {
       // No token available, will use public endpoint
     }
 
-    // Use public endpoint for BETA to avoid auth issues
-    const response = await fetch(`${API_BASE_URL}/api/v1/feedback/public`, {
+    // Use authenticated endpoint if token available, otherwise public
+    const endpoint = token
+      ? `${API_BASE_URL}/api/v1/feedback`
+      : `${API_BASE_URL}/api/v1/feedback/public`;
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...(token ? {Authorization: `Bearer ${token}`} : {}),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(feedback),
@@ -60,13 +66,16 @@ class FeedbackService {
   async getMyFeedback(): Promise<any[]> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/feedback/my-feedback`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/feedback/my-feedback`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
 
     const data = await response.json();
 
