@@ -60,7 +60,7 @@ export default function SubscriptionPlansScreen() {
     try {
       setSubscribing(true);
       await subscriptionService.createSubscription(
-        planName,
+        planName as 'yearly' | 'monthly' | 'weekly',
         referralCode || undefined,
       );
 

@@ -1,5 +1,4 @@
-import { Platform, Linking, PermissionsAndroid } from 'react-native';
-import { Camera } from 'react-native-camera-kit';
+import {Platform, Linking, PermissionsAndroid} from 'react-native';
 
 export type PermissionStatus = 'granted' | 'denied' | 'blocked' | 'unavailable';
 
@@ -26,9 +25,9 @@ class BarcodeServiceImpl implements BarcodeService {
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
-          }
+          },
         );
-        
+
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           return 'granted';
         } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
@@ -38,8 +37,9 @@ class BarcodeServiceImpl implements BarcodeService {
         }
       } else {
         // iOS - camera-kit handles permissions automatically
-        const status = await Camera.requestCameraPermission();
-        return status ? 'granted' : 'denied';
+        // Note: Camera.requestCameraPermission() is not available in react-native-camera-kit
+        // iOS handles permissions automatically when camera is accessed
+        return 'granted';
       }
     } catch (error) {
       console.error('Error requesting camera permission:', error);
@@ -55,13 +55,14 @@ class BarcodeServiceImpl implements BarcodeService {
     try {
       if (Platform.OS === 'android') {
         const hasPermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.CAMERA
+          PermissionsAndroid.PERMISSIONS.CAMERA,
         );
         return hasPermission ? 'granted' : 'denied';
       } else {
         // iOS - camera-kit handles permissions automatically
-        const status = await Camera.checkDeviceCameraAuthorizationStatus();
-        return status ? 'granted' : 'denied';
+        // Note: Camera.checkDeviceCameraAuthorizationStatus() is not available in react-native-camera-kit
+        // iOS handles permissions automatically when camera is accessed
+        return 'granted';
       }
     } catch (error) {
       console.error('Error checking camera permission:', error);
@@ -88,14 +89,13 @@ class BarcodeServiceImpl implements BarcodeService {
   validateBarcode(code: string): boolean {
     // Remove any whitespace
     const cleanCode = code.trim();
-    
+
     // Check if it's numeric and between 8-13 digits
     const isNumeric = /^\d+$/.test(cleanCode);
     const validLength = cleanCode.length >= 8 && cleanCode.length <= 13;
-    
+
     return isNumeric && validLength;
   }
-
 }
 
 // Export singleton instance

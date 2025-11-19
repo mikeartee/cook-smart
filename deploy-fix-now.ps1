@@ -7,7 +7,7 @@ Write-Host ""
 
 # Commands to run on EC2
 $commands = @"
-cd ~/cook-smart/backend && \
+cd ~/cook-smart-backend && \
 git fetch origin && \
 git checkout fresh-project-migration && \
 git pull origin fresh-project-migration && \

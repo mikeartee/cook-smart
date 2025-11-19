@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_BASE_URL} from '../config/api';
 
-const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+const API_URL = `${API_BASE_URL}/api/v1`;
 
 interface SubscriptionPlan {
   id: number;
