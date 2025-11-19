@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,22 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useRecipes } from '../../contexts/RecipeContext';
-import { RecipeDetails } from '../../services/recipeService';
+import {useRecipes} from '../../contexts/RecipeContext';
+import {RecipeDetails} from '../../services/recipeService';
 
 interface RecipeDetailScreenProps {
   route: any;
   navigation: any;
 }
 
-export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, navigation }) => {
-  const { recipeId } = route.params;
-  const { getRecipeDetails, saveRecipe, isRecipeSaved, deleteSavedRecipe } = useRecipes();
-  
+export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
+  route,
+  navigation,
+}) => {
+  const {recipeId} = route.params;
+  const {getRecipeDetails, saveRecipe, isRecipeSaved, deleteSavedRecipe} =
+    useRecipes();
+
   const [recipe, setRecipe] = useState<RecipeDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
@@ -56,7 +60,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
   const getScaledAmount = (original: string): string => {
     if (!recipe) return original;
     const scale = servings / recipe.servings;
-    
+
     // Try to extract number from the beginning of the string
     const match = original.match(/^([\d.\/\s]+)/);
     if (match) {
@@ -102,7 +106,10 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
         Alert.alert('Success', 'Recipe saved successfully!');
       }
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to save recipe');
+      Alert.alert(
+        'Error',
+        err instanceof Error ? err.message : 'Failed to save recipe',
+      );
     }
   };
 
@@ -142,21 +149,25 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-          <Icon 
-            name={isSaved ? "favorite" : "favorite-border"} 
-            size={24} 
-            color={isSaved ? "#EF4444" : "#374151"} 
+          <Icon
+            name={isSaved ? 'favorite' : 'favorite-border'}
+            size={24}
+            color={isSaved ? '#EF4444' : '#374151'}
           />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}>
         {/* Recipe Image */}
-        <Image source={{ uri: recipe.image }} style={styles.image} />
+        <Image source={{uri: recipe.image}} style={styles.image} />
 
         {/* Recipe Info */}
         <View style={styles.content}>
@@ -180,18 +191,20 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
           <View style={styles.servingsContainer}>
             <Text style={styles.servingsLabel}>Servings:</Text>
             <View style={styles.servingsControls}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.servingsButton}
                 onPress={() => adjustServings(servings - 1)}
-                disabled={servings <= 1}
-              >
-                <Icon name="remove" size={20} color={servings <= 1 ? "#D1D5DB" : "#10B981"} />
+                disabled={servings <= 1}>
+                <Icon
+                  name="remove"
+                  size={20}
+                  color={servings <= 1 ? '#D1D5DB' : '#10B981'}
+                />
               </TouchableOpacity>
               <Text style={styles.servingsValue}>{servings}</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.servingsButton}
-                onPress={() => adjustServings(servings + 1)}
-              >
+                onPress={() => adjustServings(servings + 1)}>
                 <Icon name="add" size={20} color="#10B981" />
               </TouchableOpacity>
             </View>
@@ -207,7 +220,12 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
             <View style={styles.providerBadge}>
               <Icon name="info-outline" size={14} color="#8B5CF6" />
               <Text style={styles.providerText}>
-                Recipe from {recipe.provider === 'edamam' ? 'Edamam' : recipe.provider === 'themealdb' ? 'TheMealDB' : recipe.provider}
+                Recipe from{' '}
+                {recipe.provider === 'edamam'
+                  ? 'Edamam'
+                  : recipe.provider === 'themealdb'
+                    ? 'TheMealDB'
+                    : recipe.provider}
               </Text>
             </View>
           )}
@@ -216,26 +234,45 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
           {recipe.summary && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>About</Text>
-              <Text style={styles.summaryText}>{stripHtml(recipe.summary)}</Text>
+              <Text style={styles.summaryText}>
+                {stripHtml(recipe.summary)}
+              </Text>
             </View>
           )}
 
           {/* Ingredients */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingredients</Text>
-            {recipe.extendedIngredients.map((ingredient, index) => (
-              <View key={index} style={styles.ingredientItem}>
-                <Icon name="fiber-manual-record" size={8} color="#10B981" />
-                <Text style={styles.ingredientText}>{getScaledAmount(ingredient.original)}</Text>
-              </View>
-            ))}
+            {recipe.extendedIngredients &&
+            recipe.extendedIngredients.length > 0 ? (
+              recipe.extendedIngredients.map((ingredient, index) => (
+                <View key={index} style={styles.ingredientItem}>
+                  <Icon name="fiber-manual-record" size={8} color="#10B981" />
+                  <Text style={styles.ingredientText}>
+                    {getScaledAmount(ingredient.original)}
+                  </Text>
+                </View>
+              ))
+            ) : recipe.ingredients && recipe.ingredients.length > 0 ? (
+              recipe.ingredients.map((ingredient: string, index: number) => (
+                <View key={index} style={styles.ingredientItem}>
+                  <Icon name="fiber-manual-record" size={8} color="#10B981" />
+                  <Text style={styles.ingredientText}>{ingredient}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noInstructionsText}>
+                No ingredients available
+              </Text>
+            )}
           </View>
 
           {/* Instructions */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Instructions</Text>
-            {recipe.analyzedInstructions.length > 0 ? (
-              recipe.analyzedInstructions[0].steps.map((step) => (
+            {recipe.analyzedInstructions &&
+            recipe.analyzedInstructions.length > 0 ? (
+              recipe.analyzedInstructions[0].steps.map(step => (
                 <View key={step.number} style={styles.stepItem}>
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText}>{step.number}</Text>
@@ -244,7 +281,9 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
                 </View>
               ))
             ) : recipe.instructions ? (
-              <Text style={styles.instructionsText}>{stripHtml(recipe.instructions)}</Text>
+              <Text style={styles.instructionsText}>
+                {stripHtml(recipe.instructions)}
+              </Text>
             ) : (
               <Text style={styles.noInstructionsText}>
                 No instructions available. View original recipe for details.
@@ -254,7 +293,9 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
 
           {/* Source Link */}
           {recipe.sourceUrl && (
-            <TouchableOpacity style={styles.sourceButton} onPress={handleOpenSource}>
+            <TouchableOpacity
+              style={styles.sourceButton}
+              onPress={handleOpenSource}>
               <Icon name="open-in-new" size={20} color="#10B981" />
               <Text style={styles.sourceButtonText}>View Original Recipe</Text>
             </TouchableOpacity>

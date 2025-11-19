@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '../config/api';
+import {API_BASE_URL} from '../config/api';
 
 export interface Recipe {
   id: number;
@@ -40,8 +40,9 @@ export interface RecipeDetails {
   cuisines: string[];
   dishTypes: string[];
   instructions: string;
-  extendedIngredients: ExtendedIngredient[];
-  analyzedInstructions: AnalyzedInstruction[];
+  ingredients?: string[]; // For TheMealDB format
+  extendedIngredients?: ExtendedIngredient[]; // For Edamam format
+  analyzedInstructions?: AnalyzedInstruction[]; // For Edamam format
   provider?: string;
 }
 
@@ -86,10 +87,10 @@ class RecipeService {
       {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
 
     const data = await response.json();
@@ -105,16 +106,13 @@ class RecipeService {
   async getRecipeDetails(recipeId: number): Promise<RecipeDetails> {
     const token = await this.getAuthToken();
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/recipes/${recipeId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/v1/recipes/${recipeId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
     const data = await response.json();
 
@@ -128,7 +126,7 @@ class RecipeService {
   // Save recipe locally
   async saveRecipe(recipe: RecipeDetails): Promise<void> {
     const savedRecipes = await this.getSavedRecipes();
-    
+
     // Check if already saved
     if (savedRecipes.some(r => r.recipe.id === recipe.id)) {
       throw new Error('Recipe already saved');

@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, SafeAreaView, RefreshControl } from 'react-native';
-import { UserProfileCard } from '../components/UserProfileCard';
-import { PointsDisplay } from '../components/PointsDisplay';
-import { PointsHistory } from '../components/PointsHistory';
-import { Leaderboard } from '../components/Leaderboard';
+import React, {useState, useEffect} from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  RefreshControl,
+} from 'react-native';
+import {UserProfileCard} from '../components/UserProfileCard';
+import {PointsDisplay} from '../components/PointsDisplay';
+import {PointsHistory} from '../components/PointsHistory';
+import {Leaderboard} from '../components/Leaderboard';
+import {pointsService} from '../services/pointsService';
 
 interface UserProfile {
   id: string;
@@ -39,7 +45,7 @@ interface Props {
   userId: string;
 }
 
-export const ProfileScreen: React.FC<Props> = ({ userId }) => {
+export const ProfileScreen: React.FC<Props> = ({userId}) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
@@ -55,19 +61,19 @@ export const ProfileScreen: React.FC<Props> = ({ userId }) => {
     firstName: 'John',
     lastName: 'Doe',
     bio: 'Passionate home cook who loves experimenting with new recipes and sharing culinary adventures!',
-    location: 'San Francisco, CA'
+    location: 'San Francisco, CA',
   };
 
   const mockStats: UserStats = {
     totalRecipes: 12,
     totalFavorites: 45,
     totalRatings: 23,
-    averageRating: 4.2
+    averageRating: 4.2,
   };
 
   const mockUserPoints: UserPoints = {
     totalPoints: 1250,
-    level: 3
+    level: 3,
   };
 
   const mockTransactions: PointsTransaction[] = [
@@ -76,30 +82,30 @@ export const ProfileScreen: React.FC<Props> = ({ userId }) => {
       points: 15,
       action: 'recipe_review',
       description: 'Reviewed "Chicken Parmesan"',
-      dateCreated: new Date(Date.now() - 86400000) // 1 day ago
+      dateCreated: new Date(Date.now() - 86400000), // 1 day ago
     },
     {
       id: '2',
       points: 5,
       action: 'recipe_favorite',
       description: 'Favorited "Pasta Primavera"',
-      dateCreated: new Date(Date.now() - 172800000) // 2 days ago
+      dateCreated: new Date(Date.now() - 172800000), // 2 days ago
     },
     {
       id: '3',
       points: 10,
       action: 'recipe_rating',
       description: 'Rated "Beef Stir Fry"',
-      dateCreated: new Date(Date.now() - 259200000) // 3 days ago
-    }
+      dateCreated: new Date(Date.now() - 259200000), // 3 days ago
+    },
   ];
 
   const mockLeaderboard = [
-    { userId: 'user1', username: 'chefmaster', totalPoints: 2500, level: 4 },
-    { userId: 'user2', username: 'foodlover', totalPoints: 1800, level: 3 },
-    { userId: userId, username: 'cookmaster', totalPoints: 1250, level: 3 },
-    { userId: 'user3', username: 'kitchenpro', totalPoints: 950, level: 2 },
-    { userId: 'user4', username: 'recipehunter', totalPoints: 720, level: 2 }
+    {userId: 'user1', username: 'chefmaster', totalPoints: 2500, level: 4},
+    {userId: 'user2', username: 'foodlover', totalPoints: 1800, level: 3},
+    {userId: userId, username: 'cookmaster', totalPoints: 1250, level: 3},
+    {userId: 'user3', username: 'kitchenpro', totalPoints: 950, level: 2},
+    {userId: 'user4', username: 'recipehunter', totalPoints: 720, level: 2},
   ];
 
   useEffect(() => {
@@ -108,15 +114,33 @@ export const ProfileScreen: React.FC<Props> = ({ userId }) => {
 
   const loadData = async () => {
     setLoading(true);
-    // Simulate API calls
-    setTimeout(() => {
+    try {
+      // Load real points data
+      const points = await pointsService.getUserPoints();
+      setUserPoints({
+        totalPoints: points.totalPoints,
+        level: points.level,
+      });
+
+      // Load points history
+      const history = await pointsService.getPointsHistory(20, 0);
+      setTransactions(history);
+
+      // Use mock data for profile and stats (until we have real endpoints)
+      setProfile(mockProfile);
+      setStats(mockStats);
+      setLeaderboard(mockLeaderboard);
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      // Fall back to mock data on error
       setProfile(mockProfile);
       setStats(mockStats);
       setUserPoints(mockUserPoints);
       setTransactions(mockTransactions);
       setLeaderboard(mockLeaderboard);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleRefresh = async () => {
@@ -152,8 +176,7 @@ export const ProfileScreen: React.FC<Props> = ({ userId }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {profile && stats && (
           <UserProfileCard
             profile={profile}
@@ -163,19 +186,13 @@ export const ProfileScreen: React.FC<Props> = ({ userId }) => {
             isOwnProfile={true}
           />
         )}
-        
+
         {userPoints && (
-          <PointsDisplay
-            userPoints={userPoints}
-            onPress={handlePointsPress}
-          />
+          <PointsDisplay userPoints={userPoints} onPress={handlePointsPress} />
         )}
-        
-        <PointsHistory
-          transactions={transactions}
-          loading={loading}
-        />
-        
+
+        <PointsHistory transactions={transactions} loading={loading} />
+
         <Leaderboard
           entries={leaderboard}
           currentUserId={userId}
