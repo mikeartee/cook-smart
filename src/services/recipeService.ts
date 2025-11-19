@@ -40,28 +40,8 @@ export interface RecipeDetails {
   cuisines: string[];
   dishTypes: string[];
   instructions: string;
-  ingredients?: string[]; // For TheMealDB format
-  extendedIngredients?: ExtendedIngredient[]; // For Edamam format
-  analyzedInstructions?: AnalyzedInstruction[]; // For Edamam format
+  ingredients: string[]; // TheMealDB format - array of ingredient strings
   provider?: string;
-}
-
-export interface ExtendedIngredient {
-  id: number;
-  name: string;
-  amount: number;
-  unit: string;
-  original: string;
-}
-
-export interface AnalyzedInstruction {
-  name: string;
-  steps: InstructionStep[];
-}
-
-export interface InstructionStep {
-  number: number;
-  step: string;
 }
 
 export interface SavedRecipe {

@@ -83,27 +83,16 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     if (!recipe) return;
 
     try {
-      // Get missing ingredients with parsed quantities
+      // Get missing ingredients with parsed quantities (TheMealDB format only)
       const missingIngredients: Array<{
         ingredient: string;
         quantity: string;
         unit: string;
       }> = [];
 
-      if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
-        recipe.extendedIngredients.forEach(ing => {
-          if (!hasIngredient(ing.name || ing.original)) {
-            missingIngredients.push({
-              ingredient: ing.name || ing.original,
-              quantity: (ing.amount * (servings / recipe.servings)).toFixed(2),
-              unit: ing.unit || '',
-            });
-          }
-        });
-      } else if (recipe.ingredients && recipe.ingredients.length > 0) {
+      if (recipe.ingredients && recipe.ingredients.length > 0) {
         recipe.ingredients.forEach(ing => {
           if (!hasIngredient(ing)) {
-            const _scaledAmount = getScaledAmount(ing);
             // Parse ingredient string to extract name, quantity, and unit
             const parts = ing.match(/^([\d./\s]+)?\s*(\w+)?\s*(.+)$/);
             missingIngredients.push({
@@ -335,14 +324,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
           {recipe.provider && (
             <View style={styles.providerBadge}>
               <Icon name="info-outline" size={14} color="#8B5CF6" />
-              <Text style={styles.providerText}>
-                Recipe from{' '}
-                {recipe.provider === 'edamam'
-                  ? 'Edamam'
-                  : recipe.provider === 'themealdb'
-                    ? 'TheMealDB'
-                    : recipe.provider}
-              </Text>
+              <Text style={styles.providerText}>Recipe from TheMealDB</Text>
             </View>
           )}
 
@@ -359,30 +341,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
           {/* Ingredients */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingredients</Text>
-            {recipe.extendedIngredients &&
-            recipe.extendedIngredients.length > 0 ? (
-              recipe.extendedIngredients.map((ingredient, index) => {
-                const haveIt = hasIngredient(
-                  ingredient.name || ingredient.original,
-                );
-                return (
-                  <View key={index} style={styles.ingredientItem}>
-                    <Icon
-                      name={haveIt ? 'check-circle' : 'cancel'}
-                      size={16}
-                      color={haveIt ? '#10B981' : '#EF4444'}
-                    />
-                    <Text
-                      style={[
-                        styles.ingredientText,
-                        haveIt && styles.ingredientHave,
-                      ]}>
-                      {getScaledAmount(ingredient.original)}
-                    </Text>
-                  </View>
-                );
-              })
-            ) : recipe.ingredients && recipe.ingredients.length > 0 ? (
+            {recipe.ingredients && recipe.ingredients.length > 0 ? (
               recipe.ingredients.map((ingredient: string, index: number) => {
                 const haveIt = hasIngredient(ingredient);
                 return (
@@ -422,17 +381,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
           {/* Instructions */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Instructions</Text>
-            {recipe.analyzedInstructions &&
-            recipe.analyzedInstructions.length > 0 ? (
-              recipe.analyzedInstructions[0].steps.map(step => (
-                <View key={step.number} style={styles.stepItem}>
-                  <View style={styles.stepNumber}>
-                    <Text style={styles.stepNumberText}>{step.number}</Text>
-                  </View>
-                  <Text style={styles.stepText}>{step.step}</Text>
-                </View>
-              ))
-            ) : recipe.instructions ? (
+            {recipe.instructions ? (
               <Text style={styles.instructionsText}>
                 {stripHtml(recipe.instructions)}
               </Text>
