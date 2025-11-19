@@ -87,7 +87,7 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({ nav
       
       Alert.alert('Success', 'Your dietary preferences have been saved!');
       navigation.goBack();
-    } catch (error) {
+    } catch (_error) {
       Alert.alert('Error', 'Failed to save preferences. Please try again.');
     } finally {
       setSaving(false);

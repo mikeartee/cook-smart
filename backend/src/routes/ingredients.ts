@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { query, body, validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import { IngredientModel } from '../models/Ingredient';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { UserPointsModel } from '../models/UserPoints';

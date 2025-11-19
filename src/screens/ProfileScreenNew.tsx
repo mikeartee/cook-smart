@@ -14,8 +14,8 @@ import { useAuth } from '../contexts/AuthContext';
 const ProfileScreenNew: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
-  const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
-  const [allergies, setAllergies] = useState<string[]>([]);
+  // const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
+  // const [allergies, setAllergies] = useState<string[]>([]);
 
   const handleLogout = () => {
     Alert.alert(
