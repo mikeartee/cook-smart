@@ -76,26 +76,25 @@ const AppContent = () => {
     <>
       <NavigationContainer>
         {isAuthenticated ? (
-          <Stack.Navigator screenOptions={{headerShown: false}}>
-            {showCoFounderWelcome ? (
-              <>
-                <Stack.Screen
-                  name="CoFounderWelcome"
-                  component={CoFounderWelcomeScreen}
-                />
-                <Stack.Screen name="Main" component={MainTabNavigator} />
-              </>
-            ) : showSpecialUserWelcome ? (
-              <>
-                <Stack.Screen
-                  name="SpecialUserWelcome"
-                  component={SpecialUserWelcomeScreen}
-                />
-                <Stack.Screen name="Main" component={MainTabNavigator} />
-              </>
-            ) : (
-              <Stack.Screen name="Main" component={MainTabNavigator} />
-            )}
+          <Stack.Navigator
+            screenOptions={{headerShown: false}}
+            initialRouteName={
+              showCoFounderWelcome
+                ? 'CoFounderWelcome'
+                : showSpecialUserWelcome
+                  ? 'SpecialUserWelcome'
+                  : 'Main'
+            }>
+            <Stack.Screen name="Main" component={MainTabNavigator} />
+            {/* Special screens - always available for revisiting */}
+            <Stack.Screen
+              name="CoFounderWelcome"
+              component={CoFounderWelcomeScreen}
+            />
+            <Stack.Screen
+              name="SpecialUserWelcome"
+              component={SpecialUserWelcomeScreen}
+            />
           </Stack.Navigator>
         ) : (
           <AuthStack />

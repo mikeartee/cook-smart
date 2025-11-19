@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,10 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const SpecialUserWelcomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ const SpecialUserWelcomeScreen: React.FC = () => {
     Sound.setCategory('Playback');
 
     // TODO: Replace 'mom_song.mp3' with your actual song filename
-    const music = new Sound('mom_song.mp3', Sound.MAIN_BUNDLE, (error) => {
+    const music = new Sound('mom_song.mp3', Sound.MAIN_BUNDLE, error => {
       if (error) {
         console.log('Failed to load the sound', error);
         return;
@@ -30,7 +30,7 @@ const SpecialUserWelcomeScreen: React.FC = () => {
       setMusicLoaded(true);
       setSound(music);
       // Auto-play when loaded
-      music.play((success) => {
+      music.play(success => {
         if (success) {
           setIsPlaying(false);
           music.setCurrentTime(0);
@@ -53,7 +53,7 @@ const SpecialUserWelcomeScreen: React.FC = () => {
       sound.pause();
       setIsPlaying(false);
     } else {
-      sound.play((success) => {
+      sound.play(success => {
         if (success) {
           setIsPlaying(false);
           sound.setCurrentTime(0);
@@ -68,8 +68,17 @@ const SpecialUserWelcomeScreen: React.FC = () => {
       sound.stop();
       sound.release();
     }
-    await AsyncStorage.setItem('special_user_welcome_shown', 'true');
-    navigation.navigate('Home' as never);
+    // Mark that we've shown the welcome screen (only on first visit)
+    const hasShown = await AsyncStorage.getItem('special_user_welcome_shown');
+    if (!hasShown) {
+      await AsyncStorage.setItem('special_user_welcome_shown', 'true');
+    }
+    // Go back to previous screen (or navigate to Main if this is first visit)
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Main' as never);
+    }
   };
 
   return (
@@ -83,27 +92,43 @@ const SpecialUserWelcomeScreen: React.FC = () => {
 
           <View style={styles.letterContainer}>
             <Text style={styles.paragraph}>
-              When I was a kid, you worked your tail off to make sure I had everything I needed. I may not have always had what I wanted, but I always had what I needed. Things weren't always perfect, but I miss those days more than you know.
+              When I was a kid, you worked your tail off to make sure I had
+              everything I needed. I may not have always had what I wanted, but
+              I always had what I needed. Things weren't always perfect, but I
+              miss those days more than you know.
             </Text>
 
             <Text style={styles.paragraph}>
-              Growing up, we had our disagreements - I see that now for what it really was. You just wanted the best for me, even when I couldn't see it.
+              Growing up, we had our disagreements - I see that now for what it
+              really was. You just wanted the best for me, even when I couldn't
+              see it.
             </Text>
 
             <Text style={styles.paragraph}>
-              I've tried so many different paths in life, and I know you've worried about me through all of them. These past few years on the road have taken me almost 1,000 miles away, and the distance has cost me something I can never get back - time with you and our family.
+              I've tried so many different paths in life, and I know you've
+              worried about me through all of them. These past few years on the
+              road have taken me almost 1,000 miles away, and the distance has
+              cost me something I can never get back - time with you and our
+              family.
             </Text>
 
             <Text style={styles.paragraph}>
-              I know growing up means going out on your own, and I've tried my best to do that. But I've missed too much. Too many moments. Too much time with the people who matter most.
+              I know growing up means going out on your own, and I've tried my
+              best to do that. But I've missed too much. Too many moments. Too
+              much time with the people who matter most.
             </Text>
 
             <Text style={styles.paragraph}>
-              This app is part of something bigger I'm working toward - a way to build a life where I don't have to choose between providing and being present. Where I can be there for the moments that matter.
+              This app is part of something bigger I'm working toward - a way to
+              build a life where I don't have to choose between providing and
+              being present. Where I can be there for the moments that matter.
             </Text>
 
             <Text style={styles.paragraphBold}>
-              I just want you to know that I love you. I'm so grateful for everything you sacrificed, for every time you pointed me in the right direction even when I didn't want to hear it, and for being the mother who gave me everything I needed to become who I am.
+              I just want you to know that I love you. I'm so grateful for
+              everything you sacrificed, for every time you pointed me in the
+              right direction even when I didn't want to hear it, and for being
+              the mother who gave me everything I needed to become who I am.
             </Text>
 
             <Text style={styles.paragraphBold}>
@@ -125,14 +150,16 @@ const SpecialUserWelcomeScreen: React.FC = () => {
               <Text style={styles.musicButtonText}>
                 {isPlaying ? '⏸️ Pause Music' : '▶️ Play Music'}
               </Text>
-              <Text style={styles.songInfo}>
-                A special song for you 💕
-              </Text>
+              <Text style={styles.songInfo}>A special song for you 💕</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <Text style={styles.continueButtonText}>Continue to Cook Smart 🍳</Text>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}>
+            <Text style={styles.continueButtonText}>
+              Continue to Cook Smart 🍳
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -173,7 +200,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 24,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -232,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#A855F7',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
@@ -254,7 +281,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     shadowColor: '#DB2777',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,

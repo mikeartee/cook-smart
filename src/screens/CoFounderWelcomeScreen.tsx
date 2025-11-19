@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
 
@@ -22,7 +22,7 @@ const CoFounderWelcomeScreen: React.FC = () => {
     Sound.setCategory('Playback');
 
     // Load the music file
-    const music = new Sound('briana_song.mp3', Sound.MAIN_BUNDLE, (error) => {
+    const music = new Sound('briana_song.mp3', Sound.MAIN_BUNDLE, error => {
       if (error) {
         console.log('Failed to load the sound', error);
         return;
@@ -30,7 +30,7 @@ const CoFounderWelcomeScreen: React.FC = () => {
       setMusicLoaded(true);
       setSound(music);
       // Auto-play when loaded
-      music.play((success) => {
+      music.play(success => {
         if (success) {
           setIsPlaying(false);
           music.setCurrentTime(0); // Reset to beginning
@@ -54,7 +54,7 @@ const CoFounderWelcomeScreen: React.FC = () => {
       sound.pause();
       setIsPlaying(false);
     } else {
-      sound.play((success) => {
+      sound.play(success => {
         if (success) {
           setIsPlaying(false);
           sound.setCurrentTime(0);
@@ -70,10 +70,17 @@ const CoFounderWelcomeScreen: React.FC = () => {
       sound.stop();
       sound.release();
     }
-    // Mark that we've shown the welcome screen
-    await AsyncStorage.setItem('cofounder_welcome_shown', 'true');
-    // Navigate to main app - will be handled by navigation state
-    navigation.navigate('Home' as never);
+    // Mark that we've shown the welcome screen (only on first visit)
+    const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
+    if (!hasShown) {
+      await AsyncStorage.setItem('cofounder_welcome_shown', 'true');
+    }
+    // Go back to previous screen (or navigate to Main if this is first visit)
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Main' as never);
+    }
   };
 
   return (
@@ -87,35 +94,56 @@ const CoFounderWelcomeScreen: React.FC = () => {
 
           <View style={styles.letterContainer}>
             <Text style={styles.paragraph}>
-              This is all because of you - and you're so much more than just the inspiration behind Cook Smart.
+              This is all because of you - and you're so much more than just the
+              inspiration behind Cook Smart.
             </Text>
 
             <Text style={styles.paragraph}>
-              You've changed my life in ways I don't say out loud nearly enough. You're not just my partner - you're my best friend, my voice of reason, and the person who makes every day better just by being in it.
+              You've changed my life in ways I don't say out loud nearly enough.
+              You're not just my partner - you're my best friend, my voice of
+              reason, and the person who makes every day better just by being in
+              it.
             </Text>
 
             <Text style={styles.paragraph}>
-              Watching you as a mother has shown me what unconditional love really looks like. The way you nurture, protect, and guide with such grace and strength - it's beautiful and inspiring every single day.
+              Watching you as a mother has shown me what unconditional love
+              really looks like. The way you nurture, protect, and guide with
+              such grace and strength - it's beautiful and inspiring every
+              single day.
             </Text>
 
             <Text style={styles.paragraph}>
-              Being out on the road, mile after mile, I think about you constantly. Every sunset I see through the windshield, I wish you were there to share it. Every truck stop, every lonely night in the cab - I'm counting down until I can come home to you and the kids.
+              Being out on the road, mile after mile, I think about you
+              constantly. Every sunset I see through the windshield, I wish you
+              were there to share it. Every truck stop, every lonely night in
+              the cab - I'm counting down until I can come home to you and the
+              kids.
             </Text>
 
             <Text style={styles.paragraph}>
-              This app journey isn't just about building something successful. It's about building a future where I don't have to choose between providing for our family and being present for the moments that matter. Where I can be there for bedtime stories, morning coffee with you, and all the little moments I'm missing now.
+              This app journey isn't just about building something successful.
+              It's about building a future where I don't have to choose between
+              providing for our family and being present for the moments that
+              matter. Where I can be there for bedtime stories, morning coffee
+              with you, and all the little moments I'm missing now.
             </Text>
 
             <Text style={styles.paragraph}>
-              You see solutions where others see problems. That conversation about recipe apps wasn't just frustration - it was your brilliant mind identifying what millions of people needed. Your insight that people need recipes for the real world is now helping families everywhere.
+              You see solutions where others see problems. That conversation
+              about recipe apps wasn't just frustration - it was your brilliant
+              mind identifying what millions of people needed. Your insight that
+              people need recipes for the real world is now helping families
+              everywhere.
             </Text>
 
             <Text style={styles.paragraph}>
-              I love your intelligence, your heart, your strength, and how you hold everything together when I can't be there.
+              I love your intelligence, your heart, your strength, and how you
+              hold everything together when I can't be there.
             </Text>
 
             <Text style={styles.paragraphBold}>
-              Welcome to Cook Smart, Co-Founder. This is our chance to build the life we both dream of.
+              Welcome to Cook Smart, Co-Founder. This is our chance to build the
+              life we both dream of.
             </Text>
 
             <Text style={styles.signature}>
@@ -124,12 +152,15 @@ const CoFounderWelcomeScreen: React.FC = () => {
             </Text>
 
             <Text style={styles.postscript}>
-              P.S. - Maybe someday soon, I won't have to end messages with "from the road."
+              P.S. - Maybe someday soon, I won't have to end messages with "from
+              the road."
             </Text>
           </View>
 
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>👑 CO-FOUNDER - LIFETIME ACCESS</Text>
+            <Text style={styles.badgeText}>
+              👑 CO-FOUNDER - LIFETIME ACCESS
+            </Text>
           </View>
 
           {musicLoaded && (
@@ -137,14 +168,16 @@ const CoFounderWelcomeScreen: React.FC = () => {
               <Text style={styles.musicButtonText}>
                 {isPlaying ? '⏸️ Pause Music' : '▶️ Play Music'}
               </Text>
-              <Text style={styles.songInfo}>
-                A special song for you 💕
-              </Text>
+              <Text style={styles.songInfo}>A special song for you 💕</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <Text style={styles.continueButtonText}>Continue to Cook Smart 🍳</Text>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}>
+            <Text style={styles.continueButtonText}>
+              Continue to Cook Smart 🍳
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -185,7 +218,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 24,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
@@ -244,7 +277,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
@@ -266,7 +299,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     shadowColor: '#BE123C',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
