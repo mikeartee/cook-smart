@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAuth } from '../contexts/AuthContext';
-import { FeedbackModal } from '../components/FeedbackModal';
+import {useAuth} from '../contexts/AuthContext';
+import {FeedbackModal} from '../components/FeedbackModal';
 import feedbackService from '../services/feedbackService';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { user } = useAuth();
+  const {user} = useAuth();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
 
   const handleSubmitFeedback = async (feedback: {
@@ -67,7 +67,13 @@ const HomeScreen: React.FC = () => {
     subtitle: 'From your partner',
     icon: 'favorite',
     color: '#EC4899',
-    onPress: () => navigation.navigate('CoFounderWelcome' as never),
+    onPress: () => {
+      // Navigate to root stack screen
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.navigate('CoFounderWelcome' as never);
+      }
+    },
   };
 
   // Special button for Mom 💐
@@ -77,7 +83,13 @@ const HomeScreen: React.FC = () => {
     subtitle: 'From Brad',
     icon: 'favorite',
     color: '#DB2777',
-    onPress: () => navigation.navigate('SpecialUserWelcome' as never),
+    onPress: () => {
+      // Navigate to root stack screen
+      const parent = navigation.getParent();
+      if (parent) {
+        parent.navigate('SpecialUserWelcome' as never);
+      }
+    },
   };
 
   return (
@@ -87,7 +99,9 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.greeting}>
             Welcome back{user?.first_name ? `, ${user.first_name}` : ''}! 👋
           </Text>
-          <Text style={styles.subtitle}>What would you like to cook today?</Text>
+          <Text style={styles.subtitle}>
+            What would you like to cook today?
+          </Text>
         </View>
         {user?.is_co_founder && (
           <View style={styles.coFounderBadge}>
@@ -100,13 +114,16 @@ const HomeScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          {quickActions.map((action) => (
+          {quickActions.map(action => (
             <TouchableOpacity
               key={action.id}
               style={styles.actionCard}
-              onPress={action.onPress}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: `${action.color}15` }]}>
+              onPress={action.onPress}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  {backgroundColor: `${action.color}15`},
+                ]}>
                 <Icon name={action.icon} size={32} color={action.color} />
               </View>
               <Text style={styles.actionTitle}>{action.title}</Text>
@@ -118,10 +135,17 @@ const HomeScreen: React.FC = () => {
             <TouchableOpacity
               key={brianaAction.id}
               style={[styles.actionCard, styles.specialCard]}
-              onPress={brianaAction.onPress}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: `${brianaAction.color}15` }]}>
-                <Icon name={brianaAction.icon} size={32} color={brianaAction.color} />
+              onPress={brianaAction.onPress}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  {backgroundColor: `${brianaAction.color}15`},
+                ]}>
+                <Icon
+                  name={brianaAction.icon}
+                  size={32}
+                  color={brianaAction.color}
+                />
               </View>
               <Text style={styles.actionTitle}>{brianaAction.title}</Text>
               <Text style={styles.actionSubtitle}>{brianaAction.subtitle}</Text>
@@ -132,9 +156,12 @@ const HomeScreen: React.FC = () => {
             <TouchableOpacity
               key={momAction.id}
               style={[styles.actionCard, styles.specialCard]}
-              onPress={momAction.onPress}
-            >
-              <View style={[styles.iconContainer, { backgroundColor: `${momAction.color}15` }]}>
+              onPress={momAction.onPress}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  {backgroundColor: `${momAction.color}15`},
+                ]}>
                 <Icon name={momAction.icon} size={32} color={momAction.color} />
               </View>
               <Text style={styles.actionTitle}>{momAction.title}</Text>
@@ -258,7 +285,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
