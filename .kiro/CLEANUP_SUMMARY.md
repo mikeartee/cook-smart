@@ -78,5 +78,28 @@ All current status information is now in:
 
 ---
 
+## Latest Update - Recipe Search Fix Deployed
+
+**Date**: November 19, 2025, 5:10 PM
+
+### What Was Fixed
+- ✅ Deployed ingredient name simplification to production
+- ✅ Backend now strips brand names and simplifies ingredient names for better API matching
+- ✅ Example: "Sliced Cheese (Great Value)" → "cheese" for TheMealDB searches
+
+### How to Test
+1. Add ingredient with brand name: "Sliced Cheese (Great Value)"
+2. Search for recipes
+3. Should now see cheese-based recipes from TheMealDB
+
+### Technical Details
+- Modified: `backend/src/services/TheMealDBService.ts`
+- Added: `simplifyIngredientName()` method
+- Deployed to: EC2 (3.237.38.24)
+- Backend restarted: PM2 process ID 0
+
+---
+
 **Cleanup completed**: November 19, 2025, 3:00 AM
+**Recipe fix deployed**: November 19, 2025, 5:10 PM
 **Next cleanup**: When new major features are completed
