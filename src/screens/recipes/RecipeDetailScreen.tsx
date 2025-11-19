@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
+import {useIngredients} from '../../contexts/IngredientContext';
 import {RecipeDetails} from '../../services/recipeService';
 
 interface RecipeDetailScreenProps {
@@ -26,17 +27,45 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   const {recipeId} = route.params;
   const {getRecipeDetails, saveRecipe, isRecipeSaved, deleteSavedRecipe} =
     useRecipes();
+  const {ingredients} = useIngredients();
 
   const [recipe, setRecipe] = useState<RecipeDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(1);
+  const [userIngredients, setUserIngredients] = useState<string[]>([]);
 
   useEffect(() => {
     loadRecipe();
     checkIfSaved();
+    loadUserIngredients();
   }, [recipeId]);
+
+  const loadUserIngredients = () => {
+    // Extract ingredient names from user's pantry
+    const ingredientNames = ingredients
+      .filter(ing => ing.name)
+      .map(ing => ing.name!.toLowerCase().trim());
+    setUserIngredients(ingredientNames);
+  };
+
+  const hasIngredient = (ingredientName: string): boolean => {
+    const searchName = ingredientName.toLowerCase().trim();
+    // Check if user has this ingredient (fuzzy match)
+    return userIngredients.some(userIng => {
+      // Remove common words and check if ingredient name contains user's ingredient
+      const cleanSearch = searchName.replace(
+        /^(fresh|frozen|dried|canned|sliced|diced|chopped)\s+/i,
+        '',
+      );
+      const cleanUser = userIng.replace(
+        /^(fresh|frozen|dried|canned|sliced|diced|chopped)\s+/i,
+        '',
+      );
+      return cleanSearch.includes(cleanUser) || cleanUser.includes(cleanSearch);
+    });
+  };
 
   const loadRecipe = async () => {
     try {
@@ -58,7 +87,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   };
 
   const getScaledAmount = (original: string): string => {
-    if (!recipe) return original;
+    if (!recipe || servings === recipe.servings) return original;
     const scale = servings / recipe.servings;
 
     // Try to extract number from the beginning of the string
@@ -67,17 +96,27 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       const numStr = match[1].trim();
       // Handle fractions like "1/2"
       if (numStr.includes('/')) {
-        const [num, denom] = numStr.split('/').map(s => parseFloat(s.trim()));
-        const scaled = (num / denom) * scale;
-        const rest = original.substring(match[0].length);
-        return `${scaled.toFixed(2)} ${rest}`;
+        const parts = numStr.split('/');
+        if (parts.length === 2) {
+          const num = parseFloat(parts[0]?.trim() || '0');
+          const denom = parseFloat(parts[1]?.trim() || '1');
+          if (!isNaN(num) && !isNaN(denom) && denom !== 0) {
+            const scaled = (num / denom) * scale;
+            const rest = original.substring(match[0].length);
+            // Format nicely - show fractions if possible
+            if (scaled < 1 && scaled > 0) {
+              return `${scaled.toFixed(2)} ${rest}`;
+            }
+            return `${Math.round(scaled * 100) / 100} ${rest}`;
+          }
+        }
       }
       // Handle regular numbers
       const num = parseFloat(numStr);
       if (!isNaN(num)) {
         const scaled = num * scale;
         const rest = original.substring(match[0].length);
-        return `${scaled.toFixed(2)} ${rest}`;
+        return `${Math.round(scaled * 100) / 100} ${rest}`;
       }
     }
     return original;
@@ -245,21 +284,47 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             <Text style={styles.sectionTitle}>Ingredients</Text>
             {recipe.extendedIngredients &&
             recipe.extendedIngredients.length > 0 ? (
-              recipe.extendedIngredients.map((ingredient, index) => (
-                <View key={index} style={styles.ingredientItem}>
-                  <Icon name="fiber-manual-record" size={8} color="#10B981" />
-                  <Text style={styles.ingredientText}>
-                    {getScaledAmount(ingredient.original)}
-                  </Text>
-                </View>
-              ))
+              recipe.extendedIngredients.map((ingredient, index) => {
+                const haveIt = hasIngredient(
+                  ingredient.name || ingredient.original,
+                );
+                return (
+                  <View key={index} style={styles.ingredientItem}>
+                    <Icon
+                      name={haveIt ? 'check-circle' : 'cancel'}
+                      size={16}
+                      color={haveIt ? '#10B981' : '#EF4444'}
+                    />
+                    <Text
+                      style={[
+                        styles.ingredientText,
+                        haveIt && styles.ingredientHave,
+                      ]}>
+                      {getScaledAmount(ingredient.original)}
+                    </Text>
+                  </View>
+                );
+              })
             ) : recipe.ingredients && recipe.ingredients.length > 0 ? (
-              recipe.ingredients.map((ingredient: string, index: number) => (
-                <View key={index} style={styles.ingredientItem}>
-                  <Icon name="fiber-manual-record" size={8} color="#10B981" />
-                  <Text style={styles.ingredientText}>{ingredient}</Text>
-                </View>
-              ))
+              recipe.ingredients.map((ingredient: string, index: number) => {
+                const haveIt = hasIngredient(ingredient);
+                return (
+                  <View key={index} style={styles.ingredientItem}>
+                    <Icon
+                      name={haveIt ? 'check-circle' : 'cancel'}
+                      size={16}
+                      color={haveIt ? '#10B981' : '#EF4444'}
+                    />
+                    <Text
+                      style={[
+                        styles.ingredientText,
+                        haveIt && styles.ingredientHave,
+                      ]}>
+                      {getScaledAmount(ingredient)}
+                    </Text>
+                  </View>
+                );
+              })
             ) : (
               <Text style={styles.noInstructionsText}>
                 No ingredients available
@@ -446,6 +511,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: '#374151',
+  },
+  ingredientHave: {
+    color: '#059669',
+    fontWeight: '500',
   },
   stepItem: {
     flexDirection: 'row',
