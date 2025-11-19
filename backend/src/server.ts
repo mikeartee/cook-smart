@@ -8,6 +8,7 @@ import {errorMiddleware, notFoundHandler} from './middleware/errorMiddleware';
 import {requestLogger} from './middleware/logger';
 import AutoRepairSystem from './services/AutoRepairSystem';
 import HealthMonitor from './services/HealthMonitor';
+import SystemGuardian from './services/SystemGuardian';
 import pool from './config/database';
 import healthRoutes from './routes/health';
 
@@ -83,6 +84,7 @@ import adminCostsRoutes from './routes/adminCosts';
 import adminReferralsRoutes from './routes/adminReferrals';
 import feedbackRoutes from './routes/feedback';
 import subscriptionPricingRoutes from './routes/subscriptionPricing';
+import systemGuardianRoutes from './routes/systemGuardian';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/ingredients', ingredientRoutes);
@@ -107,6 +109,7 @@ app.use('/api/v1/admin/referrals', adminReferralsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/subscriptions', subscriptionPricingRoutes);
+app.use('/api/v1/system-guardian', systemGuardianRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({
@@ -135,6 +138,14 @@ app.listen(PORT, '0.0.0.0', () => {
 
   // Start health monitoring
   HealthMonitor.startDailyHealthSummary();
+
+  // Start System Guardian (automated monitoring and repair)
+  if (process.env.NODE_ENV === 'production') {
+    SystemGuardian.startMonitoring();
+    console.log('🛡️  System Guardian activated');
+  } else {
+    console.log('🛡️  System Guardian disabled in development mode');
+  }
 });
 
 export default app;

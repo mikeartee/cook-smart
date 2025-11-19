@@ -70,18 +70,24 @@ class NotificationService {
 
   private validateWebhooks(): void {
     if (!this.errorWebhook) {
-      console.warn('⚠️  DISCORD_ERROR_WEBHOOK not configured - error notifications disabled');
+      console.warn(
+        '⚠️  DISCORD_ERROR_WEBHOOK not configured - error notifications disabled',
+      );
     }
     if (!this.feedbackWebhook) {
-      console.warn('⚠️  DISCORD_FEEDBACK_WEBHOOK not configured - feedback notifications disabled');
+      console.warn(
+        '⚠️  DISCORD_FEEDBACK_WEBHOOK not configured - feedback notifications disabled',
+      );
     }
     if (!this.activityWebhook) {
-      console.warn('⚠️  DISCORD_ACTIVITY_WEBHOOK not configured - activity notifications disabled');
+      console.warn(
+        '⚠️  DISCORD_ACTIVITY_WEBHOOK not configured - activity notifications disabled',
+      );
     }
 
     // Validate webhook URL format
     const webhookPattern = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+$/;
-    
+
     if (this.errorWebhook && !webhookPattern.test(this.errorWebhook)) {
       console.error('❌ Invalid DISCORD_ERROR_WEBHOOK URL format');
       this.errorWebhook = null;
@@ -102,7 +108,7 @@ class NotificationService {
   async sendErrorNotification(
     error: Error,
     severity: ErrorSeverity,
-    context?: ErrorContext
+    context?: ErrorContext,
   ): Promise<void> {
     if (!this.errorWebhook) {
       console.log('Error notification skipped - webhook not configured');
@@ -131,7 +137,7 @@ class NotificationService {
    */
   async sendActivityNotification(
     type: ActivityType,
-    data: ActivityData
+    data: ActivityData,
   ): Promise<void> {
     if (!this.activityWebhook) {
       console.log('Activity notification skipped - webhook not configured');
@@ -161,13 +167,13 @@ class NotificationService {
   private formatErrorEmbed(
     error: Error,
     severity: ErrorSeverity,
-    context?: ErrorContext
+    context?: ErrorContext,
   ): any {
     const severityColors = {
       critical: 10038562, // Dark red
-      high: 15158332,     // Red
-      medium: 16744192,   // Orange
-      low: 16776960,      // Yellow
+      high: 15158332, // Red
+      medium: 16744192, // Orange
+      low: 16776960, // Yellow
     };
 
     const severityEmojis = {
@@ -185,7 +191,8 @@ class NotificationService {
       },
       {
         name: 'Time',
-        value: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+        value:
+          new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
         inline: true,
       },
     ];
@@ -223,15 +230,17 @@ class NotificationService {
     }
 
     return {
-      embeds: [{
-        title: '🚨 ERROR DETECTED',
-        color: severityColors[severity],
-        fields,
-        footer: {
-          text: 'Cook Smart Error Monitor',
+      embeds: [
+        {
+          title: '🚨 ERROR DETECTED',
+          color: severityColors[severity],
+          fields,
+          footer: {
+            text: 'Cook Smart Error Monitor',
+          },
+          timestamp: new Date().toISOString(),
         },
-        timestamp: new Date().toISOString(),
-      }],
+      ],
       // Mention @everyone for critical errors
       content: severity === 'critical' ? '@everyone' : undefined,
     };
@@ -268,7 +277,9 @@ class NotificationService {
 
     fields.push({
       name: 'Time',
-      value: feedback.timestamp.toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+      value:
+        feedback.timestamp.toISOString().replace('T', ' ').substring(0, 19) +
+        ' UTC',
       inline: true,
     });
 
@@ -279,15 +290,17 @@ class NotificationService {
     });
 
     return {
-      embeds: [{
-        title: '💬 NEW FEEDBACK',
-        color: 3447003, // Blue
-        fields,
-        footer: {
-          text: 'Cook Smart Feedback',
+      embeds: [
+        {
+          title: '💬 NEW FEEDBACK',
+          color: 3447003, // Blue
+          fields,
+          footer: {
+            text: 'Cook Smart Feedback',
+          },
+          timestamp: feedback.timestamp.toISOString(),
         },
-        timestamp: feedback.timestamp.toISOString(),
-      }],
+      ],
     };
   }
 
@@ -316,7 +329,9 @@ class NotificationService {
           },
           {
             name: 'Time',
-            value: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+            value:
+              new Date().toISOString().replace('T', ' ').substring(0, 19) +
+              ' UTC',
             inline: true,
           },
         ];
@@ -357,7 +372,9 @@ class NotificationService {
           },
           {
             name: 'Time',
-            value: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+            value:
+              new Date().toISOString().replace('T', ' ').substring(0, 19) +
+              ' UTC',
             inline: true,
           },
         ];
@@ -384,7 +401,9 @@ class NotificationService {
           },
           {
             name: 'Time',
-            value: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+            value:
+              new Date().toISOString().replace('T', ' ').substring(0, 19) +
+              ' UTC',
             inline: true,
           },
           {
@@ -400,15 +419,17 @@ class NotificationService {
     }
 
     return {
-      embeds: [{
-        title,
-        color: 5763719, // Green
-        fields,
-        footer: {
-          text: 'Cook Smart Activity',
+      embeds: [
+        {
+          title,
+          color: 5763719, // Green
+          fields,
+          footer: {
+            text: 'Cook Smart Activity',
+          },
+          timestamp: new Date().toISOString(),
         },
-        timestamp: new Date().toISOString(),
-      }],
+      ],
     };
   }
 
@@ -464,15 +485,17 @@ class NotificationService {
     }
 
     return {
-      embeds: [{
-        title: '📊 DAILY HEALTH SUMMARY',
-        color,
-        fields,
-        footer: {
-          text: 'Cook Smart Health Monitor',
+      embeds: [
+        {
+          title: '📊 DAILY HEALTH SUMMARY',
+          color,
+          fields,
+          footer: {
+            text: 'Cook Smart Health Monitor',
+          },
+          timestamp: new Date().toISOString(),
         },
-        timestamp: new Date().toISOString(),
-      }],
+      ],
     };
   }
 
@@ -483,7 +506,7 @@ class NotificationService {
     webhookUrl: string,
     payload: any,
     type: string,
-    retries = 3
+    retries = 3,
   ): Promise<void> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -496,16 +519,21 @@ class NotificationService {
         });
 
         if (!response.ok) {
-          throw new Error(`Discord webhook failed: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Discord webhook failed: ${response.status} ${response.statusText}`,
+          );
         }
 
         console.log(`✅ ${type} notification sent to Discord`);
-        
+
         // Log successful notification
         await this.logNotification(type, payload, true);
         return;
       } catch (error) {
-        console.error(`❌ Failed to send ${type} notification (attempt ${attempt}/${retries}):`, error);
+        console.error(
+          `❌ Failed to send ${type} notification (attempt ${attempt}/${retries}):`,
+          error,
+        );
 
         if (attempt < retries) {
           // Exponential backoff: 1s, 2s, 4s
@@ -515,8 +543,10 @@ class NotificationService {
       }
     }
 
-    console.error(`❌ Failed to send ${type} notification after ${retries} attempts`);
-    
+    console.error(
+      `❌ Failed to send ${type} notification after ${retries} attempts`,
+    );
+
     // Log failed notification
     await this.logNotification(type, payload, false, 'Failed after 3 retries');
   }
@@ -528,23 +558,27 @@ class NotificationService {
     type: string,
     payload: any,
     success: boolean,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     try {
-      const channel = type === 'error' || type === 'health' ? 'error' : 
-                      type === 'feedback' ? 'feedback' : 'activity';
-      
+      const channel =
+        type === 'error' || type === 'health'
+          ? 'error'
+          : type === 'feedback'
+            ? 'feedback'
+            : 'activity';
+
       const params: any = {
         type: type as any,
         channel: channel as any,
         payload,
         success,
       };
-      
+
       if (errorMessage) {
         params.error_message = errorMessage;
       }
-      
+
       await NotificationLogModel.create(params);
     } catch (error) {
       // Don't throw - logging failures shouldn't break notifications
@@ -553,11 +587,19 @@ class NotificationService {
   }
 
   // Stub methods for community features (to be implemented)
-  async notifyAchievement(userId: string, achievement: string, _description: string): Promise<void> {
+  async notifyAchievement(
+    userId: string,
+    achievement: string,
+    _description: string,
+  ): Promise<void> {
     console.log(`Achievement notification stub: ${userId} - ${achievement}`);
   }
 
-  async getUserNotifications(userId: string, _page: number, _limit: number): Promise<any[]> {
+  async getUserNotifications(
+    userId: string,
+    _page: number,
+    _limit: number,
+  ): Promise<any[]> {
     console.log(`Get notifications stub: ${userId}`);
     return [];
   }
@@ -577,9 +619,60 @@ class NotificationService {
     return 0;
   }
 
-  async deleteNotification(userId: string, notificationId: string): Promise<boolean> {
+  async deleteNotification(
+    userId: string,
+    notificationId: string,
+  ): Promise<boolean> {
     console.log(`Delete notification stub: ${userId} - ${notificationId}`);
     return true;
+  }
+
+  /**
+   * Send custom notification to Discord (for System Guardian)
+   */
+  async sendCustomNotification(data: {
+    title: string;
+    description: string;
+    color: number;
+    timestamp: string;
+    footer: string;
+  }): Promise<void> {
+    if (!this.errorWebhook) {
+      console.log('Error notification skipped - webhook not configured');
+      return;
+    }
+
+    try {
+      const payload = {
+        embeds: [
+          {
+            title: data.title,
+            description: data.description,
+            color: data.color,
+            footer: {
+              text: data.footer,
+            },
+            timestamp: data.timestamp,
+          },
+        ],
+      };
+
+      const response = await fetch(this.errorWebhook, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Discord API returned ${response.status}`);
+      }
+
+      console.log('✅ Custom notification sent to Discord');
+    } catch (error) {
+      console.error('Failed to send custom notification:', error);
+    }
   }
 }
 
