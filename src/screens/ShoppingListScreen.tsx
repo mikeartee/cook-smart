@@ -1,61 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
-import { ShoppingListItem } from '../components/ShoppingListItem';
-import { AddShoppingItem } from '../components/AddShoppingItem';
-
-interface ShoppingItem {
-  id: string;
-  ingredient: string;
-  quantity: string;
-  unit: string;
-  category: string;
-  isCompleted: boolean;
-  recipeId?: string;
-}
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
+import {ShoppingListItem} from '../components/ShoppingListItem';
+import {AddShoppingItem} from '../components/AddShoppingItem';
+import {
+  shoppingListService,
+  ShoppingListItem as ShoppingItem,
+} from '../services/shoppingListService';
 
 export const ShoppingListScreen: React.FC = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-
-  // Mock data
-  const mockItems: ShoppingItem[] = [
-    { id: '1', ingredient: 'Tomatoes', quantity: '2', unit: 'lbs', category: 'produce', isCompleted: false },
-    { id: '2', ingredient: 'Chicken Breast', quantity: '1', unit: 'lb', category: 'meat', isCompleted: true },
-    { id: '3', ingredient: 'Milk', quantity: '1', unit: 'gallon', category: 'dairy', isCompleted: false, recipeId: 'recipe1' },
-    { id: '4', ingredient: 'Bread', quantity: '1', unit: 'loaf', category: 'bakery', isCompleted: false }
-  ];
+  const [_loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setItems(mockItems);
+    loadShoppingList();
   }, []);
 
-  const handleToggleCompleted = (itemId: string) => {
-    setItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, isCompleted: !item.isCompleted } : item
-    ));
+  const loadShoppingList = async () => {
+    try {
+      setLoading(true);
+      const data = await shoppingListService.getShoppingList();
+      setItems(data);
+    } catch (error) {
+      console.error('Error loading shopping list:', error);
+      Alert.alert('Error', 'Failed to load shopping list. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdateItem = (itemId: string, ingredient: string, quantity: string, unit: string, category: string) => {
-    setItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, ingredient, quantity, unit, category } : item
-    ));
+  const handleToggleCompleted = async (itemId: string) => {
+    try {
+      const updatedItem = await shoppingListService.toggleCompleted(itemId);
+      setItems(prev =>
+        prev.map(item => (item.id === itemId ? updatedItem : item)),
+      );
+    } catch (error) {
+      console.error('Error toggling item:', error);
+      Alert.alert('Error', 'Failed to update item. Please try again.');
+    }
   };
 
-  const handleDeleteItem = (itemId: string) => {
-    setItems(prev => prev.filter(item => item.id !== itemId));
+  const handleUpdateItem = async (
+    itemId: string,
+    ingredient: string,
+    quantity: string,
+    unit: string,
+    category: string,
+  ) => {
+    try {
+      const updatedItem = await shoppingListService.updateItem(itemId, {
+        ingredient,
+        quantity,
+        unit,
+        category,
+      });
+      setItems(prev =>
+        prev.map(item => (item.id === itemId ? updatedItem : item)),
+      );
+    } catch (error) {
+      console.error('Error updating item:', error);
+      Alert.alert('Error', 'Failed to update item. Please try again.');
+    }
   };
 
-  const handleAddItem = (ingredient: string, quantity: string, unit: string, category: string) => {
-    const newItem: ShoppingItem = {
-      id: Date.now().toString(),
-      ingredient,
-      quantity,
-      unit,
-      category,
-      isCompleted: false
-    };
-    setItems(prev => [...prev, newItem]);
-    setShowAddForm(false);
+  const handleDeleteItem = async (itemId: string) => {
+    try {
+      await shoppingListService.deleteItem(itemId);
+      setItems(prev => prev.filter(item => item.id !== itemId));
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      Alert.alert('Error', 'Failed to delete item. Please try again.');
+    }
+  };
+
+  const handleAddItem = async (
+    ingredient: string,
+    quantity: string,
+    unit: string,
+    category: string,
+  ) => {
+    try {
+      const newItem = await shoppingListService.addItem({
+        ingredient,
+        quantity,
+        unit,
+        category,
+      });
+      setItems(prev => [...prev, newItem]);
+      setShowAddForm(false);
+    } catch (error) {
+      console.error('Error adding item:', error);
+      Alert.alert('Error', 'Failed to add item. Please try again.');
+    }
   };
 
   const handleClearCompleted = () => {
@@ -69,11 +114,24 @@ export const ShoppingListScreen: React.FC = () => {
       'Clear Completed',
       `Remove ${completedCount} completed item${completedCount > 1 ? 's' : ''}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Clear', style: 'destructive', onPress: () => {
-          setItems(prev => prev.filter(item => !item.isCompleted));
-        }}
-      ]
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await shoppingListService.clearCompleted();
+              setItems(prev => prev.filter(item => !item.isCompleted));
+            } catch (error) {
+              console.error('Error clearing completed items:', error);
+              Alert.alert(
+                'Error',
+                'Failed to clear completed items. Please try again.',
+              );
+            }
+          },
+        },
+      ],
     );
   };
 
@@ -96,7 +154,7 @@ export const ShoppingListScreen: React.FC = () => {
       pantry: '🥫',
       frozen: '🧊',
       bakery: '🍞',
-      other: '📦'
+      other: '📦',
     };
     return icons[category] || '📦';
   };
@@ -115,16 +173,14 @@ export const ShoppingListScreen: React.FC = () => {
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={() => setShowAddForm(true)}
-        >
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddForm(true)}>
           <Text style={styles.addButtonText}>+ Add Item</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.clearButton} 
-          onPress={handleClearCompleted}
-        >
+        <TouchableOpacity
+          style={styles.clearButton}
+          onPress={handleClearCompleted}>
           <Text style={styles.clearButtonText}>Clear Completed</Text>
         </TouchableOpacity>
       </View>
@@ -140,7 +196,8 @@ export const ShoppingListScreen: React.FC = () => {
         {Object.entries(categorizedItems).map(([category, categoryItems]) => (
           <View key={category} style={styles.categorySection}>
             <Text style={styles.categoryHeader}>
-              {getCategoryIcon(category)} {category.charAt(0).toUpperCase() + category.slice(1)}
+              {getCategoryIcon(category)}{' '}
+              {category.charAt(0).toUpperCase() + category.slice(1)}
             </Text>
             {categoryItems.map(item => (
               <ShoppingListItem
@@ -153,7 +210,7 @@ export const ShoppingListScreen: React.FC = () => {
             ))}
           </View>
         ))}
-        
+
         {items.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>🛒</Text>

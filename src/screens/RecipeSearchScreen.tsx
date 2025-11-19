@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
-import { RecipeSearchBar } from '../components/RecipeSearchBar';
-import { RecipeFilterModal } from '../components/RecipeFilterModal';
-import { SortSelector, SortOption } from '../components/SortSelector';
-import { RecipeList } from '../components/RecipeList';
+import React, {useState, useEffect} from 'react';
+import {StyleSheet, SafeAreaView, Alert} from 'react-native';
+import {RecipeSearchBar} from '../components/RecipeSearchBar';
+import {RecipeFilterModal} from '../components/RecipeFilterModal';
+import {SortSelector, SortOption} from '../components/SortSelector';
+import {RecipeList} from '../components/RecipeList';
+import recipeService from '../services/recipeService';
+import {useIngredients} from '../contexts/IngredientContext';
 
 interface SearchFilters {
   ingredients?: string[];
@@ -34,40 +36,56 @@ export const RecipeSearchScreen: React.FC = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const mockRecipes: Recipe[] = [
-    {
-      id: '1',
-      title: 'Vegetarian Pasta',
-      description: 'Simple pasta with vegetables',
-      cookingTime: 20,
-      servings: 4,
-      difficulty: 'easy',
-      cuisine: 'italian',
-      isCompatible: true,
-      conflictCount: 0
-    },
-    {
-      id: '2',
-      title: 'Chicken Stir Fry',
-      description: 'Quick chicken and vegetable stir fry',
-      cookingTime: 15,
-      servings: 2,
-      difficulty: 'easy',
-      cuisine: 'asian',
-      isCompatible: false,
-      conflictCount: 1
-    }
-  ];
+  const {ingredients} = useIngredients();
 
   useEffect(() => {
-    // Simulate search
-    setLoading(true);
-    setTimeout(() => {
-      setRecipes(mockRecipes);
-      setLoading(false);
-    }, 500);
+    if (searchQuery || filters.ingredients?.length) {
+      searchRecipes();
+    } else {
+      setRecipes([]);
+    }
   }, [searchQuery, filters, sortBy]);
+
+  const searchRecipes = async () => {
+    try {
+      setLoading(true);
+
+      // Use user's ingredients if no specific search
+      const searchIngredients =
+        filters.ingredients ||
+        ingredients.map(ing => ing.name || '').filter(Boolean);
+
+      if (searchIngredients.length === 0 && !searchQuery) {
+        setRecipes([]);
+        return;
+      }
+
+      const results =
+        await recipeService.searchByIngredients(searchIngredients);
+
+      // Convert to local Recipe format
+      const formattedRecipes: Recipe[] = results.map(r => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: `Uses ${r.usedIngredientCount} of your ingredients`,
+        cookingTime: 30, // Default, would need from details
+        servings: 4, // Default, would need from details
+        difficulty: 'medium',
+        cuisine: '',
+        imageUrl: r.image,
+        isCompatible: r.missedIngredientCount === 0,
+        conflictCount: r.missedIngredientCount,
+      }));
+
+      setRecipes(formattedRecipes);
+    } catch (error) {
+      console.error('Error searching recipes:', error);
+      Alert.alert('Error', 'Failed to search recipes. Please try again.');
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -86,10 +104,13 @@ export const RecipeSearchScreen: React.FC = () => {
     console.log('Recipe pressed:', recipe.title);
   };
 
-  const conflictData = recipes.reduce((acc, recipe) => {
-    acc[recipe.id] = recipe.conflictCount || 0;
-    return acc;
-  }, {} as Record<string, number>);
+  const conflictData = recipes.reduce(
+    (acc, recipe) => {
+      acc[recipe.id] = recipe.conflictCount || 0;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,20 +118,20 @@ export const RecipeSearchScreen: React.FC = () => {
         onSearch={handleSearch}
         onFilterPress={() => setShowFilterModal(true)}
       />
-      
+
       <SortSelector
         selectedSort={sortBy}
         onSortChange={handleSortChange}
         showCompatibility={true}
       />
-      
+
       <RecipeList
         recipes={recipes}
         loading={loading}
         onRecipePress={handleRecipePress}
         conflictData={conflictData}
       />
-      
+
       <RecipeFilterModal
         visible={showFilterModal}
         filters={filters}

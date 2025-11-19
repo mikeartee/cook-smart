@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
 import {useIngredients} from '../../contexts/IngredientContext';
 import {RecipeDetails} from '../../services/recipeService';
+import {shoppingListService} from '../../services/shoppingListService';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -51,7 +52,16 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   };
 
   const hasIngredient = (ingredientName: string): boolean => {
-    const searchName = ingredientName.toLowerCase().trim();
+    let searchName = ingredientName.toLowerCase().trim();
+
+    // Remove measurements (e.g., "1 cup flour" -> "flour")
+    searchName = searchName.replace(/^[\d.\/\s]+/g, '').trim();
+
+    // Remove units (cup, tbsp, oz, etc.)
+    searchName = searchName
+      .replace(/^(cup|cups|tbsp|tsp|oz|lb|g|kg|ml|l)\s+/i, '')
+      .trim();
+
     // Check if user has this ingredient (fuzzy match)
     return userIngredients.some(userIng => {
       // Remove common words and check if ingredient name contains user's ingredient
@@ -63,6 +73,8 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         /^(fresh|frozen|dried|canned|sliced|diced|chopped)\s+/i,
         '',
       );
+
+      // Match if either contains the other (handles partial matches)
       return cleanSearch.includes(cleanUser) || cleanUser.includes(cleanSearch);
     });
   };
@@ -71,19 +83,34 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     if (!recipe) return;
 
     try {
-      // Get missing ingredients
-      const missingIngredients: string[] = [];
+      // Get missing ingredients with parsed quantities
+      const missingIngredients: Array<{
+        ingredient: string;
+        quantity: string;
+        unit: string;
+      }> = [];
 
       if (recipe.extendedIngredients && recipe.extendedIngredients.length > 0) {
         recipe.extendedIngredients.forEach(ing => {
           if (!hasIngredient(ing.name || ing.original)) {
-            missingIngredients.push(getScaledAmount(ing.original));
+            missingIngredients.push({
+              ingredient: ing.name || ing.original,
+              quantity: (ing.amount * (servings / recipe.servings)).toFixed(2),
+              unit: ing.unit || '',
+            });
           }
         });
       } else if (recipe.ingredients && recipe.ingredients.length > 0) {
         recipe.ingredients.forEach(ing => {
           if (!hasIngredient(ing)) {
-            missingIngredients.push(getScaledAmount(ing));
+            const _scaledAmount = getScaledAmount(ing);
+            // Parse ingredient string to extract name, quantity, and unit
+            const parts = ing.match(/^([\d./\s]+)?\s*(\w+)?\s*(.+)$/);
+            missingIngredients.push({
+              ingredient: parts?.[3] || ing,
+              quantity: parts?.[1]?.trim() || '1',
+              unit: parts?.[2] || '',
+            });
           }
         });
       }
@@ -96,12 +123,23 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         return;
       }
 
-      // TODO: Implement shopping list API call
+      // Add items to shopping list via API
+      await shoppingListService.addItems(
+        missingIngredients.map(item => ({
+          ingredient: item.ingredient,
+          quantity: item.quantity,
+          unit: item.unit,
+          category: 'other',
+          recipeId: recipe.id.toString(),
+        })),
+      );
+
       Alert.alert(
         'Added to Shopping List',
         `${missingIngredients.length} missing ingredient(s) added to your shopping list.`,
       );
-    } catch (_err) {
+    } catch (err) {
+      console.error('Error adding to shopping list:', err);
       Alert.alert('Error', 'Failed to add ingredients to shopping list');
     }
   };

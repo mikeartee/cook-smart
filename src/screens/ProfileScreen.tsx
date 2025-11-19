@@ -10,6 +10,7 @@ import {PointsDisplay} from '../components/PointsDisplay';
 import {PointsHistory} from '../components/PointsHistory';
 import {Leaderboard} from '../components/Leaderboard';
 import {pointsService} from '../services/pointsService';
+import {userService} from '../services/userService';
 
 interface UserProfile {
   id: string;
@@ -115,6 +116,17 @@ export const ProfileScreen: React.FC<Props> = ({userId}) => {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Load real user profile
+      const userProfile = await userService.getCurrentUser();
+      setProfile({
+        id: userProfile.id,
+        username: userProfile.username || 'user',
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        bio: userProfile.bio,
+        location: userProfile.location,
+      });
+
       // Load real points data
       const points = await pointsService.getUserPoints();
       setUserPoints({
@@ -126,10 +138,13 @@ export const ProfileScreen: React.FC<Props> = ({userId}) => {
       const history = await pointsService.getPointsHistory(20, 0);
       setTransactions(history);
 
-      // Use mock data for profile and stats (until we have real endpoints)
-      setProfile(mockProfile);
-      setStats(mockStats);
-      setLeaderboard(mockLeaderboard);
+      // Load real leaderboard
+      const leaderboardData = await userService.getLeaderboard(10);
+      setLeaderboard(leaderboardData);
+
+      // Load stats (currently returns zeros until backend endpoint exists)
+      const statsData = await userService.getUserStats();
+      setStats(statsData);
     } catch (error) {
       console.error('Error loading profile data:', error);
       // Fall back to mock data on error
