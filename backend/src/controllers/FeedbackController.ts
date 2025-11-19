@@ -30,7 +30,12 @@ class FeedbackController {
       }
 
       const user = (req as any).user;
-      if (!user) {
+      
+      // For public endpoint, user is optional (BETA feature)
+      // For authenticated endpoint, user is required
+      const isPublicEndpoint = req.path.includes('/public');
+      
+      if (!user && !isPublicEndpoint) {
         res.status(401).json({
           error: 'Unauthorized',
           message: 'User not authenticated',
@@ -42,7 +47,7 @@ class FeedbackController {
 
       // Create feedback in database
       const params: any = {
-        user_id: user.id,
+        user_id: user?.id || null, // Allow null for public submissions
         message,
       };
       
@@ -56,9 +61,9 @@ class FeedbackController {
       (async () => {
         try {
           const notifData: any = {
-            userId: user.id,
-            userName: user.name || 'Unknown User',
-            userEmail: user.email || 'unknown@example.com',
+            userId: user?.id || 'anonymous',
+            userName: user?.name || 'Anonymous User',
+            userEmail: user?.email || 'anonymous@cooksmartapp.com',
             message: feedback.message,
             timestamp: feedback.created_at,
           };

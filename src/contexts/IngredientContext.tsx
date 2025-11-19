@@ -58,8 +58,8 @@ export const IngredientProvider: React.FC<IngredientProviderProps> = ({ children
     setError(null);
     try {
       await ingredientService.addIngredient(ingredientData);
-      // Don't do optimistic update - just let the user refresh or navigate back
-      // The ingredient will show up when they return to the list
+      // Refresh the ingredients list after adding
+      await fetchIngredients();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to add ingredient';
       setError(errorMessage);
@@ -68,7 +68,7 @@ export const IngredientProvider: React.FC<IngredientProviderProps> = ({ children
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchIngredients]);
 
   const updateIngredient = useCallback(async (id: number, updates: UpdateIngredientDto) => {
     setIsLoading(true);
@@ -99,9 +99,9 @@ export const IngredientProvider: React.FC<IngredientProviderProps> = ({ children
     try {
       await ingredientService.deleteIngredient(id);
       
-      // Optimistic update - remove from state
-      setIngredients(prev => prev.filter(ing => ing.id !== id));
-      setCustomIngredients(prev => prev.filter(ing => ing.id !== id));
+      // Optimistic update - remove from state (safely handle null/undefined)
+      setIngredients(prev => (prev || []).filter(ing => ing.id !== id));
+      setCustomIngredients(prev => (prev || []).filter(ing => ing.id !== id));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete ingredient';
       setError(errorMessage);

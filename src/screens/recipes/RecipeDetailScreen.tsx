@@ -27,6 +27,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [servings, setServings] = useState<number>(1);
 
   useEffect(() => {
     loadRecipe();
@@ -39,11 +40,43 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
       setError(null);
       const details = await getRecipeDetails(recipeId);
       setRecipe(details);
+      setServings(details.servings); // Set initial servings
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recipe');
     } finally {
       setLoading(false);
     }
+  };
+
+  const adjustServings = (newServings: number) => {
+    if (newServings < 1) return;
+    setServings(newServings);
+  };
+
+  const getScaledAmount = (original: string): string => {
+    if (!recipe) return original;
+    const scale = servings / recipe.servings;
+    
+    // Try to extract number from the beginning of the string
+    const match = original.match(/^([\d.\/\s]+)/);
+    if (match) {
+      const numStr = match[1].trim();
+      // Handle fractions like "1/2"
+      if (numStr.includes('/')) {
+        const [num, denom] = numStr.split('/').map(s => parseFloat(s.trim()));
+        const scaled = (num / denom) * scale;
+        const rest = original.substring(match[0].length);
+        return `${scaled.toFixed(2)} ${rest}`;
+      }
+      // Handle regular numbers
+      const num = parseFloat(numStr);
+      if (!isNaN(num)) {
+        const scaled = num * scale;
+        const rest = original.substring(match[0].length);
+        return `${scaled.toFixed(2)} ${rest}`;
+      }
+    }
+    return original;
   };
 
   const checkIfSaved = async () => {
@@ -135,15 +168,37 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
               <Icon name="schedule" size={20} color="#10B981" />
               <Text style={styles.statText}>{recipe.readyInMinutes} min</Text>
             </View>
-            <View style={styles.statItem}>
-              <Icon name="restaurant" size={20} color="#10B981" />
-              <Text style={styles.statText}>{recipe.servings} servings</Text>
-            </View>
             {recipe.cuisines.length > 0 && (
               <View style={styles.statItem}>
                 <Icon name="public" size={20} color="#10B981" />
                 <Text style={styles.statText}>{recipe.cuisines[0]}</Text>
               </View>
+            )}
+          </View>
+
+          {/* Servings Adjuster */}
+          <View style={styles.servingsContainer}>
+            <Text style={styles.servingsLabel}>Servings:</Text>
+            <View style={styles.servingsControls}>
+              <TouchableOpacity 
+                style={styles.servingsButton}
+                onPress={() => adjustServings(servings - 1)}
+                disabled={servings <= 1}
+              >
+                <Icon name="remove" size={20} color={servings <= 1 ? "#D1D5DB" : "#10B981"} />
+              </TouchableOpacity>
+              <Text style={styles.servingsValue}>{servings}</Text>
+              <TouchableOpacity 
+                style={styles.servingsButton}
+                onPress={() => adjustServings(servings + 1)}
+              >
+                <Icon name="add" size={20} color="#10B981" />
+              </TouchableOpacity>
+            </View>
+            {servings !== recipe.servings && (
+              <TouchableOpacity onPress={() => setServings(recipe.servings)}>
+                <Text style={styles.resetText}>Reset</Text>
+              </TouchableOpacity>
             )}
           </View>
 
@@ -171,7 +226,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({ route, n
             {recipe.extendedIngredients.map((ingredient, index) => (
               <View key={index} style={styles.ingredientItem}>
                 <Icon name="fiber-manual-record" size={8} color="#10B981" />
-                <Text style={styles.ingredientText}>{ingredient.original}</Text>
+                <Text style={styles.ingredientText}>{getScaledAmount(ingredient.original)}</Text>
               </View>
             ))}
           </View>
@@ -255,9 +310,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
     marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+  },
+  servingsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  servingsLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  servingsControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  servingsButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  servingsValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    minWidth: 30,
+    textAlign: 'center',
+  },
+  resetText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#10B981',
   },
   providerBadge: {
     flexDirection: 'row',

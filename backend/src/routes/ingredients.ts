@@ -2,46 +2,26 @@ import { Router, Request, Response } from 'express';
 import { query, body, validationResult } from 'express-validator';
 import { IngredientModel } from '../models/Ingredient';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { UserPointsModel } from '../models/UserPoints';
 import mockIngredientsDB from '../config/mockIngredients';
 
 const router = Router();
 
-// Get all ingredients with optional filtering
-router.get('/', [
-  query('category').optional().isString(),
-  query('search').optional().isString(),
-  query('limit').optional().isInt({ min: 1, max: 100 })
-], async (req: Request, res: Response) => {
+// Get user's pantry ingredients
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        error: 'Validation failed',
-        details: errors.array()
-      });
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'User not authenticated' });
       return;
     }
-
-    const { category, search, limit } = req.query;
     
-    // Use mock database in development
-    if (search && typeof search === 'string') {
-      const ingredients = await mockIngredientsDB.searchIngredients(
-        search, 
-        parseInt(limit as string) || 20
-      );
-      res.json({ ingredients });
-    } else {
-      const ingredients = await mockIngredientsDB.getAll(
-        typeof category === 'string' ? category : undefined
-      );
-      res.json({ ingredients });
-    }
+    const ingredients = await IngredientModel.getUserIngredients(req.user.id);
+    res.json({ ingredients });
   } catch (error) {
-    console.error('Get ingredients error:', error);
+    console.error('Get user ingredients error:', error);
     res.status(500).json({
       error: 'Failed to fetch ingredients',
-      message: 'Unable to retrieve ingredients'
+      message: 'Unable to retrieve your ingredients'
     });
   }
 });
@@ -100,33 +80,55 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Add ingredient (simple POST)
-router.post('/', async (req: Request, res: Response) => {
+// Add ingredient (simple POST) - with authentication
+router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { name, customName, category, default_unit, unit, quantity } = req.body;
-    const ingredientName = customName || name || 'Unknown';
-    const ingredientUnit = unit || default_unit || 'piece';
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
+
+    const { ingredientId, customName, category, quantity, unit, expirationDate } = req.body;
     
-    const ingredient = await mockIngredientsDB.create({
-      name: ingredientName,
-      category: category || 'Other',
-      common_unit: ingredientUnit
-    });
+    console.log('📝 Adding ingredient:', { userId: req.user.id, ingredientId, customName, category });
     
-    // Add quantity and unit to the response
-    const responseIngredient = {
-      ...ingredient,
+    // If custom ingredient, create it first
+    let finalIngredientId = ingredientId;
+    if (customName && !ingredientId) {
+      const customIngredient = await IngredientModel.addCustomIngredient({
+        name: customName,
+        category: category || 'other',
+        default_unit: unit || 'piece'
+      });
+      finalIngredientId = customIngredient.id;
+    }
+    
+    // Add to user's pantry
+    const ingredientData: any = {
+      ingredient_id: finalIngredientId,
       quantity: quantity || 1,
-      unit: ingredientUnit,
-      added_at: new Date().toISOString()
+      unit: unit || 'piece',
     };
+    if (expirationDate) {
+      ingredientData.expiration_date = new Date(expirationDate);
+    }
+    const userIngredient = await IngredientModel.addUserIngredient(req.user.id, ingredientData);
+    
+    // Award points for adding ingredient
+    try {
+      await UserPointsModel.addPoints(req.user.id, 2, 'ingredient_add', 'Added ingredient to pantry');
+    } catch (pointsError) {
+      console.warn('Failed to award points:', pointsError);
+    }
+    
+    console.log('✅ Ingredient added:', userIngredient);
     
     res.status(201).json({
       message: 'Ingredient added successfully',
-      ingredient: responseIngredient
+      ingredient: userIngredient
     });
   } catch (error) {
-    console.error('Add ingredient error:', error);
+    console.error('❌ Add ingredient error:', error);
     res.status(500).json({
       error: 'Failed to add ingredient',
       message: 'Unable to add ingredient'
@@ -135,10 +137,15 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Update ingredient
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { quantity, unit } = req.body;
+    
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
     
     if (!id) {
       res.status(400).json({
@@ -171,17 +178,41 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // Delete ingredient
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     
-    // For now, just return success
-    // In a real implementation, this would delete from the database
+    console.log('🗑️ DELETE request received:', { 
+      userId: req.user?.id, 
+      ingredientId: id,
+      idType: typeof id 
+    });
+    
+    if (!req.user?.id) {
+      console.log('❌ No user ID in request');
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
+    
+    if (!id) {
+      console.log('❌ No ingredient ID provided');
+      res.status(400).json({
+        error: 'Invalid ingredient ID',
+        message: 'Ingredient ID is required'
+      });
+      return;
+    }
+    
+    console.log('🔄 Attempting to delete ingredient...');
+    // Delete from user's pantry
+    await IngredientModel.removeUserIngredient(req.user.id, id);
+    
+    console.log('✅ Ingredient deleted successfully');
     res.json({
       message: 'Ingredient deleted successfully'
     });
   } catch (error) {
-    console.error('Delete ingredient error:', error);
+    console.error('❌ Delete ingredient error:', error);
     res.status(500).json({
       error: 'Failed to delete ingredient',
       message: 'Unable to delete ingredient'

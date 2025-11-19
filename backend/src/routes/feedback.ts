@@ -4,10 +4,17 @@ import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-// All feedback routes require authentication
+// Public feedback endpoint for BETA (no auth required)
+router.post(
+  '/public',
+  FeedbackController.validateFeedback,
+  FeedbackController.submitFeedback.bind(FeedbackController)
+);
+
+// All other feedback routes require authentication
 router.use(authenticateToken);
 
-// Submit feedback
+// Submit feedback (authenticated)
 router.post(
   '/',
   FeedbackController.validateFeedback,

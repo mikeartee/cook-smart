@@ -33,7 +33,7 @@ export const AddIngredientScreen: React.FC = () => {
   const [showScannerModal, setShowScannerModal] = useState(false);
   const [showManualEntryModal, setShowManualEntryModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState<ScannedProduct | null>(null);
-  const [hasCameraAvailable, setHasCameraAvailable] = useState(true);
+  const [_hasCameraAvailable, setHasCameraAvailable] = useState(true);
 
   // Custom ingredient form state
   const [customName, setCustomName] = useState('');
@@ -231,16 +231,14 @@ export const AddIngredientScreen: React.FC = () => {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Scan Barcode Button */}
-      {hasCameraAvailable && (
-        <TouchableOpacity
-          style={styles.scanButton}
-          onPress={handleScanBarcode}
-        >
-          <Icon name="qr-code-scanner" size={24} color="#10B981" />
-          <Text style={styles.scanButtonText}>Scan Barcode</Text>
-        </TouchableOpacity>
-      )}
+      {/* Scan Barcode Button - Always show */}
+      <TouchableOpacity
+        style={styles.scanButton}
+        onPress={handleScanBarcode}
+      >
+        <Icon name="qr-code-scanner" size={24} color="#10B981" />
+        <Text style={styles.scanButtonText}>Scan Barcode</Text>
+      </TouchableOpacity>
 
       <View style={styles.searchContainer}>
         <SearchBar

@@ -64,7 +64,19 @@ const LoginScreen: React.FC = () => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Password</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Reset Password',
+                    'To reset your password, please contact support at support@cooksmartapp.com with your registered email address.',
+                    [{text: 'OK'}]
+                  )
+                }>
+                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               value={password}
@@ -149,11 +161,21 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 20,
   },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   label: {
     fontSize: 14,
     fontWeight: '500',
     color: '#374151',
-    marginBottom: 8,
+  },
+  forgotPassword: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#10B981',
   },
   input: {
     backgroundColor: '#F9FAFB',

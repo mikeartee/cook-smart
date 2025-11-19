@@ -2,8 +2,6 @@ import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
 import { generateToken, authenticateToken, AuthRequest } from '../middleware/auth';
-import mockDB from '../config/mockDatabase';
-import * as bcrypt from 'bcryptjs';
 import ActivityTracker from '../services/ActivityTracker';
 
 const router = Router();
@@ -33,8 +31,8 @@ router.post('/register', [
 
     const { email, password, first_name, last_name } = req.body;
 
-    // Use mock database in development
-    const existingUser = await mockDB.findUserByEmail(email);
+    // Check if user already exists
+    const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
       res.status(409).json({
         error: 'User already exists',
@@ -43,21 +41,13 @@ router.post('/register', [
       return;
     }
 
-    const isCoFounder = email === 'brianaolszewski1@gmail.com';
-    const isSpecialUser = email === 'dwoodswoods2@gmail.com';
-    const hasLifetime = isCoFounder || isSpecialUser;
-    const password_hash = await bcrypt.hash(password, 10);
-    
-    const user = await mockDB.createUser({
+    // Create user with UserModel (PostgreSQL)
+    const user = await UserModel.create({
       email,
-      password_hash,
+      password,
       first_name,
       last_name,
-      is_co_founder: isCoFounder,
-      is_special_user: isSpecialUser,
-      has_lifetime_subscription: hasLifetime,
-      subscription_status: hasLifetime ? 'lifetime' : 'free',
-      points: isCoFounder ? 1000 : (isSpecialUser ? 500 : 0)
+      age_verified: true
     });
 
     const token = generateToken(user.id);
@@ -72,10 +62,10 @@ router.post('/register', [
     let welcomeMessage = 'Account created successfully';
     let specialMessage = undefined;
     
-    if (isCoFounder) {
+    if (user.is_co_founder) {
       welcomeMessage = 'Welcome back, Co-Founder! 🎉';
       specialMessage = 'Thank you for inspiring Cook Smart! You have lifetime access to all features.';
-    } else if (isSpecialUser) {
+    } else if (user.is_special_user) {
       welcomeMessage = 'Welcome! 💐';
       specialMessage = 'You have lifetime access to all features. Enjoy Cook Smart!';
     }
@@ -125,8 +115,8 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Use mock database in development
-    const user = await mockDB.findUserByEmail(email);
+    // Find user in PostgreSQL database
+    const user = await UserModel.findByEmail(email);
     if (!user) {
       res.status(401).json({
         error: 'Invalid credentials',
@@ -135,7 +125,8 @@ router.post('/login', [
       return;
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    // Verify password
+    const isValidPassword = await UserModel.verifyPassword(password, user.password_hash);
     if (!isValidPassword) {
       res.status(401).json({
         error: 'Invalid credentials',
@@ -143,6 +134,9 @@ router.post('/login', [
       });
       return;
     }
+
+    // Update last login
+    await UserModel.updateLastLogin(user.id);
 
     const token = generateToken(user.id);
 

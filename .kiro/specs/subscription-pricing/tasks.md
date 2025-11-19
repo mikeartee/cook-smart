@@ -185,9 +185,6 @@
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4_
 
 - [x] 18. Deploy and configure production Stripe products
-
-
-
   - Create production Stripe products and prices matching test setup
   - Update environment variables with production Stripe keys and product IDs
   - Run database migrations on production database
@@ -195,4 +192,21 @@
   - Set initial phase to 'beta' in production
   - Configure Stripe webhook endpoint for production
   - Test end-to-end subscription flow in production
+  - _Requirements: 6.1, 6.2, 6.3, 5.1_
+
+- [x] 19. Deploy backend to EC2 server
+
+
+
+  - Fix PowerShell deployment scripts for Windows line-ending compatibility
+  - Connect to EC2 instance (IP: 3.237.38.24) via AWS Console or SSH
+  - Install Node.js, npm, and PM2 on EC2 instance
+  - Clone repository and install dependencies on server
+  - Configure environment variables (.env file) with production values
+  - Run database migrations on production RDS
+  - Start backend server with PM2 for process management
+  - Configure security groups to allow HTTP/HTTPS traffic
+  - Set up SSL certificate with Let's Encrypt or AWS Certificate Manager
+  - Verify backend is accessible and responding to health checks
+  - Test Stripe webhook delivery to production endpoint
   - _Requirements: 6.1, 6.2, 6.3, 5.1_

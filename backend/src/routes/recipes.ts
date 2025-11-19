@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { query, param } from 'express-validator';
 import { RecipeProviderService } from '../services/RecipeProviderService';
 import { APIUsageLogModel } from '../models/APIUsageLog';
+import { UserPointsModel } from '../models/UserPoints';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 import themealdbService from '../services/TheMealDBService';
 
 // Initialize recipe provider service with TheMealDB only (100% free, unlimited)
@@ -12,9 +14,9 @@ const recipeProviderService = new RecipeProviderService([
 const router = Router();
 
 // Search recipes by ingredients
-router.get('/search', [
+router.get('/search', authenticateToken, [
   query('ingredients').isString().notEmpty()
-], async (req: Request, res: Response) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const { ingredients } = req.query;
     
@@ -39,6 +41,15 @@ router.get('/search', [
     console.log(`Searching recipes for ingredients: ${ingredientList.join(', ')}`);
     
     const recipes = await recipeProviderService.searchByIngredients(ingredientList, 20);
+    
+    // Award points for recipe search (only if user is authenticated)
+    if (req.user?.id && recipes.length > 0) {
+      try {
+        await UserPointsModel.addPoints(req.user.id, 1, 'recipe_search', 'Searched for recipes');
+      } catch (pointsError) {
+        console.warn('Failed to award points:', pointsError);
+      }
+    }
     
     // Determine if results are from cache or API
     const provider = recipes.length > 0 ? (recipes[0]?.provider || 'unknown') : 'unknown';

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "997961769514",
+    "project_id": "cook-smart-97568",
+    "storage_bucket": "cook-smart-97568.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997961769514:android:3c2bf5ac0c303592405953",
+        "android_client_info": {
+          "package_name": "com.cooksmartfresh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNBXFJB0pjS6Og-e3KCDZMjSIlPv4rwtA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

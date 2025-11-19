@@ -60,7 +60,12 @@ class IngredientService {
       throw new Error(data.error || 'Failed to fetch ingredients');
     }
 
-    return data;
+    // Transform the response to match expected format
+    return {
+      ingredients: data.ingredients || [],
+      customIngredients: [],
+      total: (data.ingredients || []).length
+    };
   }
 
   async addIngredient(ingredientData: CreateIngredientDto): Promise<Ingredient> {
@@ -115,18 +120,34 @@ class IngredientService {
 
   async deleteIngredient(id: number): Promise<void> {
     const token = await this.getAuthToken();
+    const url = `${API_BASE_URL}/api/v1/ingredients/${id}`;
+    
+    console.log('🗑️ Deleting ingredient:', { id, url });
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/ingredients/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Failed to delete ingredient');
+      console.log('📡 Delete response:', { 
+        status: response.status, 
+        ok: response.ok 
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error('❌ Delete failed:', data);
+        throw new Error(data.error || 'Failed to delete ingredient');
+      }
+      
+      console.log('✅ Delete successful');
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+      throw error;
     }
   }
 

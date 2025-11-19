@@ -79,3 +79,45 @@ export class ModelName {
 - Use established database patterns (pool.query)
 - Clean up test files after verification
 - Document successful solutions for reuse
+
+
+## Fix: Ingredient Deletion Not Working (Nov 19, 2024)
+
+**Problem**: Users unable to delete ingredients from inventory in the app.
+
+**Root Cause**: 
+Two issues found:
+1. Frontend was passing `user_ingredients.id` (the primary key) to the delete endpoint, but backend's `removeUserIngredient` method was expecting `ingredient_id` in the WHERE clause
+2. The `GET /api/v1/ingredients` endpoint was returning mock data instead of the user's actual pantry ingredients from the database
+
+**Solution**:
+1. Changed `backend/src/models/Ingredient.ts` method `removeUserIngredient`:
+```typescript
+// Before:
+DELETE FROM user_ingredients WHERE user_id = $1 AND ingredient_id = $2
+
+// After:
+DELETE FROM user_ingredients WHERE user_id = $1 AND id = $2
+```
+
+2. Fixed `GET /api/v1/ingredients` endpoint in `backend/src/routes/ingredients.ts`:
+```typescript
+// Before: Returned mock data without authentication
+// After: Returns user's actual pantry ingredients with authentication
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const ingredients = await IngredientModel.getUserIngredients(req.user.id);
+  res.json({ ingredients });
+});
+```
+
+**Files Modified**:
+- `backend/src/models/Ingredient.ts` - Updated `removeUserIngredient` to use `id` instead of `ingredient_id`
+- `backend/src/routes/ingredients.ts` - Fixed GET endpoint to return user's pantry ingredients
+
+**Testing Required**:
+1. Restart backend server ✅
+2. Test fetching ingredients - should show user's actual pantry
+3. Test deleting an ingredient from the app inventory
+4. Verify ingredient is removed from the list
+
+**Success Rate**: New fix - pending verification

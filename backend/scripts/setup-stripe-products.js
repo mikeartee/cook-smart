@@ -3,7 +3,7 @@
  * Creates subscription products and prices in Stripe and stores them in the database
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const Stripe = require('stripe');
 const {Pool} = require('pg');
 

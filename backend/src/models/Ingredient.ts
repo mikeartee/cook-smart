@@ -155,9 +155,9 @@ export class IngredientModel {
     return result.rows[0];
   }
 
-  static async removeUserIngredient(userId: string, ingredientId: string): Promise<void> {
-    const query = 'DELETE FROM user_ingredients WHERE user_id = $1 AND ingredient_id = $2';
-    await pool.query(query, [userId, ingredientId]);
+  static async removeUserIngredient(userId: string, userIngredientId: string): Promise<void> {
+    const query = 'DELETE FROM user_ingredients WHERE user_id = $1 AND id = $2';
+    await pool.query(query, [userId, userIngredientId]);
   }
 
   static async updateUserIngredient(userId: string, ingredientId: string, updateData: {

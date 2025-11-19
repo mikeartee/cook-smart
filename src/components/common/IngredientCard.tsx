@@ -52,10 +52,7 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={(e) => {
-          e.stopPropagation();
-          onDelete(ingredient.id);
-        }}
+        onPress={() => onDelete(ingredient.id)}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Icon name="delete" size={20} color="#EF4444" />

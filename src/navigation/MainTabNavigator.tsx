@@ -2,6 +2,7 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 import {View, Text, StyleSheet} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
 import HomeScreen from '../screens/HomeScreen';
@@ -12,6 +13,9 @@ import {RecipeDetailScreen} from '../screens/recipes/RecipeDetailScreen';
 import {SavedRecipesScreen} from '../screens/recipes/SavedRecipesScreen';
 import SubscriptionPlansScreen from '../screens/SubscriptionPlansScreen';
 import SubscriptionDetailsScreen from '../screens/SubscriptionDetailsScreen';
+import {ShoppingListScreen} from '../screens/ShoppingListScreen';
+import ProfileScreen from '../screens/ProfileScreenNew';
+import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -42,9 +46,24 @@ const SavedRecipesStack = () => (
   </Stack.Navigator>
 );
 
-// Account Stack Navigator (with subscription screens)
+// Shopping List Stack Navigator
+const ShoppingListStack = () => (
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
+  </Stack.Navigator>
+);
+
+// Account Stack Navigator (with subscription and profile screens)
 const AccountStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen
+      name="Profile"
+      component={ProfileScreen}
+    />
+    <Stack.Screen
+      name="DietaryPreferences"
+      component={DietaryPreferencesScreen}
+    />
     <Stack.Screen
       name="SubscriptionDetails"
       component={SubscriptionDetailsScreen}
@@ -58,6 +77,7 @@ const AccountStack = () => (
 
 const MainTabNavigator = () => {
   const {user} = useAuth();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -68,9 +88,9 @@ const MainTabNavigator = () => {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          paddingBottom: 5,
+          paddingBottom: insets.bottom + 5,
           paddingTop: 5,
-          height: 60,
+          height: 60 + insets.bottom,
         },
         headerStyle: {
           backgroundColor: '#FFFFFF',
@@ -142,11 +162,22 @@ const MainTabNavigator = () => {
         }}
       />
       <Tab.Screen
+        name="ShoppingList"
+        component={ShoppingListStack}
+        options={{
+          title: 'Shopping List',
+          tabBarLabel: 'Shopping',
+          tabBarIcon: ({color, size}) => (
+            <Icon name="shopping-cart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Account"
         component={AccountStack}
         options={{
-          title: 'Account',
-          tabBarLabel: 'Account',
+          title: 'Profile',
+          tabBarLabel: 'Profile',
           tabBarIcon: ({color, size}) => (
             <Icon name="person" size={size} color={color} />
           ),

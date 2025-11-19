@@ -122,7 +122,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req: R
     await StripeService.processWebhook(req.body, signature);
     return res.json({ received: true });
   } catch (_error) {
-    console.error('Webhook error:', error);
+    console.error('Webhook error:', _error);
     return res.status(400).json({ success: false, error: 'Webhook processing failed' });
   }
 });

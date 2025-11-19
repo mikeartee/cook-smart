@@ -24,15 +24,22 @@ class FeedbackService {
   }
 
   /**
-   * Submit feedback
+   * Submit feedback (using public endpoint for BETA)
    */
   async submitFeedback(feedback: FeedbackSubmission): Promise<FeedbackResponse> {
-    const token = await this.getAuthToken();
+    // Try to get token, but don't fail if not available
+    let token: string | null = null;
+    try {
+      token = await this.getAuthToken();
+    } catch (_error) {
+      // No token available, will use public endpoint
+    }
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/feedback`, {
+    // Use public endpoint for BETA to avoid auth issues
+    const response = await fetch(`${API_BASE_URL}/api/v1/feedback/public`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(feedback),

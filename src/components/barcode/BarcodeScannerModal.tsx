@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Camera, useCameraDevice, useCodeScanner } from 'react-native-vision-camera';
+import { Camera, CameraType } from 'react-native-camera-kit';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { barcodeService } from '../../services/barcodeService';
@@ -43,16 +43,11 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
     scannedCode: null,
   });
 
-  const device = useCameraDevice('back');
-  const [isActive, setIsActive] = useState(false);
-
   // Request permission when modal opens
   useEffect(() => {
     if (visible) {
       checkAndRequestPermission();
-      setIsActive(true);
     } else {
-      setIsActive(false);
       // Reset state when modal closes
       setState({
         hasPermission: null,
@@ -117,19 +112,16 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
     }
   };
 
-  const codeScanner = useCodeScanner({
-    codeTypes: ['upc-a', 'upc-e', 'ean-8', 'ean-13'],
-    onCodeScanned: (codes) => {
-      if (state.isLookingUp || !state.isScanning) {
-        return;
-      }
+  const handleBarcodeRead = (event: any) => {
+    if (state.isLookingUp || !state.isScanning) {
+      return;
+    }
 
-      const code = codes[0];
-      if (code && code.value) {
-        handleBarcodeDetected(code.value);
-      }
-    },
-  });
+    const barcode = event.nativeEvent.codeStringValue;
+    if (barcode) {
+      handleBarcodeDetected(barcode);
+    }
+  };
 
   const handleBarcodeDetected = async (barcode: string) => {
     try {
@@ -239,12 +231,13 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
     >
       <View style={styles.container}>
         {/* Camera View */}
-        {state.hasPermission && device && (
+        {state.hasPermission && state.isScanning && (
           <Camera
             style={StyleSheet.absoluteFill}
-            device={device}
-            isActive={isActive && state.isScanning}
-            codeScanner={codeScanner}
+            cameraType={CameraType.Back}
+            scanBarcode={true}
+            onReadCode={handleBarcodeRead}
+            showFrame={false}
           />
         )}
 

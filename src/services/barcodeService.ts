@@ -1,5 +1,5 @@
-import { Platform, Linking } from 'react-native';
-import { Camera } from 'react-native-vision-camera';
+import { Platform, Linking, PermissionsAndroid } from 'react-native';
+import { Camera } from 'react-native-camera-kit';
 
 export type PermissionStatus = 'granted' | 'denied' | 'blocked' | 'unavailable';
 
@@ -17,8 +17,30 @@ class BarcodeServiceImpl implements BarcodeService {
    */
   async requestCameraPermission(): Promise<PermissionStatus> {
     try {
-      const permission = await Camera.requestCameraPermission();
-      return this.mapPermissionStatus(permission);
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'Cook Smart needs access to your camera to scan barcodes',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          return 'granted';
+        } else if (granted === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+          return 'blocked';
+        } else {
+          return 'denied';
+        }
+      } else {
+        // iOS - camera-kit handles permissions automatically
+        const status = await Camera.requestCameraPermission();
+        return status ? 'granted' : 'denied';
+      }
     } catch (error) {
       console.error('Error requesting camera permission:', error);
       return 'unavailable';
@@ -31,8 +53,16 @@ class BarcodeServiceImpl implements BarcodeService {
    */
   async checkCameraPermission(): Promise<PermissionStatus> {
     try {
-      const permission = await Camera.getCameraPermissionStatus();
-      return this.mapPermissionStatus(permission);
+      if (Platform.OS === 'android') {
+        const hasPermission = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.CAMERA
+        );
+        return hasPermission ? 'granted' : 'denied';
+      } else {
+        // iOS - camera-kit handles permissions automatically
+        const status = await Camera.checkDeviceCameraAuthorizationStatus();
+        return status ? 'granted' : 'denied';
+      }
     } catch (error) {
       console.error('Error checking camera permission:', error);
       return 'unavailable';
@@ -66,25 +96,6 @@ class BarcodeServiceImpl implements BarcodeService {
     return isNumeric && validLength;
   }
 
-  /**
-   * Map react-native-vision-camera permission status to our PermissionStatus type
-   * @param permission - Camera permission status from react-native-vision-camera
-   * @returns PermissionStatus
-   */
-  private mapPermissionStatus(permission: string): PermissionStatus {
-    switch (permission) {
-      case 'granted':
-      case 'authorized':
-        return 'granted';
-      case 'denied':
-      case 'not-determined':
-        return 'denied';
-      case 'restricted':
-        return 'blocked';
-      default:
-        return 'unavailable';
-    }
-  }
 }
 
 // Export singleton instance

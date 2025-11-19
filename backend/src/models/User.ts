@@ -39,15 +39,20 @@ export class UserModel {
     const is_special_user = userData.email === 'dwoodswoods2@gmail.com';
     const has_lifetime = is_co_founder || is_special_user;
     
+    // Generate unique ID (matching the format used in JSON migration)
+    const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const query = `
       INSERT INTO users (
-        email, password_hash, first_name, last_name, 
-        age_verified, is_co_founder, is_special_user, has_lifetime_subscription
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        id, email, password_hash, first_name, last_name, 
+        age_verified, is_co_founder, is_special_user, has_lifetime_subscription,
+        points
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
     
     const values = [
+      id,
       userData.email,
       password_hash,
       userData.first_name,
@@ -55,7 +60,8 @@ export class UserModel {
       userData.age_verified,
       is_co_founder,
       is_special_user,
-      has_lifetime // Both co-founder and special user get lifetime subscription
+      has_lifetime,
+      is_co_founder ? 1000 : (is_special_user ? 500 : 0) // Bonus points
     ];
     
     const result = await pool.query(query, values);

@@ -11,6 +11,10 @@ export interface User {
   has_lifetime_subscription: boolean;
   subscription_status: string;
   points: number;
+  dietary_restrictions?: string[];
+  allergies?: string[];
+  show_nutrition?: boolean;
+  preferred_units?: string;
 }
 
 export interface AuthResponse {

@@ -6,10 +6,10 @@
 // Determine if we're in development mode
 const isDevelopment = __DEV__;
 
-// API Base URLs
+// API Base URLs - hardcoded for reliability
 export const API_BASE_URL = isDevelopment
   ? 'http://192.168.12.196:3000' // Local development
-  : 'https://your-production-api.awsapprunner.com'; // Production AWS App Runner URL
+  : 'http://3.237.38.24'; // Production EC2 server
 
 // API Endpoints
 export const API_ENDPOINTS = {

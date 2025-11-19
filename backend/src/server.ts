@@ -15,7 +15,7 @@ import healthRoutes from './routes/health';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Initialize auto-repair system with database pool
 if (pool) {
@@ -28,8 +28,8 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === 'production'
-        ? ['https://cooksmartapp.com'] // Update with actual domain
-        : ['http://localhost:3000', 'http://localhost:19006'], // React Native Metro
+        ? true // Allow all origins in production for mobile app
+        : true, // Allow all origins in development for React Native
     credentials: true,
   }),
 );
@@ -125,11 +125,12 @@ app.get('/api/v1/test', (req, res) => {
 app.use(notFoundHandler);
 app.use(errorMiddleware);
 
-// Start server
-app.listen(PORT, () => {
+// Start server - listen on all interfaces for mobile device access
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Cook Smart API running on port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 Network access: http://0.0.0.0:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/v1/test`);
 
   // Start health monitoring
