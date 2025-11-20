@@ -360,11 +360,11 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
+			"id" : "react_codegen_RNHapticFeedbackSpec::@a83561f277f6afbb326c"
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_RNHapticFeedbackSpec::@a83561f277f6afbb326c"
+			"id" : "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a"
 		},
 		{
 			"backtrace" : 4,
@@ -372,11 +372,11 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d"
+			"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad"
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad"
+			"id" : "react_codegen_RNSoundSpec::@a7dfabff99aa762d23e8"
 		},
 		{
 			"backtrace" : 4,
@@ -384,7 +384,7 @@
 		},
 		{
 			"backtrace" : 4,
-			"id" : "react_codegen_RNSoundSpec::@a7dfabff99aa762d23e8"
+			"id" : "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d"
 		}
 	],
 	"id" : "appmodules::@6890427a1f51a3e7e1df",

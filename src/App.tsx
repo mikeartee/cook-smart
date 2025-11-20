@@ -33,8 +33,10 @@ const AppContent = () => {
 
   useEffect(() => {
     const checkCoFounderWelcome = async () => {
-      if (user?.is_co_founder) {
-        const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
+      // Show welcome screen for Briana (creator) or Donna (special user)
+      if (user?.is_creator || user?.is_special_user) {
+        const storageKey = user?.is_creator ? 'creator_welcome_shown' : 'special_user_welcome_shown';
+        const hasShown = await AsyncStorage.getItem(storageKey);
         setShowCoFounderWelcome(!hasShown);
       }
       setCheckingWelcome(false);

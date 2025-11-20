@@ -1,6 +1,6 @@
 import {exec} from 'child_process';
 import {promisify} from 'util';
-import NotificationService from './NotificationService';
+// import NotificationService from './NotificationService';
 import AutoRepairSystem from './AutoRepairSystem';
 import HealthMonitor from './HealthMonitor';
 
@@ -409,19 +409,19 @@ class SystemGuardian {
     type: 'info' | 'success' | 'warning' | 'error',
   ): Promise<void> {
     try {
-      const colors = {
-        info: 3447003, // Blue
-        success: 3066993, // Green
-        warning: 16776960, // Yellow
-        error: 15158332, // Red
-      };
+      // const colors = {
+      //   info: 3447003, // Blue
+      //   success: 3066993, // Green
+      //   warning: 16776960, // Yellow
+      //   error: 15158332, // Red
+      // };
 
-      const emoji = {
-        info: 'ℹ️',
-        success: '✅',
-        warning: '⚠️',
-        error: '🚨',
-      };
+      // const emoji = {
+      //   info: 'ℹ️',
+      //   success: '✅',
+      //   warning: '⚠️',
+      //   error: '🚨',
+      // };
 
       // TODO: Implement sendCustomNotification in NotificationService
       // await NotificationService.sendCustomNotification({

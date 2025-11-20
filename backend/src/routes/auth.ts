@@ -77,7 +77,11 @@ router.post(
       let welcomeMessage = 'Account created successfully';
       let specialMessage = undefined;
 
-      if (user.is_co_founder) {
+      if (user.is_creator) {
+        welcomeMessage = 'Welcome back, Creator! 👑';
+        specialMessage =
+          'Thank you for building Cook Smart! You have lifetime access to all features and full admin control.';
+      } else if (user.is_co_founder) {
         welcomeMessage = 'Welcome back, Co-Founder! 🎉';
         specialMessage =
           'Thank you for inspiring Cook Smart! You have lifetime access to all features.';

@@ -110,7 +110,7 @@ class HealthMonitor {
       }
       
       return stats;
-    } catch (error) {
+    } catch (_error) {
       // Silently handle - table might not exist yet
       return { edamam: 0, themealdb: 0 };
     }

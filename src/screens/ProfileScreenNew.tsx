@@ -89,8 +89,12 @@ const ProfileScreenNew: React.FC = () => {
     },
   ];
 
-  // Add admin access for co-founders and creators
-  if (user?.is_co_founder || user?.is_creator) {
+  // Add admin access for developers (Brad), creators, and co-founders
+  // Brad gets admin access through lifetime subscription as developer
+  const hasAdminAccess = user?.is_co_founder || user?.is_creator || 
+    (user?.email === 'bradturnbough80@gmail.com' && user?.has_lifetime_subscription);
+  
+  if (hasAdminAccess) {
     menuItems.push({
       id: 'admin',
       title: 'Admin Dashboard',

@@ -258,7 +258,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "appmodules::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-appmodules-RelWithDebInfo-19d8e5f3fb4bf97ba53d.json",
+					"jsonFile" : "target-appmodules-RelWithDebInfo-a648e6a1c5a82c21c384.json",
 					"name" : "appmodules",
 					"projectIndex" : 0
 				},
@@ -272,7 +272,7 @@
 				{
 					"directoryIndex" : 5,
 					"id" : "react_codegen_RNHapticFeedbackSpec::@a83561f277f6afbb326c",
-					"jsonFile" : "target-react_codegen_RNHapticFeedbackSpec-RelWithDebInfo-cf3b9bab9194a2c717ae.json",
+					"jsonFile" : "target-react_codegen_RNHapticFeedbackSpec-RelWithDebInfo-905663b5a1031079e49e.json",
 					"name" : "react_codegen_RNHapticFeedbackSpec",
 					"projectIndex" : 0
 				},
@@ -307,7 +307,7 @@
 				{
 					"directoryIndex" : 4,
 					"id" : "react_codegen_rngesturehandler_codegen::@39f233abcd2c728bc6ec",
-					"jsonFile" : "target-react_codegen_rngesturehandler_codegen-RelWithDebInfo-099364e65e7da85c4d5d.json",
+					"jsonFile" : "target-react_codegen_rngesturehandler_codegen-RelWithDebInfo-e22a4a05429bd5997939.json",
 					"name" : "react_codegen_rngesturehandler_codegen",
 					"projectIndex" : 0
 				},
@@ -321,7 +321,7 @@
 				{
 					"directoryIndex" : 9,
 					"id" : "react_codegen_rnscreens::@25bcbd507e98d3a854ad",
-					"jsonFile" : "target-react_codegen_rnscreens-RelWithDebInfo-30b1038bc593883f498d.json",
+					"jsonFile" : "target-react_codegen_rnscreens-RelWithDebInfo-fcb15bb9cb2b5e1ab9dc.json",
 					"name" : "react_codegen_rnscreens",
 					"projectIndex" : 0
 				},
@@ -342,7 +342,7 @@
 				{
 					"directoryIndex" : 8,
 					"id" : "react_codegen_safeareacontext::@7984cd80db47aa7b952a",
-					"jsonFile" : "target-react_codegen_safeareacontext-RelWithDebInfo-e95b2a55c5ba34992c6f.json",
+					"jsonFile" : "target-react_codegen_safeareacontext-RelWithDebInfo-08b01873cb5063e25011.json",
 					"name" : "react_codegen_safeareacontext",
 					"projectIndex" : 0
 				}
@@ -352,7 +352,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/toota/Documents/Projects/cook-smart/android/app/.cxx/RelWithDebInfo/5t5ju5t2/arm64-v8a",
+		"build" : "C:/Users/toota/Documents/Projects/cook-smart/android/app/.cxx/RelWithDebInfo/5t5ju5t2/x86_64",
 		"source" : "C:/Users/toota/Documents/Projects/cook-smart/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup"
 	},
 	"version" : 

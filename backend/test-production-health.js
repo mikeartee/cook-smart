@@ -84,7 +84,7 @@ async function runTests() {
         WHERE created_at > NOW() - INTERVAL '1 hour'
       `);
       console.log(`✓ Errors in last hour: ${recentErrors.rows[0].count}`);
-    } catch (e) {
+    } catch (_e) {
       console.log(`⚠ error_logs table doesn't exist (optional)`);
     }
     
@@ -97,7 +97,7 @@ async function runTests() {
       const newFeedback = await pool.query("SELECT COUNT(*) FROM feedback WHERE status = 'new'");
       console.log(`✓ Total feedback: ${feedbackCount.rows[0].count}`);
       console.log(`✓ New feedback: ${newFeedback.rows[0].count}`);
-    } catch (e) {
+    } catch (_e) {
       console.log(`⚠ feedback table doesn't exist (optional)`);
     }
     
@@ -108,7 +108,7 @@ async function runTests() {
     try {
       const shoppingCount = await pool.query('SELECT COUNT(*) FROM shopping_list_items');
       console.log(`✓ shopping_list_items table exists: ${shoppingCount.rows[0].count} items`);
-    } catch (e) {
+    } catch (_e) {
       console.log(`⚠ shopping_list_items table doesn't exist (optional)`);
     }
     
