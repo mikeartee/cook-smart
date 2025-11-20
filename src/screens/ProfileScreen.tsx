@@ -9,6 +9,7 @@ import {UserProfileCard} from '../components/UserProfileCard';
 import {PointsDisplay} from '../components/PointsDisplay';
 import {PointsHistory} from '../components/PointsHistory';
 import {Leaderboard} from '../components/Leaderboard';
+import {ReferFriendCard} from '../components/ReferFriendCard';
 import {pointsService} from '../services/pointsService';
 import {userService} from '../services/userService';
 
@@ -205,6 +206,8 @@ export const ProfileScreen: React.FC<Props> = ({userId}) => {
         {userPoints && (
           <PointsDisplay userPoints={userPoints} onPress={handlePointsPress} />
         )}
+
+        <ReferFriendCard />
 
         <PointsHistory transactions={transactions} loading={loading} />
 

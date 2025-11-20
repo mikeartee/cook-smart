@@ -66,7 +66,9 @@ export const API_ENDPOINTS = {
   // Referrals
   referrals: {
     base: `${API_BASE_URL}/api/v1/referrals`,
-    code: `${API_BASE_URL}/api/v1/referrals/code`,
+    stats: `${API_BASE_URL}/api/v1/referrals/stats`,
+    accessInfo: `${API_BASE_URL}/api/v1/referrals/access-info`,
+    validate: `${API_BASE_URL}/api/v1/referrals/validate`,
   },
 
   // Payments
