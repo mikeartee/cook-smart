@@ -8,6 +8,7 @@ export interface User {
   last_name?: string;
   is_co_founder: boolean;
   is_special_user: boolean;
+  is_creator: boolean;
   has_lifetime_subscription: boolean;
   subscription_status: string;
   points: number;

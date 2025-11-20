@@ -104,7 +104,7 @@ router.put('/:recipeId', authenticateToken, async (req, res) => {
     }
 
     const recipe = await UserRecipeModel.updateRecipe(
-      parseInt(recipeId),
+      parseInt(recipeId as string),
       userId,
       updates,
     );
@@ -138,7 +138,7 @@ router.delete('/:recipeId', authenticateToken, async (req, res) => {
     }
 
     const deleted = await UserRecipeModel.deleteRecipe(
-      parseInt(recipeId),
+      parseInt(recipeId as string),
       userId,
     );
 
@@ -184,7 +184,7 @@ router.post('/:recipeId/favorite', authenticateToken, async (req, res) => {
     }
 
     const isFavorited = await UserRecipeModel.toggleFavorite(
-      parseInt(recipeId),
+      parseInt(recipeId as string),
       userId,
     );
 

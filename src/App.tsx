@@ -7,6 +7,7 @@ import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import CoFounderWelcomeScreen from './screens/CoFounderWelcomeScreen';
 import MainTabNavigator from './navigation/MainTabNavigator';
+import {AdminNavigator} from './navigation/AdminNavigator';
 import CookieConsent from './components/CookieConsent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -67,12 +68,22 @@ const AppContent = () => {
                   name="Main" 
                   component={MainTabNavigator}
                 />
+                <Stack.Screen 
+                  name="Admin" 
+                  component={AdminNavigator}
+                />
               </>
             ) : (
-              <Stack.Screen 
-                name="Main" 
-                component={MainTabNavigator}
-              />
+              <>
+                <Stack.Screen 
+                  name="Main" 
+                  component={MainTabNavigator}
+                />
+                <Stack.Screen 
+                  name="Admin" 
+                  component={AdminNavigator}
+                />
+              </>
             )}
           </Stack.Navigator>
         ) : (

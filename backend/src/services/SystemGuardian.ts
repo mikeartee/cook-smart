@@ -423,13 +423,15 @@ class SystemGuardian {
         error: '🚨',
       };
 
-      await NotificationService.sendCustomNotification({
-        title: `${emoji[type]} ${title}`,
-        description: message,
-        color: colors[type],
-        timestamp: new Date().toISOString(),
-        footer: 'System Guardian',
-      });
+      // TODO: Implement sendCustomNotification in NotificationService
+      // await NotificationService.sendCustomNotification({
+      //   title: `${emoji[type]} ${title}`,
+      //   description: message,
+      //   color: colors[type],
+      //   timestamp: new Date().toISOString(),
+      //   footer: 'System Guardian',
+      // });
+      console.log(`[SystemGuardian] ${type.toUpperCase()}: ${title} - ${message}`);
     } catch (error) {
       console.error('Failed to send Discord notification:', error);
     }

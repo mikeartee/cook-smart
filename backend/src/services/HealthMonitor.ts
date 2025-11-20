@@ -93,12 +93,25 @@ class HealthMonitor {
     try {
       const todayStats = await APIUsageLogModel.getTodayStats();
       
-      return {
-        edamam: todayStats.edamam || 0,
-        themealdb: todayStats.themealdb || 0,
+      // todayStats is an array of rows, convert to object
+      const stats = {
+        edamam: 0,
+        themealdb: 0,
       };
+
+      if (Array.isArray(todayStats)) {
+        todayStats.forEach((row: any) => {
+          if (row.provider === 'edamam') {
+            stats.edamam = parseInt(row.total_calls) || 0;
+          } else if (row.provider === 'themealdb') {
+            stats.themealdb = parseInt(row.total_calls) || 0;
+          }
+        });
+      }
+      
+      return stats;
     } catch (error) {
-      console.error('Failed to get API usage:', error);
+      // Silently handle - table might not exist yet
       return { edamam: 0, themealdb: 0 };
     }
   }

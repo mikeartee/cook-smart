@@ -16,6 +16,7 @@ import SubscriptionDetailsScreen from '../screens/SubscriptionDetailsScreen';
 import {ShoppingListScreen} from '../screens/ShoppingListScreen';
 import ProfileScreen from '../screens/ProfileScreenNew';
 import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
+import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -63,6 +64,10 @@ const AccountStack = () => (
     <Stack.Screen
       name="DietaryPreferences"
       component={DietaryPreferencesScreen}
+    />
+    <Stack.Screen
+      name="PrivacySecurity"
+      component={PrivacySecurityScreen}
     />
     <Stack.Screen
       name="SubscriptionDetails"

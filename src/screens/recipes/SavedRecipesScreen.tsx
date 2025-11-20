@@ -18,7 +18,7 @@ interface SavedRecipesScreenProps {
 }
 
 export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigation }) => {
-  const { savedRecipes, fetchSavedRecipes, deleteSavedRecipe, isLoading } = useRecipes();
+  const { savedRecipes, fetchSavedRecipes, deleteSavedRecipe, isLoading: _isLoading } = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigati
           onPress: async () => {
             try {
               await deleteSavedRecipe(recipeId);
-            } catch (err) {
+            } catch (_err) {
               Alert.alert('Error', 'Failed to remove recipe');
             }
           },

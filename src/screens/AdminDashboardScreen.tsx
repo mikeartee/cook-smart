@@ -10,7 +10,11 @@ interface DashboardStats {
   failedPayments: number;
 }
 
-export const AdminDashboardScreen: React.FC = () => {
+interface Props {
+  navigation: any;
+}
+
+export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeSubscriptions: 0,
@@ -97,32 +101,47 @@ export const AdminDashboardScreen: React.FC = () => {
           <QuickAction
             title="User Management"
             icon="👥"
-            onPress={() => console.log('Navigate to users')}
+            onPress={() => navigation.navigate('AdminUsers')}
           />
           <QuickAction
-            title="Subscription Analytics"
-            icon="📊"
-            onPress={() => console.log('Navigate to analytics')}
-          />
-          <QuickAction
-            title="Payment Issues"
+            title="Subscriptions"
             icon="💳"
-            onPress={() => console.log('Navigate to payments')}
+            onPress={() => navigation.navigate('SubscriptionManagement')}
           />
           <QuickAction
-            title="BETA Management"
-            icon="🚧"
-            onPress={() => console.log('Navigate to beta')}
+            title="Feedback"
+            icon="💬"
+            onPress={() => navigation.navigate('FeedbackManagement')}
           />
           <QuickAction
-            title="Content Moderation"
+            title="Error Logs"
+            icon="🐛"
+            onPress={() => navigation.navigate('ErrorLogs')}
+          />
+          <QuickAction
+            title="System Guardian"
             icon="🛡️"
-            onPress={() => console.log('Navigate to moderation')}
+            onPress={() => navigation.navigate('SystemGuardian')}
+          />
+          <QuickAction
+            title="Cost Tracking"
+            icon="💰"
+            onPress={() => navigation.navigate('CostTracking')}
+          />
+          <QuickAction
+            title="Referrals"
+            icon="🎁"
+            onPress={() => navigation.navigate('ReferralManagement')}
+          />
+          <QuickAction
+            title="Analytics"
+            icon="📊"
+            onPress={() => navigation.navigate('AdminAnalytics')}
           />
           <QuickAction
             title="System Health"
             icon="⚡"
-            onPress={() => console.log('Navigate to health')}
+            onPress={() => navigation.navigate('AdminSystemHealth')}
           />
         </View>
       </View>

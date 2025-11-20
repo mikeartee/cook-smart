@@ -6,7 +6,7 @@ import {
   authenticateToken,
   AuthRequest,
 } from '../middleware/auth';
-import ActivityTracker from '../services/ActivityTracker';
+// import ActivityTracker from '../services/ActivityTracker';
 
 const router = Router();
 
@@ -64,12 +64,15 @@ router.post(
       const token = generateToken(user.id);
 
       // Track signup activity (async, non-blocking)
-      ActivityTracker.trackSignup({
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-      }).catch(err => console.error('Failed to track signup:', err));
+      // TODO: Re-enable when ActivityTracker is implemented
+      // if (user.first_name && user.last_name) {
+      //   ActivityTracker.trackSignup({
+      //     id: user.id,
+      //     first_name: user.first_name,
+      //     last_name: user.last_name,
+      //     email: user.email,
+      //   }).catch(err => console.error('Failed to track signup:', err));
+      // }
 
       let welcomeMessage = 'Account created successfully';
       let specialMessage = undefined;
@@ -160,6 +163,7 @@ router.post(
       const token = generateToken(user.id);
 
       res.json({
+        success: true,
         message: 'Login successful',
         token,
         user: {

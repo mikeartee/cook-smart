@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,30 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../contexts/AuthContext';
+import { pointsService } from '../services/pointsService';
 
 const ProfileScreenNew: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const [points, setPoints] = useState(0);
+  const [level, setLevel] = useState(0);
   // const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
   // const [allergies, setAllergies] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadPoints();
+  }, []);
+
+  const loadPoints = async () => {
+    try {
+      const userPoints = await pointsService.getUserPoints();
+      setPoints(userPoints.totalPoints);
+      setLevel(userPoints.level);
+    } catch (error) {
+      console.error('Error loading points:', error);
+      // Keep default 0 points on error
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -67,11 +85,21 @@ const ProfileScreenNew: React.FC = () => {
       subtitle: 'Manage your data',
       icon: 'security',
       color: '#8B5CF6',
-      onPress: () => {
-        Alert.alert('Coming Soon', 'Privacy settings coming soon');
-      },
+      onPress: () => navigation.navigate('PrivacySecurity' as never),
     },
   ];
+
+  // Add admin access for co-founders and creators
+  if (user?.is_co_founder || user?.is_creator) {
+    menuItems.push({
+      id: 'admin',
+      title: 'Admin Dashboard',
+      subtitle: 'Manage Cook Smart',
+      icon: 'admin-panel-settings',
+      color: '#DC2626',
+      onPress: () => navigation.navigate('Admin' as never),
+    });
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -113,8 +141,8 @@ const ProfileScreenNew: React.FC = () => {
         <View style={styles.pointsHeader}>
           <Icon name="stars" size={32} color="#F59E0B" />
           <View style={styles.pointsInfo}>
-            <Text style={styles.pointsValue}>{user?.points || 0}</Text>
-            <Text style={styles.pointsLabel}>Points</Text>
+            <Text style={styles.pointsValue}>{points}</Text>
+            <Text style={styles.pointsLabel}>Points • Level {level}</Text>
           </View>
         </View>
         <Text style={styles.pointsSubtext}>

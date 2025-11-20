@@ -45,6 +45,9 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Serve static files (favicon, etc.)
+app.use(express.static('public'));
+
 // Stripe webhook route (must be before body parser)
 import stripeWebhookRoutes from './routes/stripeWebhook';
 app.use('/api/webhooks/stripe', stripeWebhookRoutes);

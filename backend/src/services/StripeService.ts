@@ -416,11 +416,11 @@ export class StripeService {
         phases: [
           {
             items: [{price: initialPriceId}],
-            iterations: 1 as any, // Only first billing period
+            end_date: Math.floor(Date.now() / 1000) + (trialDays + 365) * 24 * 60 * 60, // First year
           },
           {
             items: [{price: renewalPriceId}],
-            // iterations not specified = recurring indefinitely
+            // No end_date = recurring indefinitely
           },
         ],
       } as any);
