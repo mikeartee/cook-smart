@@ -36,6 +36,15 @@ export const API_ENDPOINTS = {
     saved: `${API_BASE_URL}/api/v1/recipes/saved`,
   },
 
+  // User Recipes
+  userRecipes: {
+    base: `${API_BASE_URL}/api/v1/recipes/user`,
+    byId: (id: number) => `${API_BASE_URL}/api/v1/recipes/user/${id}`,
+    public: `${API_BASE_URL}/api/v1/recipes/user/public/all`,
+    favorite: (id: number) =>
+      `${API_BASE_URL}/api/v1/recipes/user/${id}/favorite`,
+  },
+
   // Barcode
   barcode: {
     scan: `${API_BASE_URL}/api/v1/barcode/scan`,

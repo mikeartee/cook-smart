@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {userRecipeService} from '../../services/userRecipeService';
 
 interface Ingredient {
   name: string;
@@ -99,7 +100,7 @@ export const CreateRecipeScreen: React.FC<Props> = ({navigation}) => {
 
     setSaving(true);
     try {
-      const recipe = {
+      await userRecipeService.createRecipe({
         title: title.trim(),
         description: description.trim(),
         prepTime: parseInt(prepTime) || 0,
@@ -109,18 +110,19 @@ export const CreateRecipeScreen: React.FC<Props> = ({navigation}) => {
         instructions: instructions.filter(i => i.trim()),
         category: category.trim() || 'Other',
         difficulty,
-        isUserCreated: true,
-      };
+        isPublic: false,
+      });
 
-      // TODO: Call API to save recipe
-      console.log('Saving recipe:', recipe);
-
-      Alert.alert('Success', 'Your recipe has been saved!', [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]);
+      Alert.alert(
+        'Success!',
+        'Your recipe has been saved! You earned 25 points! 🎉',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ],
+      );
     } catch (error) {
       console.error('Error saving recipe:', error);
       Alert.alert('Error', 'Failed to save recipe. Please try again.');

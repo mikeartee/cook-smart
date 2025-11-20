@@ -85,11 +85,13 @@ import adminReferralsRoutes from './routes/adminReferrals';
 import feedbackRoutes from './routes/feedback';
 import subscriptionPricingRoutes from './routes/subscriptionPricing';
 import systemGuardianRoutes from './routes/systemGuardian';
+import userRecipesRoutes from './routes/userRecipes';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/ingredients', ingredientRoutes);
 app.use('/api/v1/barcode', barcodeRoutes);
 app.use('/api/v1/recipes', recipeRoutes);
+app.use('/api/v1/recipes/user', userRecipesRoutes);
 app.use('/api/v1/dietary', dietaryRoutes);
 app.use('/api/v1/shopping-list', shoppingRoutes);
 app.use('/api/v1/points', pointsRoutes);
