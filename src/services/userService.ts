@@ -14,6 +14,11 @@ export interface UserProfile {
   allergies?: string[];
   showNutrition?: boolean;
   preferredUnits?: string;
+  hasLifetimeSubscription?: boolean;
+  subscriptionStatus?: string;
+  isCoFounder?: boolean;
+  isSpecialUser?: boolean;
+  isCreator?: boolean;
 }
 
 export interface UserStats {
@@ -61,6 +66,11 @@ class UserService {
         allergies: data.user.allergies,
         showNutrition: data.user.show_nutrition,
         preferredUnits: data.user.preferred_units,
+        hasLifetimeSubscription: data.user.has_lifetime_subscription,
+        subscriptionStatus: data.user.subscription_status,
+        isCoFounder: data.user.is_co_founder,
+        isSpecialUser: data.user.is_special_user,
+        isCreator: data.user.is_creator,
       };
     } catch (error) {
       console.error('Error fetching user profile:', error);

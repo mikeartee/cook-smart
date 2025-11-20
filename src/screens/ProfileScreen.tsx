@@ -10,6 +10,7 @@ import {PointsDisplay} from '../components/PointsDisplay';
 import {PointsHistory} from '../components/PointsHistory';
 import {Leaderboard} from '../components/Leaderboard';
 import {ReferFriendCard} from '../components/ReferFriendCard';
+import {SubscriptionBadge} from '../components/SubscriptionBadge';
 import {pointsService} from '../services/pointsService';
 import {userService} from '../services/userService';
 
@@ -21,6 +22,11 @@ interface UserProfile {
   avatarUrl?: string;
   bio?: string;
   location?: string;
+  hasLifetimeSubscription?: boolean;
+  subscriptionStatus?: string;
+  isCoFounder?: boolean;
+  isSpecialUser?: boolean;
+  isCreator?: boolean;
 }
 
 interface UserStats {
@@ -126,6 +132,11 @@ export const ProfileScreen: React.FC<Props> = ({userId}) => {
         lastName: userProfile.lastName,
         bio: userProfile.bio,
         location: userProfile.location,
+        hasLifetimeSubscription: userProfile.hasLifetimeSubscription,
+        subscriptionStatus: userProfile.subscriptionStatus,
+        isCoFounder: userProfile.isCoFounder,
+        isSpecialUser: userProfile.isSpecialUser,
+        isCreator: userProfile.isCreator,
       });
 
       // Load real points data
@@ -200,6 +211,16 @@ export const ProfileScreen: React.FC<Props> = ({userId}) => {
             userPoints={userPoints || undefined}
             onEditPress={handleEditProfile}
             isOwnProfile={true}
+          />
+        )}
+
+        {profile && (
+          <SubscriptionBadge
+            hasLifetimeSubscription={profile.hasLifetimeSubscription}
+            subscriptionStatus={profile.subscriptionStatus}
+            isCoFounder={profile.isCoFounder}
+            isSpecialUser={profile.isSpecialUser}
+            isCreator={profile.isCreator}
           />
         )}
 
