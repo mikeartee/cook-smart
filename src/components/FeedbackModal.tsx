@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   Modal,
   View,
@@ -9,8 +9,10 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 
 interface FeedbackModalProps {
   visible: boolean;
@@ -19,10 +21,17 @@ interface FeedbackModalProps {
     message: string;
     rating?: number;
     category?: string;
+    screenshot?: string;
   }) => Promise<void>;
 }
 
-const CATEGORIES = ['Bug', 'Feature Request', 'General', 'Improvement', 'Other'];
+const CATEGORIES = [
+  'Bug',
+  'Feature Request',
+  'General',
+  'Improvement',
+  'Other',
+];
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   visible,
@@ -32,7 +41,67 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [category, setCategory] = useState<string | undefined>(undefined);
+  const [screenshot, setScreenshot] = useState<string | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImagePicker = () => {
+    Alert.alert('Add Screenshot', 'Choose an option', [
+      {
+        text: 'Take Photo',
+        onPress: () => handleCamera(),
+      },
+      {
+        text: 'Choose from Library',
+        onPress: () => handleGallery(),
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const handleCamera = async () => {
+    try {
+      const result = await launchCamera({
+        mediaType: 'photo',
+        quality: 0.8,
+        includeBase64: true,
+      });
+
+      if (result.assets && result.assets[0]) {
+        const base64 = result.assets[0].base64;
+        if (base64) {
+          setScreenshot(`data:image/jpeg;base64,${base64}`);
+        }
+      }
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to take photo');
+    }
+  };
+
+  const handleGallery = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        includeBase64: true,
+      });
+
+      if (result.assets && result.assets[0]) {
+        const base64 = result.assets[0].base64;
+        if (base64) {
+          setScreenshot(`data:image/jpeg;base64,${base64}`);
+        }
+      }
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to select image');
+    }
+  };
+
+  const handleRemoveScreenshot = () => {
+    setScreenshot(undefined);
+  };
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -46,22 +115,24 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
         message: message.trim(),
         rating,
         category,
+        screenshot,
       });
 
       // Reset form
       setMessage('');
       setRating(undefined);
       setCategory(undefined);
+      setScreenshot(undefined);
 
       Alert.alert(
         'Thank You!',
         'Your feedback has been submitted successfully. We appreciate your input!',
-        [{ text: 'OK', onPress: onClose }]
+        [{text: 'OK', onPress: onClose}],
       );
     } catch (error) {
       Alert.alert(
         'Error',
-        error instanceof Error ? error.message : 'Failed to submit feedback'
+        error instanceof Error ? error.message : 'Failed to submit feedback',
       );
     } finally {
       setIsSubmitting(false);
@@ -72,6 +143,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
     setMessage('');
     setRating(undefined);
     setCategory(undefined);
+    setScreenshot(undefined);
     onClose();
   };
 
@@ -80,8 +152,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={handleCancel}
-    >
+      onRequestClose={handleCancel}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* Header */}
@@ -92,17 +163,20 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}>
             {/* Rating */}
             <View style={styles.section}>
-              <Text style={styles.label}>How would you rate your experience?</Text>
+              <Text style={styles.label}>
+                How would you rate your experience?
+              </Text>
               <View style={styles.ratingContainer}>
-                {[1, 2, 3, 4, 5].map((star) => (
+                {[1, 2, 3, 4, 5].map(star => (
                   <TouchableOpacity
                     key={star}
                     onPress={() => setRating(star)}
-                    style={styles.starButton}
-                  >
+                    style={styles.starButton}>
                     <Icon
                       name={rating && rating >= star ? 'star' : 'star-border'}
                       size={36}
@@ -117,21 +191,19 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <View style={styles.section}>
               <Text style={styles.label}>Category (Optional)</Text>
               <View style={styles.categoryContainer}>
-                {CATEGORIES.map((cat) => (
+                {CATEGORIES.map(cat => (
                   <TouchableOpacity
                     key={cat}
                     onPress={() => setCategory(cat)}
                     style={[
                       styles.categoryChip,
                       category === cat && styles.categoryChipSelected,
-                    ]}
-                  >
+                    ]}>
                     <Text
                       style={[
                         styles.categoryChipText,
                         category === cat && styles.categoryChipTextSelected,
-                      ]}
-                    >
+                      ]}>
                       {cat}
                     </Text>
                   </TouchableOpacity>
@@ -154,11 +226,40 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               />
             </View>
 
+            {/* Screenshot */}
+            <View style={styles.section}>
+              <Text style={styles.label}>Screenshot (Optional)</Text>
+              {screenshot ? (
+                <View style={styles.screenshotContainer}>
+                  <Image
+                    source={{uri: screenshot}}
+                    style={styles.screenshotImage}
+                  />
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={handleRemoveScreenshot}>
+                    <Icon name="close" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.addScreenshotButton}
+                  onPress={handleImagePicker}>
+                  <Icon name="add-photo-alternate" size={32} color="#6B7280" />
+                  <Text style={styles.addScreenshotText}>Add Screenshot</Text>
+                  <Text style={styles.addScreenshotSubtext}>
+                    Help us understand the issue better
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             {/* Info */}
             <View style={styles.infoBox}>
               <Icon name="info-outline" size={20} color="#3B82F6" />
               <Text style={styles.infoText}>
-                Your feedback helps us improve Cook Smart. Thank you for taking the time to share your thoughts!
+                Your feedback helps us improve Cook Smart. Thank you for taking
+                the time to share your thoughts!
               </Text>
             </View>
           </ScrollView>
@@ -168,16 +269,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleCancel}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              style={[
+                styles.submitButton,
+                isSubmitting && styles.submitButtonDisabled,
+              ]}
               onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               {isSubmitting ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
@@ -321,5 +423,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  addScreenshotButton: {
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    padding: 24,
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+  addScreenshotText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 8,
+  },
+  addScreenshotSubtext: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  screenshotContainer: {
+    position: 'relative',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  screenshotImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#EF4444',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
