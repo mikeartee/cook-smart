@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DashboardStats {
   totalUsers: number;
@@ -21,34 +28,48 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
     betaUsers: 0,
     totalRevenue: 0,
     newUsersToday: 0,
-    failedPayments: 0
+    failedPayments: 0,
   });
 
   const loadDashboardStats = async () => {
-    // Mock stats - replace with actual API
-    setStats({
-      totalUsers: 1247,
-      activeSubscriptions: 89,
-      betaUsers: 1158,
-      totalRevenue: 2199,
-      newUsersToday: 23,
-      failedPayments: 3
-    });
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(
+        'http://3.237.38.24:3000/api/v1/admin/dashboard/stats',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats');
+      }
+
+      const data = await response.json();
+      if (data.success && data.stats) {
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+      // Keep default zeros on error
+    }
   };
 
   useEffect(() => {
     loadDashboardStats();
   }, []);
 
-  const StatCard = ({ title, value, color, subtitle }: any) => (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
+  const StatCard = ({title, value, color, subtitle}: any) => (
+    <View style={[styles.statCard, {borderLeftColor: color}]}>
       <Text style={styles.statTitle}>{title}</Text>
-      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      <Text style={[styles.statValue, {color}]}>{value}</Text>
       {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
     </View>
   );
 
-  const QuickAction = ({ title, icon, onPress }: any) => (
+  const QuickAction = ({title, icon, onPress}: any) => (
     <TouchableOpacity style={styles.actionCard} onPress={onPress}>
       <Text style={styles.actionIcon}>{icon}</Text>
       <Text style={styles.actionTitle}>{title}</Text>
@@ -149,10 +170,18 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
         <View style={styles.activityList}>
-          <Text style={styles.activityItem}>• 23 new users registered today</Text>
-          <Text style={styles.activityItem}>• 5 new subscriptions this week</Text>
-          <Text style={styles.activityItem}>• 3 payment failures require attention</Text>
-          <Text style={styles.activityItem}>• BETA feedback: 4.8/5 average rating</Text>
+          <Text style={styles.activityItem}>
+            • 23 new users registered today
+          </Text>
+          <Text style={styles.activityItem}>
+            • 5 new subscriptions this week
+          </Text>
+          <Text style={styles.activityItem}>
+            • 3 payment failures require attention
+          </Text>
+          <Text style={styles.activityItem}>
+            • BETA feedback: 4.8/5 average rating
+          </Text>
         </View>
       </View>
     </ScrollView>
