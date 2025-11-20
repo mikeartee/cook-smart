@@ -99,6 +99,10 @@ router.put('/:recipeId', authenticateToken, async (req, res) => {
     const {recipeId} = req.params;
     const updates = req.body;
 
+    if (!recipeId) {
+      return res.status(400).json({error: 'Recipe ID is required'});
+    }
+
     const recipe = await UserRecipeModel.updateRecipe(
       parseInt(recipeId),
       userId,
@@ -128,6 +132,11 @@ router.delete('/:recipeId', authenticateToken, async (req, res) => {
     }
 
     const {recipeId} = req.params;
+
+    if (!recipeId) {
+      return res.status(400).json({error: 'Recipe ID is required'});
+    }
+
     const deleted = await UserRecipeModel.deleteRecipe(
       parseInt(recipeId),
       userId,
@@ -169,6 +178,11 @@ router.post('/:recipeId/favorite', authenticateToken, async (req, res) => {
     }
 
     const {recipeId} = req.params;
+
+    if (!recipeId) {
+      return res.status(400).json({error: 'Recipe ID is required'});
+    }
+
     const isFavorited = await UserRecipeModel.toggleFavorite(
       parseInt(recipeId),
       userId,
