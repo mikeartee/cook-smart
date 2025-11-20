@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useNavigation, CommonActions} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
 import {pointsService} from '../services/pointsService';
@@ -109,19 +109,46 @@ const ProfileScreenNew: React.FC = () => {
       icon: 'admin-panel-settings',
       color: '#DC2626',
       onPress: () => {
-        try {
-          // Navigate to Admin screen at root level using CommonActions
-          navigation.dispatch(
-            CommonActions.navigate({
-              name: 'Admin',
-            }),
-          );
-        } catch (error) {
-          console.error('Navigation error:', error);
-          Alert.alert(
-            'Navigation Error',
-            'Could not open Admin Dashboard. Please try again.',
-          );
+        console.log('🔍 Admin button pressed - Starting navigation debug');
+
+        // Admin is at root stack level, we need to navigate from root
+        // Profile is in: Root Stack -> Main (Tab) -> Account (Stack) -> Profile
+        // We need to go up levels to reach Root Stack
+
+        let currentNav: any = navigation;
+        let rootNav = null;
+        let navLevel = 0;
+
+        // Try to find the root navigator by going up the tree
+        for (let i = 0; i < 5; i++) {
+          console.log(`📍 Level ${i}:`, currentNav.getId?.() || 'unknown');
+          const parent = currentNav.getParent();
+          if (!parent) {
+            console.log(`✅ Found root at level ${i}`);
+            rootNav = currentNav;
+            navLevel = i;
+            break;
+          }
+          currentNav = parent;
+        }
+
+        if (rootNav) {
+          try {
+            console.log(
+              `🚀 Attempting to navigate to Admin from level ${navLevel}`,
+            );
+            rootNav.navigate('Admin');
+            console.log('✅ Navigation command sent');
+          } catch (error) {
+            console.error('❌ Navigation error:', error);
+            Alert.alert(
+              'Navigation Error',
+              `Could not navigate to Admin Dashboard. Error: ${error}`,
+            );
+          }
+        } else {
+          console.error('❌ Could not find root navigator after 5 levels');
+          Alert.alert('Error', 'Could not find root navigator');
         }
       },
     });
