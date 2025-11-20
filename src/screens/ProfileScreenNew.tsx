@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, CommonActions} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
 import {pointsService} from '../services/pointsService';
@@ -110,28 +110,17 @@ const ProfileScreenNew: React.FC = () => {
       color: '#DC2626',
       onPress: () => {
         try {
-          // Navigate to Admin screen at root level
-          // Profile is in ProfileStack -> Tab Navigator -> Main Stack
-          // We need to get to the root (Main Stack) to navigate to Admin
-          const parent = navigation.getParent();
-          const grandParent = parent?.getParent();
-
-          if (grandParent) {
-            // Try grandparent (should be root stack)
-            grandParent.navigate('Admin' as never);
-          } else if (parent) {
-            // Fallback to parent
-            parent.navigate('Admin' as never);
-          } else {
-            // Last resort - try direct navigation
-            navigation.navigate('Admin' as never);
-          }
+          // Navigate to Admin screen at root level using CommonActions
+          navigation.dispatch(
+            CommonActions.navigate({
+              name: 'Admin',
+            }),
+          );
         } catch (error) {
           console.error('Navigation error:', error);
           Alert.alert(
             'Navigation Error',
-            'Could not open Admin Dashboard. Error: ' +
-              (error as Error).message,
+            'Could not open Admin Dashboard. Please try again.',
           );
         }
       },
