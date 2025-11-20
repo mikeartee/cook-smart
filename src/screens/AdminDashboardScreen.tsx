@@ -193,16 +193,16 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
         <Text style={styles.sectionTitle}>Recent Activity</Text>
         <View style={styles.activityList}>
           <Text style={styles.activityItem}>
-            • 23 new users registered today
+            • {stats.newUsersToday} new users registered today
           </Text>
           <Text style={styles.activityItem}>
-            • 5 new subscriptions this week
+            • {stats.activeSubscriptions} active subscriptions
           </Text>
           <Text style={styles.activityItem}>
-            • 3 payment failures require attention
+            • {stats.failedPayments} payment failures require attention
           </Text>
           <Text style={styles.activityItem}>
-            • BETA feedback: 4.8/5 average rating
+            • {stats.betaUsers} BETA users testing the app
           </Text>
         </View>
       </View>

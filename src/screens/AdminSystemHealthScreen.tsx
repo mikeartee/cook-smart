@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  RefreshControl,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SystemHealth {
   status: 'healthy' | 'warning' | 'critical';
@@ -32,42 +40,30 @@ export const AdminSystemHealthScreen: React.FC = () => {
 
   const loadSystemHealth = async () => {
     try {
-      // Mock system health data - replace with actual API
-      const mockHealth: SystemHealth = {
-        status: 'healthy',
-        uptime: 99.8,
-        services: {
-          database: 'online',
-          api: 'online',
-          payments: 'online',
-          storage: 'slow'
-        },
-        metrics: {
-          responseTime: 245,
-          errorRate: 0.02,
-          activeUsers: 1247,
-          memoryUsage: 68,
-          cpuUsage: 23
-        },
-        alerts: [
-          {
-            id: '1',
-            type: 'warning',
-            message: 'Storage service response time elevated (>500ms)',
-            timestamp: '2024-01-20T10:30:00Z'
+      console.log('🏥 Loading system health from API...');
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(
+        'http://3.237.38.24:3000/api/v1/admin/health/overview',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            id: '2',
-            type: 'info',
-            message: 'Scheduled maintenance completed successfully',
-            timestamp: '2024-01-20T09:00:00Z'
-          }
-        ]
-      };
-      
-      setHealth(mockHealth);
+        },
+      );
+
+      if (!response.ok) {
+        console.error('❌ Health fetch failed:', response.status);
+        throw new Error('Failed to fetch system health');
+      }
+
+      const data = await response.json();
+      console.log('✅ Health data received:', data);
+
+      if (data.success && data.health) {
+        setHealth(data.health);
+      }
     } catch (error) {
-      console.error('Failed to load system health:', error);
+      console.error('❌ Error loading system health:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -77,47 +73,60 @@ export const AdminSystemHealthScreen: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-      case 'online': return '#4CAF50';
+      case 'online':
+        return '#4CAF50';
       case 'warning':
-      case 'slow': return '#FF9800';
+      case 'slow':
+        return '#FF9800';
       case 'critical':
-      case 'offline': return '#F44336';
-      default: return '#666';
+      case 'offline':
+        return '#F44336';
+      default:
+        return '#666';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
-      case 'online': return '✅';
+      case 'online':
+        return '✅';
       case 'warning':
-      case 'slow': return '⚠️';
+      case 'slow':
+        return '⚠️';
       case 'critical':
-      case 'offline': return '❌';
-      default: return '❓';
+      case 'offline':
+        return '❌';
+      default:
+        return '❓';
     }
   };
 
-  const ServiceStatus = ({ name, status }: { name: string; status: string }) => (
+  const ServiceStatus = ({name, status}: {name: string; status: string}) => (
     <View style={styles.serviceItem}>
       <Text style={styles.serviceIcon}>{getStatusIcon(status)}</Text>
       <Text style={styles.serviceName}>{name}</Text>
-      <View style={[styles.serviceStatus, { backgroundColor: getStatusColor(status) }]}>
+      <View
+        style={[
+          styles.serviceStatus,
+          {backgroundColor: getStatusColor(status)},
+        ]}>
         <Text style={styles.serviceStatusText}>{status.toUpperCase()}</Text>
       </View>
     </View>
   );
 
-  const MetricCard = ({ title, value, unit, color }: any) => (
+  const MetricCard = ({title, value, unit, color}: any) => (
     <View style={styles.metricCard}>
       <Text style={styles.metricTitle}>{title}</Text>
-      <Text style={[styles.metricValue, { color }]}>{value}</Text>
+      <Text style={[styles.metricValue, {color}]}>{value}</Text>
       <Text style={styles.metricUnit}>{unit}</Text>
     </View>
   );
 
-  const AlertItem = ({ alert }: { alert: any }) => (
-    <View style={[styles.alertItem, { borderLeftColor: getStatusColor(alert.type) }]}>
+  const AlertItem = ({alert}: {alert: any}) => (
+    <View
+      style={[styles.alertItem, {borderLeftColor: getStatusColor(alert.type)}]}>
       <Text style={styles.alertIcon}>{getStatusIcon(alert.type)}</Text>
       <View style={styles.alertContent}>
         <Text style={styles.alertMessage}>{alert.message}</Text>
@@ -135,7 +144,7 @@ export const AdminSystemHealthScreen: React.FC = () => {
 
   useEffect(() => {
     loadSystemHealth();
-    
+
     // Auto-refresh every 30 seconds
     const interval = setInterval(loadSystemHealth, 30000);
     return () => clearInterval(interval);
@@ -158,15 +167,18 @@ export const AdminSystemHealthScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+      }>
       <View style={styles.header}>
         <Text style={styles.title}>System Health</Text>
-        <View style={[styles.overallStatus, { backgroundColor: getStatusColor(health.status) }]}>
+        <View
+          style={[
+            styles.overallStatus,
+            {backgroundColor: getStatusColor(health.status)},
+          ]}>
           <Text style={styles.overallStatusText}>
             {getStatusIcon(health.status)} {health.status.toUpperCase()}
           </Text>
@@ -178,7 +190,10 @@ export const AdminSystemHealthScreen: React.FC = () => {
         <View style={styles.servicesList}>
           <ServiceStatus name="Database" status={health.services.database} />
           <ServiceStatus name="API Server" status={health.services.api} />
-          <ServiceStatus name="Payment Gateway" status={health.services.payments} />
+          <ServiceStatus
+            name="Payment Gateway"
+            status={health.services.payments}
+          />
           <ServiceStatus name="File Storage" status={health.services.storage} />
         </View>
       </View>
@@ -231,7 +246,7 @@ export const AdminSystemHealthScreen: React.FC = () => {
           {health.alerts.map(alert => (
             <AlertItem key={alert.id} alert={alert} />
           ))}
-          
+
           {health.alerts.length === 0 && (
             <View style={styles.noAlerts}>
               <Text style={styles.noAlertsText}>✅ No recent alerts</Text>

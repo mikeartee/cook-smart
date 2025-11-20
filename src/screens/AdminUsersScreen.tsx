@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  TextInput,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: string;
@@ -14,147 +23,175 @@ interface User {
 export const AdminUsersScreen: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'suspended' | 'banned'>('all');
+  const [filterStatus, setFilterStatus] = useState<
+    'all' | 'active' | 'suspended' | 'banned'
+  >('all');
   const [loading, setLoading] = useState(true);
 
   const loadUsers = async () => {
     try {
-      // Mock users data - replace with actual API
-      const mockUsers: User[] = [
+      console.log('📊 Loading users from API...');
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(
+        'http://3.237.38.24:3000/api/v1/admin/users',
         {
-          id: '1',
-          email: 'john@example.com',
-          name: 'John Doe',
-          status: 'active',
-          subscriptionStatus: 'free_beta',
-          joinDate: '2024-01-15',
-          lastActive: '2024-01-20'
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-        {
-          id: '2',
-          email: 'jane@example.com',
-          name: 'Jane Smith',
-          status: 'active',
-          subscriptionStatus: 'active',
-          joinDate: '2024-01-10',
-          lastActive: '2024-01-19'
-        },
-        {
-          id: '3',
-          email: 'spam@example.com',
-          name: 'Spam User',
-          status: 'suspended',
-          subscriptionStatus: 'none',
-          joinDate: '2024-01-18',
-          lastActive: '2024-01-18'
-        }
-      ];
-      
-      setUsers(mockUsers);
-    } catch {
+      );
+
+      if (!response.ok) {
+        console.error('❌ Users fetch failed:', response.status);
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      console.log('✅ Users received:', data.users?.length || 0);
+
+      if (data.success && data.users) {
+        // Map backend data to frontend format
+        const mappedUsers: User[] = data.users.map((u: any) => ({
+          id: u.id.toString(),
+          email: u.email,
+          name: u.name || u.email.split('@')[0],
+          status: u.is_suspended ? 'suspended' : 'active',
+          subscriptionStatus: u.subscription_status || 'free_beta',
+          joinDate: u.created_at,
+          lastActive: u.last_login || u.created_at,
+        }));
+        setUsers(mappedUsers);
+      }
+    } catch (error) {
+      console.error('❌ Error loading users:', error);
       Alert.alert('Error', 'Failed to load users');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUserAction = (userId: string, action: 'suspend' | 'activate' | 'ban') => {
+  const handleUserAction = (
+    userId: string,
+    action: 'suspend' | 'activate' | 'ban',
+  ) => {
     const user = users.find(u => u.id === userId);
     if (!user) return;
 
-    const actionText = action === 'suspend' ? 'suspend' : action === 'ban' ? 'ban' : 'activate';
-    
+    const actionText =
+      action === 'suspend' ? 'suspend' : action === 'ban' ? 'ban' : 'activate';
+
     Alert.alert(
       `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} User`,
       `Are you sure you want to ${actionText} ${user.name}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        {text: 'Cancel', style: 'cancel'},
         {
           text: actionText.charAt(0).toUpperCase() + actionText.slice(1),
           style: action === 'ban' ? 'destructive' : 'default',
           onPress: () => {
-            setUsers(prev => prev.map(u => 
-              u.id === userId 
-                ? { ...u, status: action === 'activate' ? 'active' : action as any }
-                : u
-            ));
+            setUsers(prev =>
+              prev.map(u =>
+                u.id === userId
+                  ? {
+                      ...u,
+                      status:
+                        action === 'activate' ? 'active' : (action as any),
+                    }
+                  : u,
+              ),
+            );
             Alert.alert('Success', `User ${actionText}d successfully`);
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return '#4CAF50';
-      case 'suspended': return '#FF9800';
-      case 'banned': return '#F44336';
-      default: return '#666';
+      case 'active':
+        return '#4CAF50';
+      case 'suspended':
+        return '#FF9800';
+      case 'banned':
+        return '#F44336';
+      default:
+        return '#666';
     }
   };
 
   const getSubscriptionBadge = (status: string) => {
     switch (status) {
-      case 'free_beta': return { text: 'BETA', color: '#FF9800' };
-      case 'active': return { text: 'PAID', color: '#4CAF50' };
-      case 'canceled': return { text: 'ENDED', color: '#666' };
-      default: return { text: 'NONE', color: '#999' };
+      case 'free_beta':
+        return {text: 'BETA', color: '#FF9800'};
+      case 'active':
+        return {text: 'PAID', color: '#4CAF50'};
+      case 'canceled':
+        return {text: 'ENDED', color: '#666'};
+      default:
+        return {text: 'NONE', color: '#999'};
     }
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || user.status === filterStatus;
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter =
+      filterStatus === 'all' || user.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const UserCard = ({ user }: { user: User }) => {
+  const UserCard = ({user}: {user: User}) => {
     const subBadge = getSubscriptionBadge(user.subscriptionStatus);
-    
+
     return (
       <View style={styles.userCard}>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{user.name}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
           <View style={styles.userMeta}>
-            <Text style={styles.metaText}>Joined: {new Date(user.joinDate).toLocaleDateString()}</Text>
-            <Text style={styles.metaText}>Last active: {new Date(user.lastActive).toLocaleDateString()}</Text>
+            <Text style={styles.metaText}>
+              Joined: {new Date(user.joinDate).toLocaleDateString()}
+            </Text>
+            <Text style={styles.metaText}>
+              Last active: {new Date(user.lastActive).toLocaleDateString()}
+            </Text>
           </View>
         </View>
-        
+
         <View style={styles.userBadges}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(user.status) }]}>
+          <View
+            style={[
+              styles.statusBadge,
+              {backgroundColor: getStatusColor(user.status)},
+            ]}>
             <Text style={styles.badgeText}>{user.status.toUpperCase()}</Text>
           </View>
-          <View style={[styles.subBadge, { backgroundColor: subBadge.color }]}>
+          <View style={[styles.subBadge, {backgroundColor: subBadge.color}]}>
             <Text style={styles.badgeText}>{subBadge.text}</Text>
           </View>
         </View>
-        
+
         <View style={styles.userActions}>
           {user.status === 'active' && (
             <>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.actionButton, styles.suspendButton]}
-                onPress={() => handleUserAction(user.id, 'suspend')}
-              >
+                onPress={() => handleUserAction(user.id, 'suspend')}>
                 <Text style={styles.actionButtonText}>Suspend</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.actionButton, styles.banButton]}
-                onPress={() => handleUserAction(user.id, 'ban')}
-              >
+                onPress={() => handleUserAction(user.id, 'ban')}>
                 <Text style={styles.actionButtonText}>Ban</Text>
               </TouchableOpacity>
             </>
           )}
           {user.status !== 'active' && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.actionButton, styles.activateButton]}
-              onPress={() => handleUserAction(user.id, 'activate')}
-            >
+              onPress={() => handleUserAction(user.id, 'activate')}>
               <Text style={styles.actionButtonText}>Activate</Text>
             </TouchableOpacity>
           )}
@@ -189,21 +226,21 @@ export const AdminUsersScreen: React.FC = () => {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        
+
         <View style={styles.filterButtons}>
           {['all', 'active', 'suspended', 'banned'].map(status => (
             <TouchableOpacity
               key={status}
               style={[
                 styles.filterButton,
-                filterStatus === status && styles.activeFilterButton
+                filterStatus === status && styles.activeFilterButton,
               ]}
-              onPress={() => setFilterStatus(status as any)}
-            >
-              <Text style={[
-                styles.filterButtonText,
-                filterStatus === status && styles.activeFilterButtonText
-              ]}>
+              onPress={() => setFilterStatus(status as any)}>
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  filterStatus === status && styles.activeFilterButtonText,
+                ]}>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -215,7 +252,7 @@ export const AdminUsersScreen: React.FC = () => {
         {filteredUsers.map(user => (
           <UserCard key={user.id} user={user} />
         ))}
-        
+
         {filteredUsers.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No users found</Text>

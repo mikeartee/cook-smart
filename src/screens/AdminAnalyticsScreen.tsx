@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, ScrollView, StyleSheet, RefreshControl} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AnalyticsData {
-  userGrowth: { date: string; users: number }[];
+  userGrowth: {date: string; users: number}[];
   subscriptionMetrics: {
     totalRevenue: number;
     monthlyRecurring: number;
@@ -20,44 +21,51 @@ interface AnalyticsData {
 export const AdminAnalyticsScreen: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadAnalytics = async () => {
     try {
-      // Mock analytics data - replace with actual API
-      const mockAnalytics: AnalyticsData = {
-        userGrowth: [
-          { date: '2024-01-01', users: 100 },
-          { date: '2024-01-08', users: 250 },
-          { date: '2024-01-15', users: 500 },
-          { date: '2024-01-22', users: 850 },
-          { date: '2024-01-29', users: 1247 }
-        ],
-        subscriptionMetrics: {
-          totalRevenue: 2199,
-          monthlyRecurring: 623,
-          churnRate: 2.1,
-          conversionRate: 7.2
+      console.log('📊 Loading analytics from API...');
+      const token = await AsyncStorage.getItem('auth_token');
+      const response = await fetch(
+        'http://3.237.38.24:3000/api/v1/admin/analytics/overview',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-        betaMetrics: {
-          totalBetaUsers: 1158,
-          averageRating: 4.8,
-          feedbackCount: 342,
-          prePurchases: 89
-        }
-      };
-      
-      setAnalytics(mockAnalytics);
+      );
+
+      if (!response.ok) {
+        console.error('❌ Analytics fetch failed:', response.status);
+        throw new Error('Failed to fetch analytics');
+      }
+
+      const data = await response.json();
+      console.log('✅ Analytics received:', data);
+
+      if (data.success && data.analytics) {
+        setAnalytics(data.analytics);
+      }
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      console.error('❌ Error loading analytics:', error);
+      // Keep null on error
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const MetricCard = ({ title, value, subtitle, color }: any) => (
-    <View style={[styles.metricCard, { borderLeftColor: color }]}>
+  const onRefresh = async () => {
+    console.log('🔄 Analytics: Refreshing data...');
+    setRefreshing(true);
+    await loadAnalytics();
+  };
+
+  const MetricCard = ({title, value, subtitle, color}: any) => (
+    <View style={[styles.metricCard, {borderLeftColor: color}]}>
       <Text style={styles.metricTitle}>{title}</Text>
-      <Text style={[styles.metricValue, { color }]}>{value}</Text>
+      <Text style={[styles.metricValue, {color}]}>{value}</Text>
       {subtitle && <Text style={styles.metricSubtitle}>{subtitle}</Text>}
     </View>
   );
@@ -83,7 +91,16 @@ export const AdminAnalyticsScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#10B981']}
+          tintColor="#10B981"
+        />
+      }>
       <View style={styles.header}>
         <Text style={styles.title}>Analytics Dashboard</Text>
         <Text style={styles.subtitle}>Business metrics and insights</Text>
@@ -95,7 +112,10 @@ export const AdminAnalyticsScreen: React.FC = () => {
           {analytics.userGrowth.map((point, index) => (
             <View key={index} style={styles.growthPoint}>
               <Text style={styles.growthDate}>
-                {new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {new Date(point.date).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
               </Text>
               <Text style={styles.growthUsers}>{point.users}</Text>
             </View>
