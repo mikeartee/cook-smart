@@ -13,7 +13,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     const items = await ShoppingListModel.getUserItems(userId);
-    return res.json(items);
+    return res.json({items});
   } catch (_error) {
     return res.status(500).json({error: 'Failed to get shopping list'});
   }
