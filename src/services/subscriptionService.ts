@@ -34,7 +34,7 @@ class SubscriptionService {
    */
   async getAvailablePlans(referralCode?: string): Promise<SubscriptionPlan[]> {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem('auth_token');
       const url = referralCode
         ? `${API_URL}/subscriptions/plans?referralCode=${referralCode}`
         : `${API_URL}/subscriptions/plans`;
@@ -68,7 +68,7 @@ class SubscriptionService {
     referralCode?: string,
   ): Promise<SubscriptionResult> {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem('auth_token');
 
       if (!token) {
         throw new Error('User must be logged in to subscribe');
@@ -133,7 +133,7 @@ class SubscriptionService {
    */
   async getUserSubscription(): Promise<any> {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem('auth_token');
 
       if (!token) {
         return null;
@@ -164,7 +164,7 @@ class SubscriptionService {
    */
   async cancelSubscription(subscriptionId: string): Promise<void> {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const token = await AsyncStorage.getItem('auth_token');
 
       if (!token) {
         throw new Error('User must be logged in');
