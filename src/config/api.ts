@@ -22,6 +22,13 @@ export const API_ENDPOINTS = {
     refreshToken: `${API_BASE_URL}/api/v1/auth/refresh`,
   },
 
+  // Password Management
+  password: {
+    change: `${API_BASE_URL}/api/v1/password/change-password`,
+    forgot: `${API_BASE_URL}/api/v1/password/forgot-password`,
+    reset: `${API_BASE_URL}/api/v1/password/reset-password`,
+  },
+
   // Ingredients
   ingredients: {
     base: `${API_BASE_URL}/api/v1/ingredients`,

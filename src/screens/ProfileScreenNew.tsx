@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAuth } from '../contexts/AuthContext';
-import { pointsService } from '../services/pointsService';
+import {useAuth} from '../contexts/AuthContext';
+import {pointsService} from '../services/pointsService';
 
 const ProfileScreenNew: React.FC = () => {
   const navigation = useNavigation();
-  const { user, logout } = useAuth();
+  const {user, logout} = useAuth();
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(0);
   // const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
@@ -36,20 +36,16 @@ const ProfileScreenNew: React.FC = () => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const menuItems = [
@@ -80,6 +76,14 @@ const ProfileScreenNew: React.FC = () => {
       },
     },
     {
+      id: 'password',
+      title: 'Change Password',
+      subtitle: 'Update your password',
+      icon: 'lock',
+      color: '#EF4444',
+      onPress: () => navigation.navigate('ChangePassword' as never),
+    },
+    {
       id: 'privacy',
       title: 'Privacy & Security',
       subtitle: 'Manage your data',
@@ -91,9 +95,12 @@ const ProfileScreenNew: React.FC = () => {
 
   // Add admin access for developers (Brad), creators, and co-founders
   // Brad gets admin access through lifetime subscription as developer
-  const hasAdminAccess = user?.is_co_founder || user?.is_creator || 
-    (user?.email === 'bradturnbough80@gmail.com' && user?.has_lifetime_subscription);
-  
+  const hasAdminAccess =
+    user?.is_co_founder ||
+    user?.is_creator ||
+    (user?.email === 'bradturnbough80@gmail.com' &&
+      user?.has_lifetime_subscription);
+
   if (hasAdminAccess) {
     menuItems.push({
       id: 'admin',
@@ -103,10 +110,29 @@ const ProfileScreenNew: React.FC = () => {
       color: '#DC2626',
       onPress: () => {
         try {
-          (navigation as any).navigate('Admin');
+          // Navigate to Admin screen at root level
+          // Profile is in ProfileStack -> Tab Navigator -> Main Stack
+          // We need to get to the root (Main Stack) to navigate to Admin
+          const parent = navigation.getParent();
+          const grandParent = parent?.getParent();
+
+          if (grandParent) {
+            // Try grandparent (should be root stack)
+            grandParent.navigate('Admin' as never);
+          } else if (parent) {
+            // Fallback to parent
+            parent.navigate('Admin' as never);
+          } else {
+            // Last resort - try direct navigation
+            navigation.navigate('Admin' as never);
+          }
         } catch (error) {
           console.error('Navigation error:', error);
-          Alert.alert('Error', 'Could not open Admin Dashboard');
+          Alert.alert(
+            'Navigation Error',
+            'Could not open Admin Dashboard. Error: ' +
+              (error as Error).message,
+          );
         }
       },
     });
@@ -164,13 +190,13 @@ const ProfileScreenNew: React.FC = () => {
       {/* Menu Items */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
-        {menuItems.map((item) => (
+        {menuItems.map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles.menuItem}
-            onPress={item.onPress}
-          >
-            <View style={[styles.menuIcon, { backgroundColor: `${item.color}15` }]}>
+            onPress={item.onPress}>
+            <View
+              style={[styles.menuIcon, {backgroundColor: `${item.color}15`}]}>
               <Icon name={item.icon} size={24} color={item.color} />
             </View>
             <View style={styles.menuContent}>

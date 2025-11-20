@@ -99,6 +99,16 @@ export class UserModel {
     await pool.query(query, [id]);
   }
 
+  static async updatePassword(id: string, newPassword: string): Promise<void> {
+    const password_hash = await bcrypt.hash(newPassword, 12);
+    const query = `
+      UPDATE users 
+      SET password_hash = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $2
+    `;
+    await pool.query(query, [password_hash, id]);
+  }
+
   static async exportUserData(id: string): Promise<any> {
     // GDPR compliance - export all user data
     const userQuery = 'SELECT * FROM users WHERE id = $1';

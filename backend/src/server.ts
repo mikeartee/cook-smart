@@ -65,6 +65,7 @@ app.use('/health', healthRoutes);
 
 // API routes
 import authRoutes from './routes/auth';
+import passwordResetRoutes from './routes/passwordReset';
 import ingredientRoutes from './routes/ingredients';
 import barcodeRoutes from './routes/barcode';
 import recipeRoutes from './routes/recipes';
@@ -91,6 +92,7 @@ import systemGuardianRoutes from './routes/systemGuardian';
 import userRecipesRoutes from './routes/userRecipes';
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/password', passwordResetRoutes);
 app.use('/api/v1/ingredients', ingredientRoutes);
 app.use('/api/v1/barcode', barcodeRoutes);
 app.use('/api/v1/recipes', recipeRoutes);

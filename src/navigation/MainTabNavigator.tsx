@@ -17,6 +17,7 @@ import {ShoppingListScreen} from '../screens/ShoppingListScreen';
 import ProfileScreen from '../screens/ProfileScreenNew';
 import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
 import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
+import {ChangePasswordScreen} from '../screens/ChangePasswordScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -57,18 +58,13 @@ const ShoppingListStack = () => (
 // Account Stack Navigator (with subscription and profile screens)
 const AccountStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
-    <Stack.Screen
-      name="Profile"
-      component={ProfileScreen}
-    />
+    <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen
       name="DietaryPreferences"
       component={DietaryPreferencesScreen}
     />
-    <Stack.Screen
-      name="PrivacySecurity"
-      component={PrivacySecurityScreen}
-    />
+    <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
+    <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     <Stack.Screen
       name="SubscriptionDetails"
       component={SubscriptionDetailsScreen}

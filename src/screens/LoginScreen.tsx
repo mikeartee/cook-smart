@@ -68,13 +68,7 @@ const LoginScreen: React.FC = () => {
             <View style={styles.labelRow}>
               <Text style={styles.label}>Password</Text>
               <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'Reset Password',
-                    'To reset your password, please contact support at support@cooksmartapp.com with your registered email address.',
-                    [{text: 'OK'}],
-                  )
-                }>
+                onPress={() => navigation.navigate('ForgotPassword' as never)}>
                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
