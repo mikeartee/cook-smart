@@ -69,11 +69,98 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     });
   };
 
+  const parseIngredient = (
+    ingredientStr: string,
+  ): {
+    ingredient: string;
+    quantity: string;
+    unit: string;
+  } => {
+    // Common units to look for
+    const units = [
+      'cup',
+      'cups',
+      'tablespoon',
+      'tablespoons',
+      'tbsp',
+      'teaspoon',
+      'teaspoons',
+      'tsp',
+      'ounce',
+      'ounces',
+      'oz',
+      'pound',
+      'pounds',
+      'lb',
+      'lbs',
+      'gram',
+      'grams',
+      'g',
+      'kilogram',
+      'kilograms',
+      'kg',
+      'milliliter',
+      'milliliters',
+      'ml',
+      'liter',
+      'liters',
+      'l',
+      'pinch',
+      'dash',
+      'clove',
+      'cloves',
+      'slice',
+      'slices',
+      'can',
+      'cans',
+      'package',
+      'packages',
+      'jar',
+      'jars',
+    ];
+
+    let cleaned = ingredientStr.trim();
+
+    // Try to match: number + optional unit + ingredient
+    // Examples: "2 cups flour", "1/2 tsp salt", "3 chicken breasts"
+    const regex = /^([\d\s\/.-]+)\s*([a-zA-Z]+)?\s*(.+)$/;
+    const match = cleaned.match(regex);
+
+    if (match) {
+      const quantity = match[1]?.trim() || '1';
+      const possibleUnit = match[2]?.toLowerCase() || '';
+      const rest = match[3]?.trim() || cleaned;
+
+      // Check if the possible unit is actually a unit
+      if (possibleUnit && units.includes(possibleUnit)) {
+        return {
+          ingredient: rest,
+          quantity: quantity,
+          unit: possibleUnit,
+        };
+      } else {
+        // The "unit" is actually part of the ingredient name
+        return {
+          ingredient: possibleUnit ? `${possibleUnit} ${rest}` : rest,
+          quantity: quantity,
+          unit: '',
+        };
+      }
+    }
+
+    // No quantity found, return as-is
+    return {
+      ingredient: cleaned,
+      quantity: '1',
+      unit: '',
+    };
+  };
+
   const addMissingToShoppingList = async () => {
     if (!recipe) return;
 
     try {
-      // Get missing ingredients with parsed quantities (TheMealDB format only)
+      // Get missing ingredients with parsed quantities
       const missingIngredients: Array<{
         ingredient: string;
         quantity: string;
@@ -83,13 +170,8 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       if (recipe.ingredients && recipe.ingredients.length > 0) {
         recipe.ingredients.forEach(ing => {
           if (!hasIngredient(ing)) {
-            // Parse ingredient string to extract name, quantity, and unit
-            const parts = ing.match(/^([\d./\s]+)?\s*(\w+)?\s*(.+)$/);
-            missingIngredients.push({
-              ingredient: parts?.[3] || ing,
-              quantity: parts?.[1]?.trim() || '1',
-              unit: parts?.[2] || '',
-            });
+            const parsed = parseIngredient(ing);
+            missingIngredients.push(parsed);
           }
         });
       }
