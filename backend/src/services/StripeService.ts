@@ -439,7 +439,12 @@ export class StripeService {
         'Stripe subscription with promotion creation error:',
         error,
       );
-      throw new Error('Failed to create subscription with promotional pricing');
+      // Log the full error details for debugging
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      throw error; // Throw the original error instead of a generic one
     }
   }
 
