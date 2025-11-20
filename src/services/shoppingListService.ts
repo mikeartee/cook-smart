@@ -221,6 +221,32 @@ class ShoppingListService {
       throw error;
     }
   }
+
+  // Delete all items
+  async deleteAll(): Promise<void> {
+    try {
+      const token = await getAuthToken();
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/shopping-list/all/items`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete all items');
+      }
+    } catch (error) {
+      console.error('Error deleting all items:', error);
+      throw error;
+    }
+  }
 }
 
 export const shoppingListService = new ShoppingListService();

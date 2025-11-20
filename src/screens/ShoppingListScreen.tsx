@@ -149,6 +149,38 @@ export const ShoppingListScreen: React.FC = () => {
     );
   };
 
+  const handleDeleteAll = () => {
+    if (items.length === 0) {
+      Alert.alert('No Items', 'Shopping list is already empty.');
+      return;
+    }
+
+    Alert.alert(
+      'Delete All Items',
+      `Remove all ${items.length} item${items.length > 1 ? 's' : ''} from shopping list?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await shoppingListService.deleteAll();
+              setItems([]);
+              Alert.alert('Success', 'All items deleted');
+            } catch (error) {
+              console.error('Error deleting all items:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete all items. Please try again.',
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const categorizeItems = () => {
     const categorized: Record<string, ShoppingItem[]> = {};
     items.forEach(item => {
@@ -196,6 +228,14 @@ export const ShoppingListScreen: React.FC = () => {
           style={styles.clearButton}
           onPress={handleClearCompleted}>
           <Text style={styles.clearButtonText}>Clear Completed</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.deleteAllContainer}>
+        <TouchableOpacity
+          style={styles.deleteAllButton}
+          onPress={handleDeleteAll}>
+          <Text style={styles.deleteAllText}>🗑️ Delete All Items</Text>
         </TouchableOpacity>
       </View>
 
@@ -293,6 +333,22 @@ const styles = StyleSheet.create({
   clearButtonText: {
     color: '#666',
     fontWeight: '500',
+  },
+  deleteAllContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  deleteAllButton: {
+    padding: 12,
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ef5350',
+  },
+  deleteAllText: {
+    color: '#d32f2f',
+    fontWeight: '600',
   },
   list: {
     flex: 1,

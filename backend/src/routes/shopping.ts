@@ -1,6 +1,7 @@
 import express from 'express';
 import {ShoppingListModel} from '../models/ShoppingList';
 import {authenticateToken} from '../middleware/auth';
+import pool from '../config/database';
 
 const router = express.Router();
 
@@ -174,6 +175,24 @@ router.patch('/:itemId/toggle', authenticateToken, async (req, res) => {
     return res.json({success: true, message: 'Item status updated'});
   } catch (_error) {
     return res.status(500).json({error: 'Failed to toggle item'});
+  }
+});
+
+// Delete all shopping list items (authenticated)
+router.delete('/all/items', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id?.toString();
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
+    // Delete all items for this user
+    await pool.query('DELETE FROM shopping_list_items WHERE user_id = $1', [
+      userId,
+    ]);
+    return res.json({success: true, message: 'All items removed'});
+  } catch (_error) {
+    return res.status(500).json({error: 'Failed to remove all items'});
   }
 });
 

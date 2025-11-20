@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,11 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useIngredients } from '../../contexts/IngredientContext';
-import { IngredientCard } from '../../components/common/IngredientCard';
-import { Ingredient } from '../../services/ingredientService';
+import {useIngredients} from '../../contexts/IngredientContext';
+import {IngredientCard} from '../../components/common/IngredientCard';
+import {Ingredient} from '../../services/ingredientService';
 
 interface GroupedIngredients {
   title: string;
@@ -35,7 +35,9 @@ export const IngredientInventoryScreen: React.FC = () => {
   } = useIngredients();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(
+    null,
+  );
   const [editQuantity, setEditQuantity] = useState('');
   const [editUnit, setEditUnit] = useState('');
 
@@ -54,7 +56,7 @@ export const IngredientInventoryScreen: React.FC = () => {
       'Delete Ingredient',
       'Are you sure you want to remove this ingredient?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        {text: 'Cancel', style: 'cancel'},
         {
           text: 'Delete',
           style: 'destructive',
@@ -66,7 +68,39 @@ export const IngredientInventoryScreen: React.FC = () => {
             }
           },
         },
-      ]
+      ],
+    );
+  };
+
+  const handleDeleteAll = () => {
+    const totalCount = ingredients.length + customIngredients.length;
+    if (totalCount === 0) {
+      Alert.alert('No Ingredients', 'Your inventory is already empty.');
+      return;
+    }
+
+    Alert.alert(
+      'Delete All Ingredients',
+      `Remove all ${totalCount} ingredient${totalCount > 1 ? 's' : ''} from your inventory?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Delete all ingredients one by one
+              const allIngredients = [...ingredients, ...customIngredients];
+              for (const ingredient of allIngredients) {
+                await deleteIngredient(ingredient.id);
+              }
+              Alert.alert('Success', 'All ingredients deleted');
+            } catch (_err) {
+              Alert.alert('Error', 'Failed to delete all ingredients');
+            }
+          },
+        },
+      ],
     );
   };
 
@@ -84,10 +118,10 @@ export const IngredientInventoryScreen: React.FC = () => {
         quantity: parseFloat(editQuantity) || 1,
         unit: editUnit.trim() || 'unit',
       });
-      
+
       Alert.alert('Success', 'Ingredient updated successfully!');
       setEditingIngredient(null);
-      
+
       // Refresh the list to show updated values
       await fetchIngredients();
     } catch (_err) {
@@ -96,15 +130,18 @@ export const IngredientInventoryScreen: React.FC = () => {
   };
 
   const groupIngredientsByCategory = (): GroupedIngredients[] => {
-    const allIngredients = [...(ingredients || []), ...(customIngredients || [])];
-    
+    const allIngredients = [
+      ...(ingredients || []),
+      ...(customIngredients || []),
+    ];
+
     if (allIngredients.length === 0) {
       return [];
     }
 
-    const grouped: { [key: string]: Ingredient[] } = {};
+    const grouped: {[key: string]: Ingredient[]} = {};
 
-    allIngredients.forEach((ingredient) => {
+    allIngredients.forEach(ingredient => {
       const category = ingredient.category || 'Other';
       if (!grouped[category]) {
         grouped[category] = [];
@@ -114,7 +151,7 @@ export const IngredientInventoryScreen: React.FC = () => {
 
     return Object.keys(grouped)
       .sort()
-      .map((category) => ({
+      .map(category => ({
         title: category,
         data: grouped[category],
       }));
@@ -150,13 +187,13 @@ export const IngredientInventoryScreen: React.FC = () => {
           <Icon name="kitchen" size={64} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>No Ingredients Yet</Text>
           <Text style={styles.emptySubtext}>
-            Start building your ingredient inventory by tapping the + button below
+            Start building your ingredient inventory by tapping the + button
+            below
           </Text>
         </View>
         <TouchableOpacity
           style={styles.fab}
-          onPress={() => navigation.navigate('AddIngredient' as never)}
-        >
+          onPress={() => navigation.navigate('AddIngredient' as never)}>
           <Icon name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -165,13 +202,24 @@ export const IngredientInventoryScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.deleteAllContainer}>
+        <TouchableOpacity
+          style={styles.deleteAllButton}
+          onPress={handleDeleteAll}>
+          <Text style={styles.deleteAllText}>🗑️ Delete All Ingredients</Text>
+        </TouchableOpacity>
+      </View>
       <SectionList
         sections={groupedData}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <IngredientCard ingredient={item} onDelete={handleDelete} onEdit={handleEdit} />
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <IngredientCard
+            ingredient={item}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
         )}
-        renderSectionHeader={({ section: { title } }) => (
+        renderSectionHeader={({section: {title}}) => (
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{title}</Text>
           </View>
@@ -188,8 +236,7 @@ export const IngredientInventoryScreen: React.FC = () => {
       />
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('AddIngredient' as never)}
-      >
+        onPress={() => navigation.navigate('AddIngredient' as never)}>
         <Icon name="add" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
@@ -198,8 +245,7 @@ export const IngredientInventoryScreen: React.FC = () => {
         visible={editingIngredient !== null}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setEditingIngredient(null)}
-      >
+        onRequestClose={() => setEditingIngredient(null)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -240,8 +286,7 @@ export const IngredientInventoryScreen: React.FC = () => {
 
             <TouchableOpacity
               style={styles.saveButton}
-              onPress={handleSaveEdit}
-            >
+              onPress={handleSaveEdit}>
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </TouchableOpacity>
           </View>
@@ -255,6 +300,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  deleteAllContainer: {
+    padding: 16,
+    paddingBottom: 8,
+    backgroundColor: '#F9FAFB',
+  },
+  deleteAllButton: {
+    padding: 12,
+    backgroundColor: '#ffebee',
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ef5350',
+  },
+  deleteAllText: {
+    color: '#d32f2f',
+    fontWeight: '600',
   },
   centerContainer: {
     flex: 1,
@@ -333,7 +395,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
