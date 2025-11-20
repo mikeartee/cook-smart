@@ -62,20 +62,10 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       .replace(/^(cup|cups|tbsp|tsp|oz|lb|g|kg|ml|l)\s+/i, '')
       .trim();
 
-    // Check if user has this ingredient (fuzzy match)
+    // Check if user has this ingredient (smart matching that preserves types)
+    const {ingredientsMatch} = require('../../utils/ingredientMatcher');
     return userIngredients.some(userIng => {
-      // Remove common words and check if ingredient name contains user's ingredient
-      const cleanSearch = searchName.replace(
-        /^(fresh|frozen|dried|canned|sliced|diced|chopped)\s+/i,
-        '',
-      );
-      const cleanUser = userIng.replace(
-        /^(fresh|frozen|dried|canned|sliced|diced|chopped)\s+/i,
-        '',
-      );
-
-      // Match if either contains the other (handles partial matches)
-      return cleanSearch.includes(cleanUser) || cleanUser.includes(cleanSearch);
+      return ingredientsMatch(searchName, userIng);
     });
   };
 
