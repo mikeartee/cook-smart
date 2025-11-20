@@ -35,6 +35,7 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
 
   const loadDashboardStats = async () => {
     try {
+      console.log('📊 Loading dashboard stats...');
       const token = await AsyncStorage.getItem('auth_token');
       const response = await fetch(
         'http://3.237.38.24:3000/api/v1/admin/dashboard/stats',
@@ -46,23 +47,27 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
       );
 
       if (!response.ok) {
+        console.error('❌ Stats fetch failed:', response.status);
         throw new Error('Failed to fetch stats');
       }
 
       const data = await response.json();
+      console.log('📈 Stats received:', data.stats);
       if (data.success && data.stats) {
         setStats(data.stats);
       }
     } catch (error) {
-      console.error('Error loading dashboard stats:', error);
+      console.error('❌ Error loading dashboard stats:', error);
       // Keep default zeros on error
     }
   };
 
   const onRefresh = async () => {
+    console.log('🔄 Admin Dashboard: Refreshing data...');
     setRefreshing(true);
     await loadDashboardStats();
     setRefreshing(false);
+    console.log('✅ Admin Dashboard: Refresh complete');
   };
 
   useEffect(() => {
@@ -88,7 +93,12 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#10B981']} // Android
+          tintColor="#10B981" // iOS
+        />
       }>
       <View style={styles.header}>
         <Text style={styles.title}>Admin Dashboard</Text>
