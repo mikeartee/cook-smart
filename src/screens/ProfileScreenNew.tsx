@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -17,6 +18,7 @@ const ProfileScreenNew: React.FC = () => {
   const {user, logout} = useAuth();
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   // const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
   // const [allergies, setAllergies] = useState<string[]>([]);
 
@@ -33,6 +35,12 @@ const ProfileScreenNew: React.FC = () => {
       console.error('Error loading points:', error);
       // Keep default 0 points on error
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadPoints();
+    setRefreshing(false);
   };
 
   const handleLogout = () => {
@@ -96,7 +104,11 @@ const ProfileScreenNew: React.FC = () => {
   // Admin access moved to dedicated tab in bottom navigation
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       {/* User Info Card */}
       <View style={styles.userCard}>
         <View style={styles.avatarContainer}>

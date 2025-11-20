@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -30,6 +31,7 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
     newUsersToday: 0,
     failedPayments: 0,
   });
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadDashboardStats = async () => {
     try {
@@ -57,6 +59,12 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardStats();
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     loadDashboardStats();
   }, []);
@@ -77,7 +85,11 @@ export const AdminDashboardScreen: React.FC<Props> = ({navigation}) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       <View style={styles.header}>
         <Text style={styles.title}>Admin Dashboard</Text>
         <Text style={styles.subtitle}>Cook Smart Management</Text>
