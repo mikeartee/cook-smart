@@ -21,19 +21,25 @@ const SpecialUserWelcomeScreen: React.FC = () => {
     // Enable playback in silence mode
     Sound.setCategory('Playback');
 
-    // TODO: Replace 'mom_song.mp3' with your actual song filename
+    // Load the music file
     const music = new Sound('mom_song.mp3', Sound.MAIN_BUNDLE, error => {
       if (error) {
-        console.log('Failed to load the sound', error);
+        console.log(
+          'Failed to load the sound - file may not exist yet:',
+          error,
+        );
+        setMusicLoaded(false);
         return;
       }
+      console.log('Music loaded successfully!');
       setMusicLoaded(true);
       setSound(music);
       // Auto-play when loaded
       music.play(success => {
         if (success) {
-          setIsPlaying(false);
-          music.setCurrentTime(0);
+          console.log('Music playing!');
+        } else {
+          console.log('Music playback failed');
         }
       });
       setIsPlaying(true);
@@ -41,10 +47,11 @@ const SpecialUserWelcomeScreen: React.FC = () => {
 
     return () => {
       if (sound) {
+        sound.stop();
         sound.release();
       }
     };
-  }, []);
+  }, [sound]);
 
   const toggleMusic = () => {
     if (!sound) return;
