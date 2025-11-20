@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import {ShoppingListItem} from '../components/ShoppingListItem';
 import {AddShoppingItem} from '../components/AddShoppingItem';
@@ -19,22 +20,35 @@ export const ShoppingListScreen: React.FC = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [_loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadShoppingList();
   }, []);
 
-  const loadShoppingList = async () => {
+  const loadShoppingList = async (isRefreshing = false) => {
     try {
-      setLoading(true);
+      if (isRefreshing) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       const data = await shoppingListService.getShoppingList();
       setItems(data);
     } catch (error) {
       console.error('Error loading shopping list:', error);
       Alert.alert('Error', 'Failed to load shopping list. Please try again.');
     } finally {
-      setLoading(false);
+      if (isRefreshing) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
+  };
+
+  const onRefresh = () => {
+    loadShoppingList(true);
   };
 
   const handleToggleCompleted = async (itemId: string) => {
@@ -192,7 +206,17 @@ export const ShoppingListScreen: React.FC = () => {
         />
       )}
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4CAF50']}
+            tintColor="#4CAF50"
+          />
+        }>
         {Object.entries(categorizedItems).map(([category, categoryItems]) => (
           <View key={category} style={styles.categorySection}>
             <Text style={styles.categoryHeader}>
