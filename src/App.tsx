@@ -9,7 +9,6 @@ import CoFounderWelcomeScreen from './screens/CoFounderWelcomeScreen';
 import {ForgotPasswordScreen} from './screens/ForgotPasswordScreen';
 import {ResetPasswordScreen} from './screens/ResetPasswordScreen';
 import MainTabNavigator from './navigation/MainTabNavigator';
-import {AdminNavigator} from './navigation/AdminNavigator';
 import CookieConsent from './components/CookieConsent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
@@ -71,12 +70,10 @@ const AppContent = () => {
                   component={CoFounderWelcomeScreen}
                 />
                 <Stack.Screen name="Main" component={MainTabNavigator} />
-                <Stack.Screen name="Admin" component={AdminNavigator} />
               </>
             ) : (
               <>
                 <Stack.Screen name="Main" component={MainTabNavigator} />
-                <Stack.Screen name="Admin" component={AdminNavigator} />
               </>
             )}
           </Stack.Navigator>

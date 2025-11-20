@@ -93,66 +93,7 @@ const ProfileScreenNew: React.FC = () => {
     },
   ];
 
-  // Add admin access for developers (Brad), creators, and co-founders
-  // Brad gets admin access through lifetime subscription as developer
-  const hasAdminAccess =
-    user?.is_co_founder ||
-    user?.is_creator ||
-    (user?.email === 'bradturnbough80@gmail.com' &&
-      user?.has_lifetime_subscription);
-
-  if (hasAdminAccess) {
-    menuItems.push({
-      id: 'admin',
-      title: 'Admin Dashboard',
-      subtitle: 'Manage Cook Smart',
-      icon: 'admin-panel-settings',
-      color: '#DC2626',
-      onPress: () => {
-        console.log('🔍 Admin button pressed - Starting navigation debug');
-
-        // Admin is at root stack level, we need to navigate from root
-        // Profile is in: Root Stack -> Main (Tab) -> Account (Stack) -> Profile
-        // We need to go up levels to reach Root Stack
-
-        let currentNav: any = navigation;
-        let rootNav = null;
-        let navLevel = 0;
-
-        // Try to find the root navigator by going up the tree
-        for (let i = 0; i < 5; i++) {
-          console.log(`📍 Level ${i}:`, currentNav.getId?.() || 'unknown');
-          const parent = currentNav.getParent();
-          if (!parent) {
-            console.log(`✅ Found root at level ${i}`);
-            rootNav = currentNav;
-            navLevel = i;
-            break;
-          }
-          currentNav = parent;
-        }
-
-        if (rootNav) {
-          try {
-            console.log(
-              `🚀 Attempting to navigate to Admin from level ${navLevel}`,
-            );
-            rootNav.navigate('Admin');
-            console.log('✅ Navigation command sent');
-          } catch (error) {
-            console.error('❌ Navigation error:', error);
-            Alert.alert(
-              'Navigation Error',
-              `Could not navigate to Admin Dashboard. Error: ${error}`,
-            );
-          }
-        } else {
-          console.error('❌ Could not find root navigator after 5 levels');
-          Alert.alert('Error', 'Could not find root navigator');
-        }
-      },
-    });
-  }
+  // Admin access moved to dedicated tab in bottom navigation
 
   return (
     <ScrollView style={styles.container}>
