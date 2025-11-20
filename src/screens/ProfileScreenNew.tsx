@@ -101,7 +101,14 @@ const ProfileScreenNew: React.FC = () => {
       subtitle: 'Manage Cook Smart',
       icon: 'admin-panel-settings',
       color: '#DC2626',
-      onPress: () => navigation.navigate('Admin' as never),
+      onPress: () => {
+        try {
+          (navigation as any).navigate('Admin');
+        } catch (error) {
+          console.error('Navigation error:', error);
+          Alert.alert('Error', 'Could not open Admin Dashboard');
+        }
+      },
     });
   }
 

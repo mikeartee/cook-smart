@@ -39,7 +39,7 @@ const CoFounderWelcomeScreen: React.FC = () => {
         setMusicLoaded(false);
         return;
       }
-      console.log('Music loaded successfully!');
+      console.log(`Music loaded successfully: ${songFile}`);
       setMusicLoaded(true);
       setSound(music);
       // Auto-play when loaded
@@ -53,14 +53,12 @@ const CoFounderWelcomeScreen: React.FC = () => {
       setIsPlaying(true);
     });
 
-    // Cleanup
+    // Cleanup - stop and release the music when component unmounts
     return () => {
-      if (sound) {
-        sound.stop();
-        sound.release();
-      }
+      music.stop();
+      music.release();
     };
-  }, [sound, isCreator]);
+  }, []); // Empty dependency array - only run once on mount
 
   const toggleMusic = () => {
     if (!sound) return;
