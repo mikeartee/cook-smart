@@ -26,6 +26,40 @@ const BRANDS = [
 
 // Important types to preserve
 const IMPORTANT_TYPES = {
+  chicken: [
+    'breast',
+    'thigh',
+    'drumstick',
+    'wing',
+    'tender',
+    'cutlet',
+    'ground',
+    'whole',
+    'rotisserie',
+  ],
+  beef: [
+    'ground',
+    'steak',
+    'roast',
+    'brisket',
+    'chuck',
+    'sirloin',
+    'ribeye',
+    'tenderloin',
+    'short rib',
+  ],
+  pork: [
+    'chop',
+    'loin',
+    'tenderloin',
+    'shoulder',
+    'belly',
+    'ribs',
+    'ground',
+    'sausage',
+    'bacon',
+    'ham',
+  ],
   cheese: [
     'cheddar',
     'swiss',
@@ -172,7 +206,37 @@ export function normalizeIngredient(ingredient: string): NormalizedIngredient {
 function detectType(ingredient: string): string | undefined {
   const lower = ingredient.toLowerCase();
 
-  for (const [_category, types] of Object.entries(IMPORTANT_TYPES)) {
+  // Check meats first with their base word to avoid confusion
+  // (e.g., "chicken breast" not "breast cheese")
+  if (lower.includes('chicken')) {
+    for (const type of IMPORTANT_TYPES.chicken) {
+      if (lower.includes(type)) {
+        return type;
+      }
+    }
+  }
+
+  if (lower.includes('beef')) {
+    for (const type of IMPORTANT_TYPES.beef) {
+      if (lower.includes(type)) {
+        return type;
+      }
+    }
+  }
+
+  if (lower.includes('pork')) {
+    for (const type of IMPORTANT_TYPES.pork) {
+      if (lower.includes(type)) {
+        return type;
+      }
+    }
+  }
+
+  // Check other categories
+  for (const [category, types] of Object.entries(IMPORTANT_TYPES)) {
+    if (category === 'chicken' || category === 'beef' || category === 'pork') {
+      continue; // Already checked above
+    }
     for (const type of types) {
       if (lower.includes(type)) {
         return type;
@@ -189,6 +253,17 @@ function detectType(ingredient: string): string | undefined {
 function detectBase(ingredient: string): string {
   const lower = ingredient.toLowerCase();
 
+  // Check meats first (more specific)
+  if (lower.includes('chicken')) return 'chicken';
+  if (lower.includes('beef')) return 'beef';
+  if (lower.includes('pork')) return 'pork';
+  if (lower.includes('turkey')) return 'turkey';
+  if (lower.includes('fish')) return 'fish';
+  if (lower.includes('salmon')) return 'salmon';
+  if (lower.includes('tuna')) return 'tuna';
+  if (lower.includes('shrimp')) return 'shrimp';
+
+  // Check other categories
   if (lower.includes('cheese')) return 'cheese';
   if (lower.includes('milk')) return 'milk';
   if (lower.includes('chocolate')) return 'chocolate';
