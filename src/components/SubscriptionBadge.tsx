@@ -25,12 +25,12 @@ export const SubscriptionBadge: React.FC<Props> = ({
     let color = '#10B981';
 
     if (isCreator) {
-      title = 'Creator • Lifetime Access';
-      subtitle = 'App Developer';
+      title = 'Developer • Lifetime Access';
+      subtitle = 'Built Cook Smart';
       icon = 'code';
       color = '#8B5CF6';
     } else if (isCoFounder) {
-      title = 'Co-Founder • Lifetime Access';
+      title = 'Creator • Lifetime Access';
       subtitle = 'Thank you for inspiring Cook Smart!';
       icon = 'star';
       color = '#F59E0B';
