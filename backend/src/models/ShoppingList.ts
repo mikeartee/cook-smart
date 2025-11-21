@@ -21,6 +21,12 @@ export class ShoppingListModel {
     category: string = 'other',
     recipeId?: string,
   ): Promise<ShoppingListItem> {
+    // Sanitize input: trim and remove extra spaces
+    const cleanIngredient = ingredient.trim().replace(/\s+/g, ' ');
+    const cleanQuantity = quantity.trim();
+    const cleanUnit = unit.trim();
+    const cleanCategory = category.trim().toLowerCase();
+
     const query = `
       INSERT INTO shopping_list_items (user_id, ingredient, quantity, unit, category, recipe_id, date_added)
       VALUES ($1, $2, $3, $4, $5, $6, NOW())
@@ -28,10 +34,10 @@ export class ShoppingListModel {
     `;
     const result = await pool.query(query, [
       userId,
-      ingredient,
-      quantity,
-      unit,
-      category,
+      cleanIngredient,
+      cleanQuantity,
+      cleanUnit,
+      cleanCategory,
       recipeId,
     ]);
     return result.rows[0];
@@ -73,6 +79,12 @@ export class ShoppingListModel {
     unit: string,
     category: string,
   ): Promise<void> {
+    // Sanitize input: trim and remove extra spaces
+    const cleanIngredient = ingredient.trim().replace(/\s+/g, ' ');
+    const cleanQuantity = quantity.trim();
+    const cleanUnit = unit.trim();
+    const cleanCategory = category.trim().toLowerCase();
+
     const query = `
       UPDATE shopping_list_items 
       SET ingredient = $3, quantity = $4, unit = $5, category = $6
@@ -81,10 +93,10 @@ export class ShoppingListModel {
     await pool.query(query, [
       itemId,
       userId,
-      ingredient,
-      quantity,
-      unit,
-      category,
+      cleanIngredient,
+      cleanQuantity,
+      cleanUnit,
+      cleanCategory,
     ]);
   }
 
@@ -99,11 +111,16 @@ export class ShoppingListModel {
     `;
 
     for (const item of ingredients) {
+      // Sanitize each ingredient
+      const cleanIngredient = item.ingredient.trim().replace(/\s+/g, ' ');
+      const cleanQuantity = item.quantity.trim();
+      const cleanUnit = item.unit.trim();
+
       await pool.query(query, [
         userId,
-        item.ingredient,
-        item.quantity,
-        item.unit,
+        cleanIngredient,
+        cleanQuantity,
+        cleanUnit,
         recipeId,
       ]);
     }

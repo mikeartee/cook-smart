@@ -152,7 +152,16 @@ router.put('/:itemId', authenticateToken, async (req, res) => {
       unit,
       category,
     );
-    return res.json({success: true, message: 'Item updated'});
+
+    // Get the updated item to return
+    const items = await ShoppingListModel.getUserItems(userId);
+    const updatedItem = items.find(item => item.id === itemId);
+
+    return res.json({
+      success: true,
+      message: 'Item updated',
+      item: updatedItem,
+    });
   } catch (_error) {
     return res.status(500).json({error: 'Failed to update item'});
   }
@@ -172,7 +181,16 @@ router.patch('/:itemId/toggle', authenticateToken, async (req, res) => {
     }
 
     await ShoppingListModel.toggleItemCompleted(userId, itemId);
-    return res.json({success: true, message: 'Item status updated'});
+
+    // Get the updated item to return
+    const items = await ShoppingListModel.getUserItems(userId);
+    const updatedItem = items.find(item => item.id === itemId);
+
+    return res.json({
+      success: true,
+      message: 'Item status updated',
+      item: updatedItem,
+    });
   } catch (_error) {
     return res.status(500).json({error: 'Failed to toggle item'});
   }

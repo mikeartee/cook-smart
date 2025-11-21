@@ -18,7 +18,6 @@ import ProfileScreen from '../screens/ProfileScreenNew';
 import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
 import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
 import {ChangePasswordScreen} from '../screens/ChangePasswordScreen';
-import {AdminNavigator} from './AdminNavigator';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -80,13 +79,6 @@ const AccountStack = () => (
 const MainTabNavigator = () => {
   const {user} = useAuth();
   const insets = useSafeAreaInsets();
-
-  // Check if user has admin access
-  const hasAdminAccess =
-    user?.is_co_founder ||
-    user?.is_creator ||
-    (user?.email === 'bradturnbough80@gmail.com' &&
-      user?.has_lifetime_subscription);
 
   return (
     <Tab.Navigator
@@ -192,19 +184,6 @@ const MainTabNavigator = () => {
           ),
         }}
       />
-      {hasAdminAccess && (
-        <Tab.Screen
-          name="Admin"
-          component={AdminNavigator}
-          options={{
-            title: 'Admin Dashboard',
-            tabBarLabel: 'Admin',
-            tabBarIcon: ({color, size}) => (
-              <Icon name="admin-panel-settings" size={size} color={color} />
-            ),
-          }}
-        />
-      )}
     </Tab.Navigator>
   );
 };

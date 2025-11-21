@@ -54,7 +54,7 @@ class SystemHealthServiceClass {
 
     // Determine overall health
     let overall: 'healthy' | 'degraded' | 'critical' = 'healthy';
-    
+
     if (
       database.status === 'disconnected' ||
       api.status === 'down' ||
@@ -100,7 +100,7 @@ class SystemHealthServiceClass {
       totalIdle += cpu.times.idle;
     });
 
-    const cpuUsage = 100 - ~~(100 * totalIdle / totalTick);
+    const cpuUsage = 100 - ~~((100 * totalIdle) / totalTick);
     const memoryUsage = (usedMem / totalMem) * 100;
 
     return {
@@ -130,7 +130,7 @@ class SystemHealthServiceClass {
         WHERE state = 'active'
       `;
       const connResult = await pool.query(connQuery);
-      const { active_connections, max_connections } = connResult.rows[0];
+      const {active_connections, max_connections} = connResult.rows[0];
 
       // Get database size
       const sizeQuery = `
@@ -156,7 +156,7 @@ class SystemHealthServiceClass {
         databaseSize,
         slowQueries,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         status: 'disconnected' as const,
         activeConnections: 0,
@@ -181,11 +181,11 @@ class SystemHealthServiceClass {
         WHERE created_at >= NOW() - INTERVAL '1 hour'
       `;
       const errorResult = await pool.query(errorQuery);
-      const { total_errors, recent_errors } = errorResult.rows[0];
+      const {total_errors, recent_errors} = errorResult.rows[0];
 
       const totalErrors = parseInt(total_errors || 0);
-      const recentErrors = parseInt(recent_errors || 0);
-      
+      const _recentErrors = parseInt(recent_errors || 0);
+
       // Simplified metrics (in production, you'd track these properly)
       const errorRate = totalErrors / 60; // errors per minute
       const averageResponseTime = 150; // ms (placeholder)
@@ -204,7 +204,7 @@ class SystemHealthServiceClass {
         errorRate: Math.round(errorRate * 100) / 100,
         requestsPerMinute,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         status: 'down' as const,
         averageResponseTime: 0,
@@ -242,13 +242,14 @@ class SystemHealthServiceClass {
         FROM recipe_cache
       `;
       const result = await pool.query(query);
-      const { total_cached, recent_hits } = result.rows[0];
+      const {total_cached, recent_hits} = result.rows[0];
 
       const totalCached = parseInt(total_cached || 0);
       const recentHits = parseInt(recent_hits || 0);
-      
+
       // Calculate hit rate (simplified)
-      const recipeHitRate = totalCached > 0 ? (recentHits / totalCached) * 100 : 0;
+      const recipeHitRate =
+        totalCached > 0 ? (recentHits / totalCached) * 100 : 0;
 
       return {
         recipeHitRate: Math.round(recipeHitRate * 100) / 100,
@@ -256,7 +257,7 @@ class SystemHealthServiceClass {
         totalCached,
         memoryUsed: 0, // placeholder
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         recipeHitRate: 0,
         barcodeHitRate: 0,

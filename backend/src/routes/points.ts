@@ -12,7 +12,7 @@ router.get('/', authenticateToken, async (req, res) => {
       return res.status(401).json({error: 'Unauthorized'});
     }
 
-    const userPoints = await UserPointsModel.getUserPoints(userId);
+    const userPoints: any = await UserPointsModel.getUserPoints(userId);
 
     if (!userPoints) {
       return res.json({
@@ -23,7 +23,13 @@ router.get('/', authenticateToken, async (req, res) => {
       });
     }
 
-    return res.json(userPoints);
+    // Transform snake_case to camelCase for frontend
+    return res.json({
+      userId: userPoints.user_id || userId,
+      totalPoints: userPoints.total_points || 0,
+      level: userPoints.level || 0,
+      lastUpdated: userPoints.last_updated || new Date(),
+    });
   } catch (_error) {
     return res.status(500).json({error: 'Failed to get user points'});
   }

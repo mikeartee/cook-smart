@@ -1,9 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import {Request, Response, NextFunction} from 'express';
 import jwt from 'jsonwebtoken';
-import AdminUserModel from '../models/AdminUser';
-import ApprovedAdminEmailModel from '../models/ApprovedAdminEmail';
 
-const JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET =
+  process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key';
 
 interface AdminJWTPayload {
   id: number;
@@ -23,66 +22,85 @@ declare global {
 
 /**
  * Middleware to require admin authentication
- * Verifies JWT token and checks if user is an admin
+ * Verifies JWT token and checks if user has is_admin flag
+ * Simple approach - only checks users table
  */
 export const requireAdmin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({error: 'Authentication required'});
       return;
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify JWT token
-    let decoded: AdminJWTPayload;
+    let decoded: any;
     try {
-      decoded = jwt.verify(token, JWT_SECRET) as AdminJWTPayload;
-    } catch (error) {
-      res.status(401).json({ error: 'Invalid or expired token' });
+      decoded = jwt.verify(token, JWT_SECRET) as any;
+    } catch (_error) {
+      res.status(401).json({error: 'Invalid or expired token'});
       return;
     }
 
-    // Verify admin still exists and is active
-    const admin = await AdminUserModel.findById(decoded.id);
+    // Get user/admin from database
+    const pool = require('../config/database').default;
+    const userId = decoded.userId || decoded.id;
 
-    if (!admin) {
-      res.status(401).json({ error: 'Admin account not found' });
+    // Check users table first (for regular users with admin flags)
+    const userResult = await pool.query(
+      'SELECT id, email, first_name, last_name, is_admin, is_co_founder, is_creator FROM users WHERE id = $1',
+      [userId],
+    );
+
+    if (userResult.rows.length > 0) {
+      const user = userResult.rows[0];
+
+      // Check if user has admin privileges
+      if (user.is_admin || user.is_co_founder || user.is_creator) {
+        req.admin = {
+          id: user.id,
+          email: user.email,
+          username: user.first_name || user.email,
+          is_super_admin: user.is_co_founder || user.is_creator,
+        };
+        next();
+        return;
+      }
+    }
+
+    // Fallback: check admin_users table (for dedicated admin accounts)
+    const adminResult = await pool.query(
+      'SELECT id, email, username, name, is_super_admin FROM admin_users WHERE id = $1',
+      [userId],
+    );
+
+    if (adminResult.rows.length > 0) {
+      const admin = adminResult.rows[0];
+      req.admin = {
+        id: admin.id,
+        email: admin.email,
+        username: admin.username,
+        is_super_admin: admin.is_super_admin,
+      };
+      next();
       return;
     }
 
-    if (!admin.email_verified) {
-      res.status(403).json({ error: 'Email not verified' });
-      return;
-    }
-
-    // Check if email is still approved
-    const isApproved = await ApprovedAdminEmailModel.isApproved(admin.email);
-
-    if (!isApproved) {
-      res.status(403).json({ error: 'Admin access revoked' });
-      return;
-    }
-
-    // Attach admin info to request
-    req.admin = {
-      id: admin.id,
-      email: admin.email,
-      username: admin.username,
-      is_super_admin: await ApprovedAdminEmailModel.isSuperAdmin(admin.email),
-    };
+    // No admin access found
+    res.status(403).json({error: 'Admin access denied'});
 
     next();
   } catch (error) {
     console.error('Admin auth middleware error:', error);
-    res.status(500).json({ error: 'Authentication error' });
+    res.status(500).json({error: 'Authentication error'});
   }
 };
 
@@ -93,23 +111,23 @@ export const requireAdmin = async (
 export const requireSuperAdmin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     if (!req.admin) {
-      res.status(401).json({ error: 'Authentication required' });
+      res.status(401).json({error: 'Authentication required'});
       return;
     }
 
     if (!req.admin.is_super_admin) {
-      res.status(403).json({ error: 'Super admin access required' });
+      res.status(403).json({error: 'Super admin access required'});
       return;
     }
 
     next();
   } catch (_error) {
     console.error('Super admin auth middleware error:', _error);
-    res.status(500).json({ error: 'Authorization error' });
+    res.status(500).json({error: 'Authorization error'});
   }
 };
 
@@ -117,12 +135,12 @@ export const requireSuperAdmin = async (
  * Rate limiting for login attempts
  * Simple in-memory rate limiter (5 attempts per 15 minutes per IP)
  */
-const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const loginAttempts = new Map<string, {count: number; resetAt: number}>();
 
 export const rateLimitLogin = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
@@ -142,21 +160,24 @@ export const rateLimitLogin = (
       attempts.count++;
     } else {
       // Reset window
-      loginAttempts.set(ip, { count: 1, resetAt: now + windowMs });
+      loginAttempts.set(ip, {count: 1, resetAt: now + windowMs});
     }
   } else {
-    loginAttempts.set(ip, { count: 1, resetAt: now + windowMs });
+    loginAttempts.set(ip, {count: 1, resetAt: now + windowMs});
   }
 
   next();
 };
 
 // Clean up old entries every hour
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, attempts] of loginAttempts.entries()) {
-    if (now > attempts.resetAt) {
-      loginAttempts.delete(ip);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [ip, attempts] of loginAttempts.entries()) {
+      if (now > attempts.resetAt) {
+        loginAttempts.delete(ip);
+      }
     }
-  }
-}, 60 * 60 * 1000);
+  },
+  60 * 60 * 1000,
+);

@@ -1,6 +1,6 @@
-import express, { Request, Response } from 'express';
-import { AdminUsersController } from '../controllers/AdminUsersController';
-import { requireAdmin } from '../middleware/adminAuth';
+import express, {Request, Response} from 'express';
+import {AdminUsersController} from '../controllers/AdminUsersController';
+import {requireAdmin} from '../middleware/adminAuth';
 
 const router = express.Router();
 const controller = new AdminUsersController();
@@ -31,6 +31,11 @@ router.patch('/:id/suspend', async (req: Request, res: Response) => {
 // Delete user account (requires confirmation)
 router.delete('/:id', async (req: Request, res: Response) => {
   await controller.deleteUser(req, res);
+});
+
+// Grant or revoke admin access
+router.patch('/:id/admin-access', async (req: Request, res: Response) => {
+  await controller.updateAdminAccess(req, res);
 });
 
 export default router;

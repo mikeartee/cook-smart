@@ -1,35 +1,54 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 
 interface Props {
-  onAdd: (ingredient: string, quantity: string, unit: string, category: string) => void;
+  onAdd: (
+    ingredient: string,
+    quantity: string,
+    unit: string,
+    category: string,
+  ) => void;
   onCancel: () => void;
 }
 
-export const AddShoppingItem: React.FC<Props> = ({ onAdd, onCancel }) => {
+export const AddShoppingItem: React.FC<Props> = ({onAdd, onCancel}) => {
   const [ingredient, setIngredient] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
   const [category, setCategory] = useState('other');
 
   const categories = [
-    { value: 'produce', label: '🥬 Produce' },
-    { value: 'meat', label: '🥩 Meat' },
-    { value: 'dairy', label: '🥛 Dairy' },
-    { value: 'pantry', label: '🥫 Pantry' },
-    { value: 'frozen', label: '🧊 Frozen' },
-    { value: 'bakery', label: '🍞 Bakery' },
-    { value: 'other', label: '📦 Other' }
+    {value: 'produce', label: '🥬 Produce'},
+    {value: 'meat', label: '🥩 Meat'},
+    {value: 'dairy', label: '🥛 Dairy'},
+    {value: 'pantry', label: '🥫 Pantry'},
+    {value: 'frozen', label: '🧊 Frozen'},
+    {value: 'bakery', label: '🍞 Bakery'},
+    {value: 'other', label: '📦 Other'},
   ];
 
   const handleAdd = () => {
-    if (!ingredient.trim()) {
+    const trimmedIngredient = ingredient.trim();
+    const trimmedQuantity = quantity.trim();
+    const trimmedUnit = unit.trim();
+
+    if (!trimmedIngredient) {
       Alert.alert('Error', 'Please enter an ingredient name');
       return;
     }
 
-    onAdd(ingredient.trim(), quantity.trim(), unit.trim(), category);
-    
+    // Clean up any extra spaces in the ingredient name
+    const cleanedIngredient = trimmedIngredient.replace(/\s+/g, ' ');
+
+    onAdd(cleanedIngredient, trimmedQuantity, trimmedUnit, category);
+
     // Reset form
     setIngredient('');
     setQuantity('');
@@ -40,14 +59,14 @@ export const AddShoppingItem: React.FC<Props> = ({ onAdd, onCancel }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Add Shopping Item</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Ingredient name"
         value={ingredient}
         onChangeText={setIngredient}
       />
-      
+
       <View style={styles.row}>
         <TextInput
           style={[styles.input, styles.quantityInput]}
@@ -63,7 +82,7 @@ export const AddShoppingItem: React.FC<Props> = ({ onAdd, onCancel }) => {
           onChangeText={setUnit}
         />
       </View>
-      
+
       <Text style={styles.label}>Category:</Text>
       <View style={styles.categoryGrid}>
         {categories.map(cat => (
@@ -71,20 +90,20 @@ export const AddShoppingItem: React.FC<Props> = ({ onAdd, onCancel }) => {
             key={cat.value}
             style={[
               styles.categoryButton,
-              category === cat.value && styles.selectedCategory
+              category === cat.value && styles.selectedCategory,
             ]}
-            onPress={() => setCategory(cat.value)}
-          >
-            <Text style={[
-              styles.categoryText,
-              category === cat.value && styles.selectedCategoryText
-            ]}>
+            onPress={() => setCategory(cat.value)}>
+            <Text
+              style={[
+                styles.categoryText,
+                category === cat.value && styles.selectedCategoryText,
+              ]}>
               {cat.label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
-      
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
           <Text style={styles.cancelButtonText}>Cancel</Text>

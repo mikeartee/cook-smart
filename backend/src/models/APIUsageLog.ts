@@ -1,6 +1,6 @@
 /**
  * API Usage Log Model
- * 
+ *
  * Tracks all API calls to external recipe providers for monitoring and analytics
  */
 
@@ -27,15 +27,22 @@ export class APIUsageLogModel {
     success: boolean,
     cached: boolean,
     responseTime: number,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     try {
       await pool.query(
         `INSERT INTO api_usage_logs (provider, endpoint, timestamp, success, cached, response_time, error_message)
          VALUES ($1, $2, NOW(), $3, $4, $5, $6)`,
-        [provider, endpoint, success, cached, responseTime, errorMessage || null]
+        [
+          provider,
+          endpoint,
+          success,
+          cached,
+          responseTime,
+          errorMessage || null,
+        ],
       );
-    } catch (error) {
+    } catch (_error) {
       // Silently fail if table doesn't exist - logging is optional
       // The recipe system will work fine without it
     }
@@ -54,7 +61,7 @@ export class APIUsageLogModel {
         AVG(response_time) as avg_response_time
        FROM api_usage_logs
        WHERE timestamp >= CURRENT_DATE
-       GROUP BY provider`
+       GROUP BY provider`,
     );
 
     return result.rows;
@@ -72,26 +79,33 @@ export class APIUsageLogModel {
         AVG(response_time) as avg_response_time
        FROM api_usage_logs
        WHERE provider = $1 AND timestamp >= CURRENT_DATE`,
-      [provider]
+      [provider],
     );
 
-    return result.rows[0] || {
-      total_calls: 0,
-      successful_calls: 0,
-      cached_calls: 0,
-      avg_response_time: 0,
-    };
+    return (
+      result.rows[0] || {
+        total_calls: 0,
+        successful_calls: 0,
+        cached_calls: 0,
+        avg_response_time: 0,
+      }
+    );
   }
 
   /**
    * Check if provider is approaching rate limit (80% threshold)
    */
-  static async checkRateLimitWarning(provider: string, dailyLimit: number): Promise<boolean> {
+  static async checkRateLimitWarning(
+    provider: string,
+    dailyLimit: number,
+  ): Promise<boolean> {
     const stats = await this.getProviderStatsToday(provider);
     const threshold = dailyLimit * 0.8;
-    
+
     if (parseInt(stats.total_calls) >= threshold) {
-      console.warn(`⚠️  ${provider} approaching rate limit: ${stats.total_calls}/${dailyLimit} (${Math.round((stats.total_calls / dailyLimit) * 100)}%)`);
+      console.warn(
+        `⚠️  ${provider} approaching rate limit: ${stats.total_calls}/${dailyLimit} (${Math.round((stats.total_calls / dailyLimit) * 100)}%)`,
+      );
       return true;
     }
 
@@ -107,7 +121,7 @@ export class APIUsageLogModel {
        WHERE success = false
        ORDER BY timestamp DESC
        LIMIT $1`,
-      [limit]
+      [limit],
     );
 
     return result.rows;
@@ -120,7 +134,7 @@ export class APIUsageLogModel {
     const result = await pool.query(
       `DELETE FROM api_usage_logs
        WHERE timestamp < NOW() - INTERVAL '30 days'
-       RETURNING id`
+       RETURNING id`,
     );
 
     return result.rowCount || 0;

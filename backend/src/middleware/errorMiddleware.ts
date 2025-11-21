@@ -1,8 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import {Request, Response, NextFunction} from 'express';
 import NotificationService from '../services/NotificationService';
 import ThrottleManager from '../services/ThrottleManager';
 import AutoRepairSystem from '../services/AutoRepairSystem';
 import HealthMonitor from '../services/HealthMonitor';
+import ErrorLogModel from '../models/ErrorLog';
 
 type ErrorSeverity = 'critical' | 'high' | 'medium' | 'low';
 
@@ -14,7 +15,7 @@ function classifyErrorSeverity(error: any, statusCode: number): ErrorSeverity {
 
   // Critical errors
   if (
-    message.includes('database') && message.includes('connection') ||
+    (message.includes('database') && message.includes('connection')) ||
     message.includes('econnrefused') ||
     message.includes('authentication system') ||
     statusCode === 503
@@ -49,7 +50,10 @@ function classifyErrorSeverity(error: any, statusCode: number): ErrorSeverity {
 /**
  * Extract context from request for error notification
  */
-function extractContext(req: Request, error: any): {
+function extractContext(
+  req: Request,
+  _error: any,
+): {
   userId?: string;
   endpoint?: string;
   affectedUsers?: number;
@@ -76,7 +80,10 @@ function getStatusCode(error: any): number {
   if (error.message?.includes('not found')) {
     return 404;
   }
-  if (error.message?.includes('unauthorized') || error.message?.includes('authentication')) {
+  if (
+    error.message?.includes('unauthorized') ||
+    error.message?.includes('authentication')
+  ) {
     return 401;
   }
   if (error.message?.includes('forbidden')) {
@@ -91,7 +98,10 @@ function getStatusCode(error: any): number {
 /**
  * Format error response for client
  */
-function formatErrorResponse(error: any, statusCode: number): {
+function formatErrorResponse(
+  error: any,
+  statusCode: number,
+): {
   error: string;
   message: string;
   statusCode: number;
@@ -100,7 +110,7 @@ function formatErrorResponse(error: any, statusCode: number): {
   const isProduction = process.env.NODE_ENV === 'production';
 
   let message = 'An error occurred';
-  
+
   if (!isProduction || statusCode < 500) {
     // Show actual message for client errors (4xx) or in development
     message = error.message || message;
@@ -136,7 +146,7 @@ export function errorMiddleware(
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction,
 ): void {
   // Log error to console
   console.error('❌ Error caught by middleware:', err);
@@ -149,11 +159,34 @@ export function errorMiddleware(
   const severity = classifyErrorSeverity(err, statusCode);
   const context = extractContext(req, err);
 
+  // Save error to database (async, don't block response)
+  (async () => {
+    try {
+      await ErrorLogModel.log({
+        severity,
+        errorType: err.name || 'Error',
+        message: err.message || 'Unknown error',
+        stack: err.stack,
+        endpoint: `${req.method} ${req.path}`,
+        method: req.method,
+        statusCode,
+        userId: (req as any).user?.id,
+        requestBody: req.method !== 'GET' ? req.body : undefined,
+      });
+    } catch (logError) {
+      console.error('Failed to log error to database:', logError);
+    }
+  })();
+
   // Generate throttle key
   const throttleKey = ThrottleManager.generateErrorKey(err, context.endpoint);
 
   // Check if we should send notification (throttling)
-  const shouldNotify = ThrottleManager.shouldSendNotification(throttleKey, 'error', severity);
+  const shouldNotify = ThrottleManager.shouldSendNotification(
+    throttleKey,
+    'error',
+    severity,
+  );
 
   if (shouldNotify) {
     // Send error notification asynchronously (don't block response)
@@ -165,12 +198,13 @@ export function errorMiddleware(
         // Send notification with repair status
         await NotificationService.sendErrorNotification(err, severity, {
           ...context,
-          ...(repairResult && {
-            repairAttempted: true,
-            repairSuccess: repairResult.success,
-            repairMessage: repairResult.message,
-            repairAction: repairResult.action,
-          } as any),
+          ...(repairResult &&
+            ({
+              repairAttempted: true,
+              repairSuccess: repairResult.success,
+              repairMessage: repairResult.message,
+              repairAction: repairResult.action,
+            } as any)),
         });
 
         // Record that notification was sent
@@ -182,7 +216,9 @@ export function errorMiddleware(
   } else {
     // Record that notification was throttled
     ThrottleManager.recordNotification(throttleKey, 'error', false);
-    console.log(`⏸️  Error notification throttled (${ThrottleManager.getThrottledCount(throttleKey)} throttled)`);
+    console.log(
+      `⏸️  Error notification throttled (${ThrottleManager.getThrottledCount(throttleKey)} throttled)`,
+    );
   }
 
   // Send error response to client
@@ -193,12 +229,35 @@ export function errorMiddleware(
 /**
  * 404 Not Found handler
  * Should be added before the error middleware
+ * Filters out common bot/scanner traffic to reduce noise
  */
 export function notFoundHandler(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
+  // Common bot/scanner paths to ignore (don't log as errors)
+  const botPaths = [
+    '/GponForm',
+    '/diag_Form',
+    '/favicon.ico',
+    '/.env',
+    '/wp-admin',
+    '/wp-login',
+    '/admin',
+    '/phpmyadmin',
+    '/xmlrpc.php',
+    '/.git',
+  ];
+
+  const isBotTraffic = botPaths.some(path => req.path.includes(path));
+
+  if (isBotTraffic) {
+    // Silently return 404 for bot traffic without logging
+    res.status(404).json({error: 'Not Found'});
+    return;
+  }
+
   const error = new Error(`Route not found: ${req.method} ${req.path}`);
   (error as any).statusCode = 404;
   next(error);

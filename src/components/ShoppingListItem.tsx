@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+  Alert,
+} from 'react-native';
 
 interface ShoppingItem {
   id: string;
@@ -14,7 +21,13 @@ interface ShoppingItem {
 interface Props {
   item: ShoppingItem;
   onToggleCompleted: (itemId: string) => void;
-  onUpdate: (itemId: string, ingredient: string, quantity: string, unit: string, category: string) => void;
+  onUpdate: (
+    itemId: string,
+    ingredient: string,
+    quantity: string,
+    unit: string,
+    category: string,
+  ) => void;
   onDelete: (itemId: string) => void;
 }
 
@@ -22,7 +35,7 @@ export const ShoppingListItem: React.FC<Props> = ({
   item,
   onToggleCompleted,
   onUpdate,
-  onDelete
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editIngredient, setEditIngredient] = useState(item.ingredient);
@@ -30,12 +43,25 @@ export const ShoppingListItem: React.FC<Props> = ({
   const [editUnit, setEditUnit] = useState(item.unit);
 
   const handleSave = () => {
-    if (!editIngredient.trim()) {
+    const trimmedIngredient = editIngredient.trim();
+    const trimmedQuantity = editQuantity.trim();
+    const trimmedUnit = editUnit.trim();
+
+    if (!trimmedIngredient) {
       Alert.alert('Error', 'Ingredient name is required');
       return;
     }
-    
-    onUpdate(item.id, editIngredient.trim(), editQuantity.trim(), editUnit.trim(), item.category);
+
+    // Clean up any extra spaces in the ingredient name
+    const cleanedIngredient = trimmedIngredient.replace(/\s+/g, ' ');
+
+    onUpdate(
+      item.id,
+      cleanedIngredient,
+      trimmedQuantity,
+      trimmedUnit,
+      item.category,
+    );
     setIsEditing(false);
   };
 
@@ -51,9 +77,13 @@ export const ShoppingListItem: React.FC<Props> = ({
       'Delete Item',
       `Remove "${item.ingredient}" from shopping list?`,
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) }
-      ]
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => onDelete(item.id),
+        },
+      ],
     );
   };
 
@@ -93,34 +123,30 @@ export const ShoppingListItem: React.FC<Props> = ({
   }
 
   return (
-    <View style={[styles.container, item.isCompleted && styles.completedContainer]}>
+    <View
+      style={[styles.container, item.isCompleted && styles.completedContainer]}>
       <TouchableOpacity
         style={styles.checkbox}
-        onPress={() => onToggleCompleted(item.id)}
-      >
+        onPress={() => onToggleCompleted(item.id)}>
         <Text style={styles.checkboxText}>
           {item.isCompleted ? '✅' : '⬜'}
         </Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.content} onPress={() => setIsEditing(true)}>
-        <Text style={[
-          styles.ingredient,
-          item.isCompleted && styles.completedText
-        ]}>
-          {item.ingredient}
+
+      <TouchableOpacity
+        style={styles.content}
+        onPress={() => setIsEditing(true)}>
+        <Text
+          style={[styles.ingredient, item.isCompleted && styles.completedText]}>
+          {item.ingredient.trim()}
         </Text>
-        <Text style={[
-          styles.quantity,
-          item.isCompleted && styles.completedText
-        ]}>
-          {item.quantity} {item.unit}
+        <Text
+          style={[styles.quantity, item.isCompleted && styles.completedText]}>
+          {[item.quantity.trim(), item.unit.trim()].filter(Boolean).join(' ')}
         </Text>
-        {item.recipeId && (
-          <Text style={styles.recipeTag}>📝 Recipe</Text>
-        )}
+        {item.recipeId && <Text style={styles.recipeTag}>📝 Recipe</Text>}
       </TouchableOpacity>
-      
+
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
         <Text style={styles.deleteText}>🗑️</Text>
       </TouchableOpacity>

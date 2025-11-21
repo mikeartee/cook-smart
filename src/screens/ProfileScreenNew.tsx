@@ -101,8 +101,6 @@ const ProfileScreenNew: React.FC = () => {
     },
   ];
 
-  // Admin access moved to dedicated tab in bottom navigation
-
   return (
     <ScrollView
       style={styles.container}

@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import {Pool} from 'pg';
 
 interface RepairResult {
   success: boolean;
@@ -34,7 +34,7 @@ class DatabaseConnectionRepair implements AutoRepairStrategy {
     );
   }
 
-  async repair(error: Error): Promise<RepairResult> {
+  async repair(_error: Error): Promise<RepairResult> {
     try {
       if (!this.pool) {
         return {
@@ -54,11 +54,12 @@ class DatabaseConnectionRepair implements AutoRepairStrategy {
         message: 'Database connection restored',
         action: 'Successfully reconnected to PostgreSQL',
       };
-    } catch (err) {
+    } catch (_err) {
       return {
         success: false,
         message: 'Failed to restore database connection',
-        action: 'Manual intervention required - check database status and credentials',
+        action:
+          'Manual intervention required - check database status and credentials',
       };
     }
   }
@@ -79,7 +80,7 @@ class RateLimitRepair implements AutoRepairStrategy {
     );
   }
 
-  async repair(error: Error): Promise<RepairResult> {
+  async repair(_error: Error): Promise<RepairResult> {
     // For rate limits, we can't really "fix" it, but we can provide guidance
     return {
       success: true,
@@ -104,7 +105,7 @@ class APITimeoutRepair implements AutoRepairStrategy {
     );
   }
 
-  async repair(error: Error): Promise<RepairResult> {
+  async repair(_error: Error): Promise<RepairResult> {
     // For timeouts, suggest retry with exponential backoff
     return {
       success: true,
@@ -130,7 +131,7 @@ class AuthenticationRepair implements AutoRepairStrategy {
     );
   }
 
-  async repair(error: Error): Promise<RepairResult> {
+  async repair(_error: Error): Promise<RepairResult> {
     // For auth errors, we can't auto-fix, but provide guidance
     return {
       success: false,
@@ -162,9 +163,9 @@ class AutoRepairSystem {
    */
   setDatabasePool(pool: Pool): void {
     const dbStrategy = this.strategies.find(
-      s => s instanceof DatabaseConnectionRepair
+      s => s instanceof DatabaseConnectionRepair,
     ) as DatabaseConnectionRepair;
-    
+
     if (dbStrategy) {
       dbStrategy.setPool(pool);
     }
@@ -186,7 +187,7 @@ class AutoRepairSystem {
 
     try {
       const result = await strategy.repair(error);
-      
+
       // Record repair attempt
       this.recordRepair(error.message, result);
 
@@ -213,12 +214,12 @@ class AutoRepairSystem {
   private recordRepair(errorMessage: string, result: RepairResult): void {
     const history = this.repairHistory.get(errorMessage) || [];
     history.push(result);
-    
+
     // Keep only last 10 repair attempts per error type
     if (history.length > 10) {
       history.shift();
     }
-    
+
     this.repairHistory.set(errorMessage, history);
   }
 
@@ -275,4 +276,4 @@ class AutoRepairSystem {
 }
 
 export default new AutoRepairSystem();
-export { AutoRepairStrategy, RepairResult };
+export {AutoRepairStrategy, RepairResult};

@@ -13,10 +13,24 @@ import pool from './config/database';
 import healthRoutes from './routes/health';
 
 // Load environment variables
-dotenv.config();
+const envPath = __dirname + '/../.env';
+console.log('Loading .env from:', envPath);
+const envResult = dotenv.config({path: envPath});
+if (envResult.error) {
+  console.error('Error loading .env:', envResult.error);
+} else {
+  console.log('✅ .env loaded successfully');
+  console.log(
+    'DISCORD_ERROR_WEBHOOK_URL:',
+    process.env.DISCORD_ERROR_WEBHOOK_URL ? 'SET' : 'NOT SET',
+  );
+}
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
+
+// Trust proxy - required for rate limiting behind reverse proxy/load balancer
+app.set('trust proxy', 1);
 
 // Initialize auto-repair system with database pool
 if (pool) {

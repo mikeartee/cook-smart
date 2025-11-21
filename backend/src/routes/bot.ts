@@ -1,5 +1,5 @@
 import express from 'express';
-import { DiscordBotService } from '../services/DiscordBotService';
+import {DiscordBotService} from '../services/DiscordBotService';
 
 const router = express.Router();
 
@@ -7,9 +7,9 @@ const router = express.Router();
 router.post('/initialize', async (req, res) => {
   try {
     DiscordBotService.initializeCommands();
-    res.json({ success: true, message: 'Bot commands initialized' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to initialize bot commands' });
+    res.json({success: true, message: 'Bot commands initialized'});
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to initialize bot commands'});
   }
 });
 
@@ -17,62 +17,62 @@ router.post('/initialize', async (req, res) => {
 router.get('/commands', async (req, res) => {
   try {
     const commands = DiscordBotService.getRegisteredCommands();
-    res.json({ commands });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get commands' });
+    res.json({commands});
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to get commands'});
   }
 });
 
 // Process bot command (webhook endpoint)
 router.post('/command', async (req, res) => {
   try {
-    const { commandName, interaction } = req.body;
-    
+    const {commandName, interaction} = req.body;
+
     if (!commandName) {
-      return res.status(400).json({ error: 'Command name required' });
+      return res.status(400).json({error: 'Command name required'});
     }
-    
+
     await DiscordBotService.processCommand(commandName, interaction);
-    return res.json({ success: true, message: 'Command processed' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to process command' });
+    return res.json({success: true, message: 'Command processed'});
+  } catch (_error) {
+    return res.status(500).json({error: 'Failed to process command'});
   }
 });
 
 // Send direct message
 router.post('/dm', async (req, res) => {
   try {
-    const { userId, message } = req.body;
-    
+    const {userId, message} = req.body;
+
     if (!userId || !message) {
-      return res.status(400).json({ error: 'User ID and message required' });
+      return res.status(400).json({error: 'User ID and message required'});
     }
-    
+
     const success = await DiscordBotService.sendDirectMessage(userId, message);
-    
+
     if (success) {
-      return res.json({ success: true, message: 'Direct message sent' });
+      return res.json({success: true, message: 'Direct message sent'});
     } else {
-      return res.status(500).json({ error: 'Failed to send direct message' });
+      return res.status(500).json({error: 'Failed to send direct message'});
     }
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to send direct message' });
+  } catch (_error) {
+    return res.status(500).json({error: 'Failed to send direct message'});
   }
 });
 
 // Update bot status
 router.post('/status', async (req, res) => {
   try {
-    const { activity } = req.body;
-    
+    const {activity} = req.body;
+
     if (!activity) {
-      return res.status(400).json({ error: 'Activity required' });
+      return res.status(400).json({error: 'Activity required'});
     }
-    
+
     await DiscordBotService.updateBotStatus(activity);
-    return res.json({ success: true, message: 'Bot status updated' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Failed to update bot status' });
+    return res.json({success: true, message: 'Bot status updated'});
+  } catch (_error) {
+    return res.status(500).json({error: 'Failed to update bot status'});
   }
 });
 
@@ -81,14 +81,17 @@ router.get('/status', async (req, res) => {
   try {
     const isConfigured = DiscordBotService.isConfigured();
     const commands = DiscordBotService.getRegisteredCommands();
-    
+
     res.json({
       configured: isConfigured,
       commandCount: commands.length,
-      commands: commands.map(cmd => ({ name: cmd.name, description: cmd.description }))
+      commands: commands.map(cmd => ({
+        name: cmd.name,
+        description: cmd.description,
+      })),
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get bot status' });
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to get bot status'});
   }
 });
 

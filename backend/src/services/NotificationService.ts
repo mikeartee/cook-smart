@@ -56,14 +56,26 @@ type ErrorSeverity = 'critical' | 'high' | 'medium' | 'low';
 type ActivityType = 'signup' | 'purchase' | 'referral';
 
 class NotificationService {
-  private errorWebhook: string | null;
-  private feedbackWebhook: string | null;
-  private activityWebhook: string | null;
+  private errorWebhook: string | null = null;
+  private feedbackWebhook: string | null = null;
+  private activityWebhook: string | null = null;
+  private initialized: boolean = false;
 
   constructor() {
-    this.errorWebhook = process.env.DISCORD_ERROR_WEBHOOK || null;
+    // Don't initialize webhooks in constructor - wait for first use
+    // This allows .env to load first
+  }
+
+  private initializeWebhooks(): void {
+    if (this.initialized) return;
+
+    this.errorWebhook =
+      process.env.DISCORD_ERROR_WEBHOOK_URL ||
+      process.env.DISCORD_ERROR_WEBHOOK ||
+      null;
     this.feedbackWebhook = process.env.DISCORD_FEEDBACK_WEBHOOK || null;
     this.activityWebhook = process.env.DISCORD_ACTIVITY_WEBHOOK || null;
+    this.initialized = true;
 
     this.validateWebhooks();
   }
@@ -110,6 +122,8 @@ class NotificationService {
     severity: ErrorSeverity,
     context?: ErrorContext,
   ): Promise<void> {
+    this.initializeWebhooks();
+
     if (!this.errorWebhook) {
       console.log('Error notification skipped - webhook not configured');
       return;
@@ -123,6 +137,8 @@ class NotificationService {
    * Send feedback notification to Discord
    */
   async sendFeedbackNotification(feedback: FeedbackData): Promise<void> {
+    this.initializeWebhooks();
+
     if (!this.feedbackWebhook) {
       console.log('Feedback notification skipped - webhook not configured');
       return;
@@ -139,6 +155,8 @@ class NotificationService {
     type: ActivityType,
     data: ActivityData,
   ): Promise<void> {
+    this.initializeWebhooks();
+
     if (!this.activityWebhook) {
       console.log('Activity notification skipped - webhook not configured');
       return;

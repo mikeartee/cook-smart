@@ -24,7 +24,11 @@ class ThrottleManager {
   /**
    * Check if notification should be sent based on throttling rules
    */
-  shouldSendNotification(key: string, type: NotificationType, severity?: string): boolean {
+  shouldSendNotification(
+    key: string,
+    type: NotificationType,
+    severity?: string,
+  ): boolean {
     // Never throttle critical errors
     if (type === 'error' && severity === 'critical') {
       return true;
@@ -42,7 +46,7 @@ class ThrottleManager {
 
     // Check throttle for errors
     const entry = this.throttleMap.get(key);
-    
+
     if (!entry) {
       // First occurrence, allow
       return true;
@@ -64,7 +68,11 @@ class ThrottleManager {
   /**
    * Record that a notification was sent or throttled
    */
-  recordNotification(key: string, type: NotificationType, wasSent: boolean): void {
+  recordNotification(
+    key: string,
+    type: NotificationType,
+    wasSent: boolean,
+  ): void {
     const entry = this.throttleMap.get(key);
 
     if (!entry) {
@@ -98,7 +106,7 @@ class ThrottleManager {
     const message = error.message || 'unknown';
     const stack = error.stack?.split('\n')[1] || ''; // First line of stack trace
     const combined = `${endpoint || 'unknown'}:${message}:${stack}`;
-    
+
     // Use MD5 hash to create unique but consistent key
     return crypto.createHash('md5').update(combined).digest('hex');
   }
@@ -107,12 +115,12 @@ class ThrottleManager {
    * Send summary of throttled notifications
    */
   async sendThrottledSummary(): Promise<void> {
-    const throttledEntries: Array<{ key: string; entry: ThrottleEntry }> = [];
+    const throttledEntries: Array<{key: string; entry: ThrottleEntry}> = [];
 
     // Collect entries with throttled notifications
     for (const [key, entry] of this.throttleMap.entries()) {
       if (entry.throttledCount > 0) {
-        throttledEntries.push({ key, entry });
+        throttledEntries.push({key, entry});
       }
     }
 
@@ -120,11 +128,13 @@ class ThrottleManager {
       return;
     }
 
-    console.log(`📊 Sending throttled summary for ${throttledEntries.length} error types`);
+    console.log(
+      `📊 Sending throttled summary for ${throttledEntries.length} error types`,
+    );
 
     // Group by error type and send summary
-    const summaryMessage = this.formatThrottledSummary(throttledEntries);
-    
+    const _summaryMessage = this.formatThrottledSummary(throttledEntries);
+
     // Send as a special error notification
     try {
       await NotificationService.sendErrorNotification(
@@ -132,15 +142,18 @@ class ThrottleManager {
         'low',
         {
           endpoint: 'throttle-summary',
-          affectedUsers: throttledEntries.reduce((sum, e) => sum + e.entry.throttledCount, 0),
-        }
+          affectedUsers: throttledEntries.reduce(
+            (sum, e) => sum + e.entry.throttledCount,
+            0,
+          ),
+        },
       );
     } catch (error) {
       console.error('Failed to send throttled summary:', error);
     }
 
     // Reset throttled counts
-    for (const { entry } of throttledEntries) {
+    for (const {entry} of throttledEntries) {
       entry.throttledCount = 0;
     }
   }
@@ -148,8 +161,10 @@ class ThrottleManager {
   /**
    * Format throttled summary message
    */
-  private formatThrottledSummary(entries: Array<{ key: string; entry: ThrottleEntry }>): string {
-    const lines = entries.map(({ key, entry }) => {
+  private formatThrottledSummary(
+    entries: Array<{key: string; entry: ThrottleEntry}>,
+  ): string {
+    const lines = entries.map(({key, entry}) => {
       return `- ${key.substring(0, 8)}: ${entry.throttledCount} notifications throttled`;
     });
 
@@ -166,7 +181,7 @@ class ThrottleManager {
 
     for (const [key, entry] of this.throttleMap.entries()) {
       const timeSinceLastSent = now.getTime() - entry.lastSent.getTime();
-      
+
       if (timeSinceLastSent > oneHour) {
         this.throttleMap.delete(key);
         cleaned++;
@@ -183,14 +198,20 @@ class ThrottleManager {
    */
   private startBackgroundJobs(): void {
     // Cleanup every hour
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 60 * 60 * 1000);
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanup();
+      },
+      60 * 60 * 1000,
+    );
 
     // Send throttled summary every 5 minutes
-    this.summaryInterval = setInterval(() => {
-      this.sendThrottledSummary();
-    }, 5 * 60 * 1000);
+    this.summaryInterval = setInterval(
+      () => {
+        this.sendThrottledSummary();
+      },
+      5 * 60 * 1000,
+    );
 
     console.log('✅ ThrottleManager background jobs started');
   }

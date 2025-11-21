@@ -27,88 +27,113 @@ export class DiscordWebhookService {
     newUser: process.env.DISCORD_WEBHOOK_NEW_USER || '',
     newRecipe: process.env.DISCORD_WEBHOOK_NEW_RECIPE || '',
     feedback: process.env.DISCORD_WEBHOOK_FEEDBACK || '',
-    errors: process.env.DISCORD_WEBHOOK_ERRORS || ''
+    errors: process.env.DISCORD_WEBHOOK_ERRORS || '',
   };
 
-  static async sendNewUserNotification(username: string, email: string, referralCode?: string): Promise<void> {
+  static async sendNewUserNotification(
+    username: string,
+    email: string,
+    referralCode?: string,
+  ): Promise<void> {
     const embed: DiscordEmbed = {
       title: '🎉 New User Joined!',
-      color: 0x4CAF50,
+      color: 0x4caf50,
       fields: [
-        { name: 'Username', value: username, inline: true },
-        { name: 'Email', value: email, inline: true }
+        {name: 'Username', value: username, inline: true},
+        {name: 'Email', value: email, inline: true},
       ],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     if (referralCode) {
-      embed.fields?.push({ name: 'Referral Code', value: referralCode, inline: true });
+      embed.fields?.push({
+        name: 'Referral Code',
+        value: referralCode,
+        inline: true,
+      });
     }
 
     await this.sendWebhook('newUser', {
       embeds: [embed],
       username: 'Cook Smart Bot',
-      avatar_url: 'https://example.com/bot-avatar.png'
+      avatar_url: 'https://example.com/bot-avatar.png',
     });
   }
 
-  static async sendNewRecipeNotification(recipeTitle: string, username: string, cuisine: string, difficulty: string): Promise<void> {
+  static async sendNewRecipeNotification(
+    recipeTitle: string,
+    username: string,
+    cuisine: string,
+    difficulty: string,
+  ): Promise<void> {
     const embed: DiscordEmbed = {
       title: '🍳 New Recipe Added!',
       description: `**${recipeTitle}** by ${username}`,
-      color: 0xFF9800,
+      color: 0xff9800,
       fields: [
-        { name: 'Cuisine', value: cuisine, inline: true },
-        { name: 'Difficulty', value: difficulty, inline: true }
+        {name: 'Cuisine', value: cuisine, inline: true},
+        {name: 'Difficulty', value: difficulty, inline: true},
       ],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     await this.sendWebhook('newRecipe', {
       embeds: [embed],
-      username: 'Cook Smart Bot'
+      username: 'Cook Smart Bot',
     });
   }
 
-  static async sendFeedbackNotification(username: string, feedback: string, rating?: number): Promise<void> {
+  static async sendFeedbackNotification(
+    username: string,
+    feedback: string,
+    rating?: number,
+  ): Promise<void> {
     const embed: DiscordEmbed = {
       title: '💬 New Feedback',
       description: feedback,
-      color: 0x2196F3,
-      fields: [
-        { name: 'User', value: username, inline: true }
-      ],
-      timestamp: new Date().toISOString()
+      color: 0x2196f3,
+      fields: [{name: 'User', value: username, inline: true}],
+      timestamp: new Date().toISOString(),
     };
 
     if (rating) {
-      embed.fields?.push({ name: 'Rating', value: `${rating}/5 ⭐`, inline: true });
+      embed.fields?.push({
+        name: 'Rating',
+        value: `${rating}/5 ⭐`,
+        inline: true,
+      });
     }
 
     await this.sendWebhook('feedback', {
       embeds: [embed],
-      username: 'Cook Smart Bot'
+      username: 'Cook Smart Bot',
     });
   }
 
-  static async sendErrorNotification(error: string, context?: string): Promise<void> {
+  static async sendErrorNotification(
+    _error: string,
+    context?: string,
+  ): Promise<void> {
     const embed: any = {
       title: '🚨 Application Error',
       description: error,
-      color: 0xF44336,
-      ...(context && { fields: [{ name: 'Context', value: context }] }),
-      timestamp: new Date().toISOString()
+      color: 0xf44336,
+      ...(context && {fields: [{name: 'Context', value: context}]}),
+      timestamp: new Date().toISOString(),
     };
 
     await this.sendWebhook('errors', {
       embeds: [embed],
-      username: 'Cook Smart Error Bot'
+      username: 'Cook Smart Error Bot',
     });
   }
 
-  private static async sendWebhook(type: keyof typeof this.webhookUrls, payload: DiscordWebhookPayload): Promise<void> {
+  private static async sendWebhook(
+    type: keyof typeof this.webhookUrls,
+    payload: DiscordWebhookPayload,
+  ): Promise<void> {
     const webhookUrl = this.webhookUrls[type];
-    
+
     if (!webhookUrl) {
       console.warn(`Discord webhook URL not configured for type: ${type}`);
       return;
@@ -117,23 +142,25 @@ export class DiscordWebhookService {
     try {
       await axios.post(webhookUrl, payload, {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        timeout: 5000
+        timeout: 5000,
       });
-    } catch (error) {
+    } catch (_error) {
       console.error(`Failed to send Discord webhook (${type}):`, error);
     }
   }
 
-  static async testWebhook(type: keyof typeof this.webhookUrls): Promise<boolean> {
+  static async testWebhook(
+    type: keyof typeof this.webhookUrls,
+  ): Promise<boolean> {
     try {
       await this.sendWebhook(type, {
         content: '🧪 Test message from Cook Smart',
-        username: 'Cook Smart Test Bot'
+        username: 'Cook Smart Test Bot',
       });
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
