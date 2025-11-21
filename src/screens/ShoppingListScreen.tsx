@@ -21,9 +21,15 @@ export const ShoppingListScreen: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [_loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isMountedRef = React.useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadShoppingList();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const loadShoppingList = async (isRefreshing = false) => {
@@ -53,12 +59,41 @@ export const ShoppingListScreen: React.FC = () => {
 
   const handleToggleCompleted = async (itemId: string) => {
     try {
+      // Defensive: Find the item first
+      const currentItem = items.find(item => item.id === itemId);
+      if (!currentItem) {
+        console.error('Item not found:', itemId);
+        Alert.alert('Error', 'Item not found');
+        return;
+      }
+
+      // Optimistically update UI immediately
+      setItems(prev =>
+        prev.map(item =>
+          item.id === itemId ? {...item, isCompleted: !item.isCompleted} : item,
+        ),
+      );
+
+      // Try to sync with backend
       const updatedItem = await shoppingListService.toggleCompleted(itemId);
+
+      // Update with server response to ensure consistency
       setItems(prev =>
         prev.map(item => (item.id === itemId ? updatedItem : item)),
       );
     } catch (error) {
-      console.error('Error toggling item:', error);
+      console.error('Toggle completed error:', error);
+
+      // Revert to original state on error
+      setItems(prev =>
+        prev.map(item => {
+          if (item.id === itemId) {
+            return {...item, isCompleted: !item.isCompleted};
+          }
+          return item;
+        }),
+      );
+
       Alert.alert('Error', 'Failed to update item. Please try again.');
     }
   };

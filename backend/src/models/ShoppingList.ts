@@ -40,7 +40,19 @@ export class ShoppingListModel {
       cleanCategory,
       recipeId,
     ]);
-    return result.rows[0];
+    // Convert snake_case to camelCase and id to string
+    const row = result.rows[0];
+    return {
+      id: row.id.toString(),
+      userId: row.user_id,
+      ingredient: row.ingredient,
+      quantity: row.quantity,
+      unit: row.unit,
+      category: row.category,
+      isCompleted: row.is_completed,
+      recipeId: row.recipe_id,
+      dateAdded: row.date_added,
+    };
   }
 
   static async getUserItems(userId: string): Promise<ShoppingListItem[]> {
@@ -50,7 +62,18 @@ export class ShoppingListModel {
       ORDER BY category, ingredient
     `;
     const result = await pool.query(query, [userId]);
-    return result.rows;
+    // Convert snake_case to camelCase and id to string
+    return result.rows.map(row => ({
+      id: row.id.toString(),
+      userId: row.user_id,
+      ingredient: row.ingredient,
+      quantity: row.quantity,
+      unit: row.unit,
+      category: row.category,
+      isCompleted: row.is_completed,
+      recipeId: row.recipe_id,
+      dateAdded: row.date_added,
+    }));
   }
 
   static async toggleItemCompleted(

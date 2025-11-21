@@ -144,7 +144,14 @@ class ShoppingListService {
   // Toggle item completion status
   async toggleCompleted(itemId: string): Promise<ShoppingListItem> {
     try {
+      if (!itemId) {
+        throw new Error('Item ID is required');
+      }
+
       const token = await getAuthToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
 
       const response = await fetch(
         `${API_BASE_URL}/api/v1/shopping-list/${itemId}/toggle`,
@@ -157,10 +164,16 @@ class ShoppingListService {
         },
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        console.error('Toggle failed:', response.status, data);
         throw new Error(data.error || 'Failed to toggle item');
+      }
+
+      if (!data.item) {
+        console.error('No item in response:', data);
+        throw new Error('Item not found in response');
       }
 
       return data.item;

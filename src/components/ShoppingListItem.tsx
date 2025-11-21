@@ -37,10 +37,15 @@ export const ShoppingListItem: React.FC<Props> = ({
   onUpdate,
   onDelete,
 }) => {
+  // Safety check
+  if (!item || !item.id) {
+    return null;
+  }
+
   const [isEditing, setIsEditing] = useState(false);
-  const [editIngredient, setEditIngredient] = useState(item.ingredient);
-  const [editQuantity, setEditQuantity] = useState(item.quantity);
-  const [editUnit, setEditUnit] = useState(item.unit);
+  const [editIngredient, setEditIngredient] = useState(item.ingredient || '');
+  const [editQuantity, setEditQuantity] = useState(item.quantity || '');
+  const [editUnit, setEditUnit] = useState(item.unit || '');
 
   const handleSave = () => {
     const trimmedIngredient = editIngredient.trim();
@@ -127,7 +132,24 @@ export const ShoppingListItem: React.FC<Props> = ({
       style={[styles.container, item.isCompleted && styles.completedContainer]}>
       <TouchableOpacity
         style={styles.checkbox}
-        onPress={() => onToggleCompleted(item.id)}>
+        onPress={() => {
+          if (!item || !item.id) {
+            console.error('Invalid item:', item);
+            return;
+          }
+          if (!onToggleCompleted) {
+            console.error('onToggleCompleted callback is missing');
+            return;
+          }
+          // Use setTimeout to ensure async execution and prevent crashes
+          setTimeout(() => {
+            try {
+              onToggleCompleted(item.id);
+            } catch (error) {
+              console.error('Checkbox toggle error:', error);
+            }
+          }, 0);
+        }}>
         <Text style={styles.checkboxText}>
           {item.isCompleted ? '✅' : '⬜'}
         </Text>
@@ -138,11 +160,11 @@ export const ShoppingListItem: React.FC<Props> = ({
         onPress={() => setIsEditing(true)}>
         <Text
           style={[styles.ingredient, item.isCompleted && styles.completedText]}>
-          {item.ingredient.trim()}
+          {item.ingredient?.trim() || 'Unknown item'}
         </Text>
         <Text
           style={[styles.quantity, item.isCompleted && styles.completedText]}>
-          {[item.quantity.trim(), item.unit.trim()].filter(Boolean).join(' ')}
+          {[item.quantity?.trim(), item.unit?.trim()].filter(Boolean).join(' ')}
         </Text>
         {item.recipeId && <Text style={styles.recipeTag}>📝 Recipe</Text>}
       </TouchableOpacity>

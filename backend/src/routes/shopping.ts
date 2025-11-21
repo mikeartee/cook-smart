@@ -157,12 +157,17 @@ router.put('/:itemId', authenticateToken, async (req, res) => {
     const items = await ShoppingListModel.getUserItems(userId);
     const updatedItem = items.find(item => item.id === itemId);
 
+    if (!updatedItem) {
+      return res.status(404).json({error: 'Item not found'});
+    }
+
     return res.json({
       success: true,
       message: 'Item updated',
       item: updatedItem,
     });
-  } catch (_error) {
+  } catch (error) {
+    console.error('Update item error:', error);
     return res.status(500).json({error: 'Failed to update item'});
   }
 });
@@ -186,12 +191,17 @@ router.patch('/:itemId/toggle', authenticateToken, async (req, res) => {
     const items = await ShoppingListModel.getUserItems(userId);
     const updatedItem = items.find(item => item.id === itemId);
 
+    if (!updatedItem) {
+      return res.status(404).json({error: 'Item not found'});
+    }
+
     return res.json({
       success: true,
       message: 'Item status updated',
       item: updatedItem,
     });
-  } catch (_error) {
+  } catch (error) {
+    console.error('Toggle item error:', error);
     return res.status(500).json({error: 'Failed to toggle item'});
   }
 });
