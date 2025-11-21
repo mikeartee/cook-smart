@@ -31,7 +31,10 @@ export interface UserIngredient {
 }
 
 export class IngredientModel {
-  static async getAll(category?: string, search?: string): Promise<Ingredient[]> {
+  static async getAll(
+    category?: string,
+    search?: string,
+  ): Promise<Ingredient[]> {
     let query = 'SELECT * FROM ingredients WHERE 1=1';
     const params: any[] = [];
     let paramIndex = 1;
@@ -66,13 +69,45 @@ export class IngredientModel {
     return result.rows[0] || null;
   }
 
+  static async findByName(name: string): Promise<Ingredient | null> {
+    const query =
+      'SELECT * FROM ingredients WHERE LOWER(name) = LOWER($1) LIMIT 1';
+    const result = await pool.query(query, [name]);
+    return result.rows[0] || null;
+  }
+
+  static async create(ingredientData: {
+    name: string;
+    category: string;
+    description?: string;
+    isCustom?: boolean;
+  }): Promise<Ingredient> {
+    const query = `
+      INSERT INTO ingredients (name, category, description, is_common, default_unit, nutrition_per_100g, common_names)
+      VALUES ($1, $2, $3, $4, 'piece', '{}', '{}')
+      RETURNING *
+    `;
+    const values = [
+      ingredientData.name,
+      ingredientData.category,
+      ingredientData.description || null,
+      !ingredientData.isCustom, // is_common is opposite of isCustom
+    ];
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
   static async getCategories(): Promise<string[]> {
     const query = 'SELECT DISTINCT category FROM ingredients ORDER BY category';
     const result = await pool.query(query);
     return result.rows.map(row => row.category);
   }
 
-  static async searchIngredients(searchTerm: string, limit: number = 20): Promise<Ingredient[]> {
+  static async searchIngredients(
+    searchTerm: string,
+    limit: number = 20,
+  ): Promise<Ingredient[]> {
     const query = `
       SELECT * FROM ingredients 
       WHERE name ILIKE $1 OR common_names::text ILIKE $1
@@ -82,7 +117,11 @@ export class IngredientModel {
         name ASC
       LIMIT $3
     `;
-    const result = await pool.query(query, [`%${searchTerm}%`, `${searchTerm}%`, limit]);
+    const result = await pool.query(query, [
+      `%${searchTerm}%`,
+      `${searchTerm}%`,
+      limit,
+    ]);
     return result.rows;
   }
 
@@ -103,9 +142,9 @@ export class IngredientModel {
       ingredientData.category,
       ingredientData.description,
       JSON.stringify(ingredientData.nutrition_per_100g || {}),
-      ingredientData.default_unit || 'piece'
+      ingredientData.default_unit || 'piece',
     ];
-    
+
     const result = await pool.query(query, values);
     return result.rows[0];
   }
@@ -123,13 +162,16 @@ export class IngredientModel {
     return result.rows;
   }
 
-  static async addUserIngredient(userId: string, ingredientData: {
-    ingredient_id: string;
-    quantity?: number;
-    unit?: string;
-    expiration_date?: Date;
-    notes?: string;
-  }): Promise<UserIngredient> {
+  static async addUserIngredient(
+    userId: string,
+    ingredientData: {
+      ingredient_id: string;
+      quantity?: number;
+      unit?: string;
+      expiration_date?: Date;
+      notes?: string;
+    },
+  ): Promise<UserIngredient> {
     const query = `
       INSERT INTO user_ingredients (user_id, ingredient_id, quantity, unit, expiration_date, notes)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -148,24 +190,31 @@ export class IngredientModel {
       ingredientData.quantity,
       ingredientData.unit,
       ingredientData.expiration_date,
-      ingredientData.notes
+      ingredientData.notes,
     ];
-    
+
     const result = await pool.query(query, values);
     return result.rows[0];
   }
 
-  static async removeUserIngredient(userId: string, userIngredientId: string): Promise<void> {
+  static async removeUserIngredient(
+    userId: string,
+    userIngredientId: string,
+  ): Promise<void> {
     const query = 'DELETE FROM user_ingredients WHERE user_id = $1 AND id = $2';
     await pool.query(query, [userId, userIngredientId]);
   }
 
-  static async updateUserIngredient(userId: string, ingredientId: string, updateData: {
-    quantity?: number;
-    unit?: string;
-    expiration_date?: Date;
-    notes?: string;
-  }): Promise<UserIngredient | null> {
+  static async updateUserIngredient(
+    userId: string,
+    ingredientId: string,
+    updateData: {
+      quantity?: number;
+      unit?: string;
+      expiration_date?: Date;
+      notes?: string;
+    },
+  ): Promise<UserIngredient | null> {
     const fields = [];
     const values = [];
     let paramIndex = 1;

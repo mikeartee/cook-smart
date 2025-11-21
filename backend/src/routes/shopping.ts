@@ -1,5 +1,6 @@
 import express from 'express';
 import {ShoppingListModel} from '../models/ShoppingList';
+import {IngredientModel} from '../models/Ingredient';
 import {authenticateToken} from '../middleware/auth';
 import pool from '../config/database';
 
@@ -185,20 +186,65 @@ router.patch('/:itemId/toggle', authenticateToken, async (req, res) => {
       return res.status(400).json({error: 'Item ID is required'});
     }
 
+    // Get the item before toggling to check its current state
+    const items = await ShoppingListModel.getUserItems(userId);
+    const itemBeforeToggle = items.find(item => item.id === itemId);
+
+    if (!itemBeforeToggle) {
+      return res.status(404).json({error: 'Item not found'});
+    }
+
+    // Toggle the item
     await ShoppingListModel.toggleItemCompleted(userId, itemId);
 
-    // Get the updated item to return
-    const items = await ShoppingListModel.getUserItems(userId);
-    const updatedItem = items.find(item => item.id === itemId);
+    // Get the updated item
+    const updatedItems = await ShoppingListModel.getUserItems(userId);
+    const updatedItem = updatedItems.find(item => item.id === itemId);
 
     if (!updatedItem) {
-      return res.status(404).json({error: 'Item not found'});
+      return res.status(404).json({error: 'Item not found after toggle'});
+    }
+
+    // If item was just marked as completed (bought), add to pantry
+    if (!itemBeforeToggle.isCompleted && updatedItem.isCompleted) {
+      try {
+        // Find or create ingredient
+        const ingredientName = updatedItem.ingredient.trim().toLowerCase();
+        let ingredient = await IngredientModel.findByName(ingredientName);
+
+        // If ingredient doesn't exist, create it as custom
+        if (!ingredient) {
+          ingredient = await IngredientModel.create({
+            name: updatedItem.ingredient,
+            category: updatedItem.category || 'other',
+            isCustom: true,
+          });
+        }
+
+        // Add to user's pantry
+        await IngredientModel.addUserIngredient(userId, {
+          ingredient_id: ingredient.id,
+          quantity: parseFloat(updatedItem.quantity) || 1,
+          unit: updatedItem.unit || 'piece',
+          notes: 'Added from shopping list',
+        });
+
+        console.log(
+          `✅ Added "${updatedItem.ingredient}" to pantry for user ${userId}`,
+        );
+      } catch (pantryError) {
+        // Don't fail the toggle if pantry add fails
+        console.error('Failed to add to pantry:', pantryError);
+      }
     }
 
     return res.json({
       success: true,
-      message: 'Item status updated',
+      message: updatedItem.isCompleted
+        ? 'Item marked as purchased and added to pantry'
+        : 'Item unmarked',
       item: updatedItem,
+      addedToPantry: !itemBeforeToggle.isCompleted && updatedItem.isCompleted,
     });
   } catch (error) {
     console.error('Toggle item error:', error);
