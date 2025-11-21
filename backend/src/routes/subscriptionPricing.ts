@@ -15,6 +15,13 @@ router.get('/plans', SubscriptionPricingController.getPlans);
 // Public route - get current phase status
 router.get('/phase', SubscriptionPricingController.getPhase);
 
+// Protected route - get current user's subscription
+router.get(
+  '/me',
+  authenticateToken,
+  SubscriptionPricingController.getMySubscription,
+);
+
 // Protected route - create subscription (requires user authentication)
 router.post(
   '/create',

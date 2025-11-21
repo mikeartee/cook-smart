@@ -35,10 +35,15 @@ export class UserModel {
   }): Promise<User> {
     const password_hash = await bcrypt.hash(userData.password, 12);
 
-    // Check if Co-Founder or Special User
-    const is_co_founder = userData.email === 'brianaolszewski1@gmail.com';
+    // CORRECT USER FLAGS:
+    // Brad (bradturnbough80@gmail.com) = Developer, lifetime subscription, NO special screens
+    // Briana (brianaolszewski1@gmail.com) = Creator (is_creator), lifetime subscription, sees Brad's love note
+    // Donna (dwoodswoods2@gmail.com) = Special User (is_special_user), lifetime subscription, sees Brad's mom note
+
+    const is_creator = userData.email === 'brianaolszewski1@gmail.com';
     const is_special_user = userData.email === 'dwoodswoods2@gmail.com';
-    const has_lifetime = is_co_founder || is_special_user;
+    const is_developer = userData.email === 'bradturnbough80@gmail.com';
+    const has_lifetime = is_creator || is_special_user || is_developer;
 
     // Generate unique ID (matching the format used in JSON migration)
     const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -46,7 +51,7 @@ export class UserModel {
     const query = `
       INSERT INTO users (
         id, email, password_hash, first_name, last_name, 
-        age_verified, is_co_founder, is_special_user, has_lifetime_subscription,
+        age_verified, is_creator, is_special_user, has_lifetime_subscription,
         points
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
@@ -59,10 +64,10 @@ export class UserModel {
       userData.first_name,
       userData.last_name,
       userData.age_verified,
-      is_co_founder,
+      is_creator,
       is_special_user,
       has_lifetime,
-      is_co_founder ? 1000 : is_special_user ? 500 : 0, // Bonus points
+      is_creator ? 1000 : is_special_user ? 500 : is_developer ? 1000 : 0, // Bonus points
     ];
 
     const result = await pool.query(query, values);

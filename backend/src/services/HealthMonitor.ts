@@ -1,5 +1,5 @@
 import pool from '../config/database';
-import { APIUsageLogModel } from '../models/APIUsageLog';
+import {APIUsageLogModel} from '../models/APIUsageLog';
 import NotificationService from './NotificationService';
 
 interface HealthStats {
@@ -89,10 +89,10 @@ class HealthMonitor {
   /**
    * Get API usage statistics
    */
-  async getAPIUsage(): Promise<{ edamam: number; themealdb: number }> {
+  async getAPIUsage(): Promise<{edamam: number; themealdb: number}> {
     try {
       const todayStats = await APIUsageLogModel.getTodayStats();
-      
+
       // todayStats is an array of rows, convert to object
       const stats = {
         edamam: 0,
@@ -108,11 +108,11 @@ class HealthMonitor {
           }
         });
       }
-      
+
       return stats;
     } catch (_error) {
       // Silently handle - table might not exist yet
-      return { edamam: 0, themealdb: 0 };
+      return {edamam: 0, themealdb: 0};
     }
   }
 
@@ -138,7 +138,7 @@ class HealthMonitor {
   async sendDailyHealthSummary(): Promise<void> {
     try {
       console.log('📊 Sending daily health summary...');
-      
+
       const stats = await this.getHealthStats();
       await NotificationService.sendHealthSummary(stats);
 
@@ -157,17 +157,27 @@ class HealthMonitor {
    */
   private async sendHighErrorRateAlert(errorRate: number): Promise<void> {
     try {
-      console.log(`⚠️  High error rate detected: ${(errorRate * 100).toFixed(2)}%`);
-      
+      console.log(
+        `⚠️  High error rate detected: ${(errorRate * 100).toFixed(2)}%`,
+      );
+
+      // Don't throw errors from the health monitor itself
       await NotificationService.sendErrorNotification(
         new Error(`High error rate: ${(errorRate * 100).toFixed(2)}%`),
         'high',
         {
           endpoint: 'system-health',
           affectedUsers: Math.floor(this.totalRequests * errorRate),
-        }
-      );
+        },
+      ).catch(err => {
+        // Silently log notification failures to prevent cascading errors
+        console.error(
+          'Failed to send high error rate alert (non-critical):',
+          err.message,
+        );
+      });
     } catch (error) {
+      // Catch any synchronous errors and log them without throwing
       console.error('Failed to send high error rate alert:', error);
     }
   }
@@ -177,14 +187,18 @@ class HealthMonitor {
    */
   private async sendRecoveryNotification(errorRate: number): Promise<void> {
     try {
-      console.log(`✅ System recovered - error rate: ${(errorRate * 100).toFixed(2)}%`);
-      
+      console.log(
+        `✅ System recovered - error rate: ${(errorRate * 100).toFixed(2)}%`,
+      );
+
       await NotificationService.sendErrorNotification(
-        new Error(`System recovered - error rate normalized to ${(errorRate * 100).toFixed(2)}%`),
+        new Error(
+          `System recovered - error rate normalized to ${(errorRate * 100).toFixed(2)}%`,
+        ),
         'low',
         {
           endpoint: 'system-health',
-        }
+        },
       );
     } catch (error) {
       console.error('Failed to send recovery notification:', error);
@@ -199,20 +213,25 @@ class HealthMonitor {
     const now = new Date();
     const midnight = new Date(now);
     midnight.setUTCHours(24, 0, 0, 0);
-    
+
     const msUntilMidnight = midnight.getTime() - now.getTime();
 
     // Schedule first summary
     setTimeout(() => {
       this.sendDailyHealthSummary();
-      
+
       // Then schedule daily
-      setInterval(() => {
-        this.sendDailyHealthSummary();
-      }, 24 * 60 * 60 * 1000); // 24 hours
+      setInterval(
+        () => {
+          this.sendDailyHealthSummary();
+        },
+        24 * 60 * 60 * 1000,
+      ); // 24 hours
     }, msUntilMidnight);
 
-    console.log(`✅ Daily health summary scheduled (next in ${Math.round(msUntilMidnight / 1000 / 60)} minutes)`);
+    console.log(
+      `✅ Daily health summary scheduled (next in ${Math.round(msUntilMidnight / 1000 / 60)} minutes)`,
+    );
   }
 }
 

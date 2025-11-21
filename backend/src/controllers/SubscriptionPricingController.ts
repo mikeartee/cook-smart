@@ -54,6 +54,49 @@ export class SubscriptionPricingController {
   }
 
   /**
+   * GET /api/subscriptions/me
+   * Get current user's subscription details
+   */
+  static async getMySubscription(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: 'Unauthorized',
+          message: 'User must be authenticated',
+        });
+        return;
+      }
+
+      const subscription =
+        await SubscriptionPricingService.getUserSubscription(userId);
+
+      if (!subscription) {
+        res.json({
+          success: true,
+          subscription: null,
+          message: 'No active subscription found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        subscription,
+      });
+    } catch (error) {
+      console.error('Error fetching user subscription:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch subscription',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  /**
    * POST /api/subscriptions/create
    * Create a new subscription for the authenticated user
    */

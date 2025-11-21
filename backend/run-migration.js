@@ -1,56 +1,53 @@
-/**
- * Run Database Migration for API Usage Logs
- */
-
-require('dotenv').config();
-
-const { Pool } = require('pg');
+const {Pool} = require('pg');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({path: path.join(__dirname, '.env')});
 
-// Database connection
+// Database configuration
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  ssl:
+    process.env.NODE_ENV === 'production' ? {rejectUnauthorized: false} : false,
 });
 
 async function runMigration() {
-  console.log('🔄 Running API usage logs migration...');
-  
   try {
-    // Read the migration SQL file
-    const migrationPath = path.join(__dirname, 'src/migrations/create_api_usage_logs_table.sql');
+    console.log('🔄 Running privacy settings migration...');
+
+    const migrationPath = path.join(
+      __dirname,
+      'migrations',
+      'add_privacy_settings_to_users.sql',
+    );
     const sql = fs.readFileSync(migrationPath, 'utf8');
-    
-    // Execute the migration
+
     await pool.query(sql);
-    
+
     console.log('✅ Migration completed successfully!');
-    console.log('   - Created api_usage_logs table');
-    console.log('   - Created indexes for performance');
-    
-    // Verify the table was created
+
+    // Verify columns were added
     const result = await pool.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_name = 'api_usage_logs'
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' 
+      AND column_name IN ('data_sharing', 'analytics_enabled', 'push_notifications', 'location_services', 'two_factor_enabled')
     `);
-    
-    if (result.rows.length > 0) {
-      console.log('✅ Verified: api_usage_logs table exists');
-    } else {
-      console.log('⚠️  Warning: Could not verify table creation');
-    }
-    
-  } catch (error) {
-    console.error('❌ Migration failed:');
-    console.error('Error:', error);
-    console.error('Stack:', error.stack);
-    process.exit(1);
-  } finally {
+
+    console.log(
+      '✅ Verified columns:',
+      result.rows.map(r => r.column_name).join(', '),
+    );
+
     await pool.end();
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Migration failed:', error);
+    await pool.end();
+    process.exit(1);
   }
 }
 

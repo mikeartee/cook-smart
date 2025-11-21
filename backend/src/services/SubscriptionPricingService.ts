@@ -518,4 +518,44 @@ export class SubscriptionPricingService {
       // Don't throw - referral credit failure shouldn't block subscription
     }
   }
+
+  /**
+   * Get user's current subscription
+   * @param userId - User ID
+   */
+  static async getUserSubscription(userId: number): Promise<any> {
+    try {
+      const query = `
+        SELECT 
+          s.id,
+          s.stripe_subscription_id,
+          s.user_id,
+          s.plan_type,
+          s.status,
+          s.current_period_start,
+          s.current_period_end,
+          s.cancel_at_period_end,
+          s.created_at,
+          sp.display_name as plan_name,
+          sp.billing_interval
+        FROM subscriptions s
+        LEFT JOIN subscription_plans sp ON s.plan_type = sp.plan_name
+        WHERE s.user_id = $1 
+          AND s.status IN ('active', 'trialing')
+        ORDER BY s.created_at DESC
+        LIMIT 1
+      `;
+
+      const result = await pool.query(query, [userId]);
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error fetching user subscription:', error);
+      throw error;
+    }
+  }
 }

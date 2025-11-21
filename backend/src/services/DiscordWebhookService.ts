@@ -111,12 +111,12 @@ export class DiscordWebhookService {
   }
 
   static async sendErrorNotification(
-    _error: string,
+    errorMessage: string,
     context?: string,
   ): Promise<void> {
     const embed: any = {
       title: '🚨 Application Error',
-      description: error,
+      description: errorMessage,
       color: 0xf44336,
       ...(context && {fields: [{name: 'Context', value: context}]}),
       timestamp: new Date().toISOString(),
@@ -146,8 +146,8 @@ export class DiscordWebhookService {
         },
         timeout: 5000,
       });
-    } catch (_error) {
-      console.error(`Failed to send Discord webhook (${type}):`, error);
+    } catch (webhookError) {
+      console.error(`Failed to send Discord webhook (${type}):`, webhookError);
     }
   }
 

@@ -151,8 +151,12 @@ export function errorMiddleware(
   // Log error to console
   console.error('❌ Error caught by middleware:', err);
 
-  // Record error in health monitor
-  HealthMonitor.recordRequest(true);
+  // Record error in health monitor (wrapped to prevent cascading errors)
+  try {
+    HealthMonitor.recordRequest(true);
+  } catch (monitorError) {
+    console.error('Health monitor error (non-critical):', monitorError);
+  }
 
   // Determine status code and severity
   const statusCode = getStatusCode(err);

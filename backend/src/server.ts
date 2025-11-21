@@ -105,9 +105,11 @@ import feedbackRoutes from './routes/feedback';
 import subscriptionPricingRoutes from './routes/subscriptionPricing';
 import systemGuardianRoutes from './routes/systemGuardian';
 import userRecipesRoutes from './routes/userRecipes';
+import userSettingsRoutes from './routes/userSettings';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
+app.use('/api/v1/settings', userSettingsRoutes);
 app.use('/api/v1/ingredients', ingredientRoutes);
 app.use('/api/v1/barcode', barcodeRoutes);
 app.use('/api/v1/recipes', recipeRoutes);
