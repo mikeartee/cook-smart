@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import {StripeProvider} from '@stripe/stripe-react-native';
 import {AuthProvider, useAuth} from './src/contexts/AuthContext';
 import {IngredientProvider} from './src/contexts/IngredientContext';
 import {RecipeProvider} from './src/contexts/RecipeContext';
@@ -9,14 +10,18 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
 import SpecialUserWelcomeScreen from './src/screens/SpecialUserWelcomeScreen';
-import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
-import TermsOfServiceScreen from './src/screens/TermsOfServiceScreen';
+import {PrivacyPolicyScreen} from './src/screens/PrivacyPolicyScreen';
+import {TermsOfServiceScreen} from './src/screens/TermsOfServiceScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import CookieConsent from './src/components/CookieConsent';
 // Recipe API Migration Complete - TheMealDB Active
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {productLookupService} from './src/services/productLookupService';
+
+// Stripe publishable key
+const STRIPE_PUBLISHABLE_KEY =
+  'pk_live_51QRbVQP3gNR4KkVLMiMXqJjhXMCiWLqhLKCPvJqYhwqvvPXxqJjhXMCiWLqhLKCPvJqYhwqvvPXxqJjhXMCiWLqhLKCPvJqYhwqvvPX';
 
 const Stack = createStackNavigator();
 
@@ -44,8 +49,10 @@ const AppContent = () => {
 
   useEffect(() => {
     const checkWelcomeScreens = async () => {
-      if (user?.is_co_founder) {
-        const hasShown = await AsyncStorage.getItem('cofounder_welcome_shown');
+      // Only show welcome screens for Creator (Briana) or Special User (Donna)
+      // Brad (developer) should NOT see any welcome screen
+      if (user?.is_creator) {
+        const hasShown = await AsyncStorage.getItem('creator_welcome_shown');
         setShowCoFounderWelcome(!hasShown);
       } else if (user?.is_special_user) {
         const hasShown = await AsyncStorage.getItem(
@@ -86,15 +93,19 @@ const AppContent = () => {
                   : 'Main'
             }>
             <Stack.Screen name="Main" component={MainTabNavigator} />
-            {/* Special screens - always available for revisiting */}
-            <Stack.Screen
-              name="CoFounderWelcome"
-              component={CoFounderWelcomeScreen}
-            />
-            <Stack.Screen
-              name="SpecialUserWelcome"
-              component={SpecialUserWelcomeScreen}
-            />
+            {/* Welcome screens - only for Creator (Briana) and Special User (Donna) */}
+            {(user?.is_creator || user?.is_special_user) && (
+              <>
+                <Stack.Screen
+                  name="CoFounderWelcome"
+                  component={CoFounderWelcomeScreen}
+                />
+                <Stack.Screen
+                  name="SpecialUserWelcome"
+                  component={SpecialUserWelcomeScreen}
+                />
+              </>
+            )}
           </Stack.Navigator>
         ) : (
           <AuthStack />
@@ -107,15 +118,17 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <SubscriptionProvider>
-        <IngredientProvider>
-          <RecipeProvider>
-            <AppContent />
-          </RecipeProvider>
-        </IngredientProvider>
-      </SubscriptionProvider>
-    </AuthProvider>
+    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <IngredientProvider>
+            <RecipeProvider>
+              <AppContent />
+            </RecipeProvider>
+          </IngredientProvider>
+        </SubscriptionProvider>
+      </AuthProvider>
+    </StripeProvider>
   );
 };
 
