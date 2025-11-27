@@ -2,7 +2,7 @@ import pool from '../config/database';
 
 export class SocialService {
   // Follow/Unfollow
-  async followUser(followerId: number, followingId: number) {
+  async followUser(followerId: string, followingId: string) {
     const result = await pool.query(
       'INSERT INTO user_follows (follower_id, following_id) VALUES ($1, $2) RETURNING *',
       [followerId, followingId],
@@ -11,14 +11,14 @@ export class SocialService {
     return result.rows[0];
   }
 
-  async unfollowUser(followerId: number, followingId: number) {
+  async unfollowUser(followerId: string, followingId: string) {
     await pool.query(
       'DELETE FROM user_follows WHERE follower_id = $1 AND following_id = $2',
       [followerId, followingId],
     );
   }
 
-  async getFollowers(userId: number) {
+  async getFollowers(userId: string) {
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, u.created_at 
        FROM users u 
@@ -29,7 +29,7 @@ export class SocialService {
     return result.rows;
   }
 
-  async getFollowing(userId: number) {
+  async getFollowing(userId: string) {
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, u.created_at 
        FROM users u 
@@ -40,7 +40,7 @@ export class SocialService {
     return result.rows;
   }
 
-  async isFollowing(followerId: number, followingId: number) {
+  async isFollowing(followerId: string, followingId: string) {
     const result = await pool.query(
       'SELECT 1 FROM user_follows WHERE follower_id = $1 AND following_id = $2',
       [followerId, followingId],
@@ -51,7 +51,7 @@ export class SocialService {
   // Comments
   async addComment(
     recipeId: string,
-    userId: number,
+    userId: string,
     comment: string,
     parentId?: number,
   ) {
@@ -75,7 +75,7 @@ export class SocialService {
     return result.rows;
   }
 
-  async deleteComment(commentId: number, userId: number) {
+  async deleteComment(commentId: number, userId: string) {
     await pool.query(
       'DELETE FROM recipe_comments WHERE id = $1 AND user_id = $2',
       [commentId, userId],
@@ -83,7 +83,7 @@ export class SocialService {
   }
 
   // Likes
-  async likeRecipe(recipeId: string, userId: number) {
+  async likeRecipe(recipeId: string, userId: string) {
     const result = await pool.query(
       'INSERT INTO recipe_likes (recipe_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *',
       [recipeId, userId],
@@ -95,7 +95,7 @@ export class SocialService {
     return result.rows[0];
   }
 
-  async unlikeRecipe(recipeId: string, userId: number) {
+  async unlikeRecipe(recipeId: string, userId: string) {
     await pool.query(
       'DELETE FROM recipe_likes WHERE recipe_id = $1 AND user_id = $2',
       [recipeId, userId],
@@ -103,7 +103,7 @@ export class SocialService {
     await this.updateTrendingScore(recipeId);
   }
 
-  async isLiked(recipeId: string, userId: number) {
+  async isLiked(recipeId: string, userId: string) {
     const result = await pool.query(
       'SELECT 1 FROM recipe_likes WHERE recipe_id = $1 AND user_id = $2',
       [recipeId, userId],
@@ -120,7 +120,7 @@ export class SocialService {
   }
 
   // Shares
-  async shareRecipe(recipeId: string, userId: number, platform: string) {
+  async shareRecipe(recipeId: string, userId: string, platform: string) {
     const result = await pool.query(
       'INSERT INTO recipe_shares (recipe_id, user_id, platform) VALUES ($1, $2, $3) RETURNING *',
       [recipeId, userId, platform],
@@ -139,10 +139,10 @@ export class SocialService {
 
   // Activity Feed
   async logActivity(
-    userId: number,
+    userId: string,
     activityType: string,
     recipeId?: string | null,
-    targetUserId?: number | null,
+    targetUserId?: string | null,
     metadata?: any,
   ) {
     await pool.query(
@@ -157,7 +157,7 @@ export class SocialService {
     );
   }
 
-  async getCommunityFeed(userId: number, limit = 50) {
+  async getCommunityFeed(userId: string, limit = 50) {
     const result = await pool.query(
       `SELECT uaf.*, u.username, u.email 
        FROM user_activity_feed uaf 

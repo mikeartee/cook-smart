@@ -58,7 +58,7 @@ router.get('/timers/:recipeId', async (req, res) => {
 // Cooking Sessions
 router.post('/cooking-session/start', authenticateToken, async (req, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = req.user!.id;
     const {recipeId} = req.body;
     const session = await AdvancedRecipeService.startCookingSession(
       userId,
@@ -109,7 +109,7 @@ router.get(
   authenticateToken,
   async (req, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = req.user!.id;
       const {recipeId} = req.params;
       const session = await AdvancedRecipeService.getCookingSession(
         userId,

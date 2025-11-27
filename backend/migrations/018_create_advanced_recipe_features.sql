@@ -33,7 +33,7 @@ CREATE INDEX idx_recipe_timers_recipe ON recipe_timers(recipe_id);
 -- User cooking sessions (step-by-step mode tracking)
 CREATE TABLE IF NOT EXISTS cooking_sessions (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   recipe_id VARCHAR(255) NOT NULL,
   current_step INTEGER DEFAULT 0,
   status VARCHAR(50) DEFAULT 'in_progress', -- 'in_progress', 'paused', 'completed', 'abandoned'

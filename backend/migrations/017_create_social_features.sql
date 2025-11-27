@@ -3,8 +3,8 @@
 -- User follows (who follows who)
 CREATE TABLE IF NOT EXISTS user_follows (
   id SERIAL PRIMARY KEY,
-  follower_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  following_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  follower_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  following_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(follower_id, following_id),
   CHECK (follower_id != following_id)
@@ -17,7 +17,7 @@ CREATE INDEX idx_user_follows_following ON user_follows(following_id);
 CREATE TABLE IF NOT EXISTS recipe_comments (
   id SERIAL PRIMARY KEY,
   recipe_id VARCHAR(255) NOT NULL,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   comment TEXT NOT NULL,
   parent_comment_id INTEGER REFERENCES recipe_comments(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -32,7 +32,7 @@ CREATE INDEX idx_recipe_comments_parent ON recipe_comments(parent_comment_id);
 CREATE TABLE IF NOT EXISTS recipe_likes (
   id SERIAL PRIMARY KEY,
   recipe_id VARCHAR(255) NOT NULL,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(recipe_id, user_id)
 );
@@ -44,7 +44,7 @@ CREATE INDEX idx_recipe_likes_user ON recipe_likes(user_id);
 CREATE TABLE IF NOT EXISTS recipe_shares (
   id SERIAL PRIMARY KEY,
   recipe_id VARCHAR(255) NOT NULL,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   platform VARCHAR(50) NOT NULL, -- 'facebook', 'twitter', 'instagram', 'whatsapp', 'copy_link'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -55,10 +55,10 @@ CREATE INDEX idx_recipe_shares_user ON recipe_shares(user_id);
 -- User activity feed (for community feed)
 CREATE TABLE IF NOT EXISTS user_activity_feed (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   activity_type VARCHAR(50) NOT NULL, -- 'created_recipe', 'liked_recipe', 'commented', 'followed_user'
   recipe_id VARCHAR(255),
-  target_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  target_user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
   metadata JSONB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

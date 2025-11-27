@@ -56,7 +56,7 @@ export class AdvancedRecipeService {
   }
 
   // Cooking Sessions
-  async startCookingSession(userId: number, recipeId: string) {
+  async startCookingSession(userId: string, recipeId: string) {
     const result = await pool.query(
       'INSERT INTO cooking_sessions (user_id, recipe_id, status) VALUES ($1, $2, $3) RETURNING *',
       [userId, recipeId, 'in_progress'],
@@ -87,7 +87,7 @@ export class AdvancedRecipeService {
     return result.rows[0];
   }
 
-  async getCookingSession(userId: number, recipeId: string) {
+  async getCookingSession(userId: string, recipeId: string) {
     const result = await pool.query(
       'SELECT * FROM cooking_sessions WHERE user_id = $1 AND recipe_id = $2 AND status = $3 ORDER BY started_at DESC LIMIT 1',
       [userId, recipeId, 'in_progress'],
