@@ -5,7 +5,7 @@
 
 // Determine if we're in development mode
 // IMPORTANT: Always use production URL in release builds
-const isDevelopment = __DEV__ && !process.env.REACT_APP_FORCE_PRODUCTION;
+const isDevelopment = __DEV__;
 
 // API Base URLs - hardcoded for reliability
 // Release builds ALWAYS use production to avoid connection issues
