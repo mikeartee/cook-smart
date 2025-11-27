@@ -85,3 +85,11 @@ discord_*
 # API keys
 api_keys.json
 secrets.json
+
+# Secrets folder (contains production secrets and SSH keys)
+secrets/
+*.pem
+
+# Backend environment files
+backend/.env
+backend/.env.production
