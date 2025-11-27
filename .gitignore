@@ -53,6 +53,14 @@ Thumbs.db
 *.orig.*
 web-build/
 
+# Android build files
+android/.gradle/
+android/app/.cxx/
+android/app/build/
+android/build/
+*.apk
+*.aab
+
 # Temporary folders
 tmp/
 temp/
