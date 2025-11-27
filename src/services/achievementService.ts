@@ -1,4 +1,5 @@
-import api from './api';
+import {API_BASE_URL, getAuthHeader} from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Achievement {
   id: number;
@@ -14,8 +15,14 @@ export interface Achievement {
 class AchievementService {
   async getUserAchievements(): Promise<Achievement[]> {
     try {
-      const response = await api.get('/achievements');
-      return response.data.achievements || [];
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return [];
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/achievements`, {
+        headers: getAuthHeader(authToken),
+      });
+      const data = await response.json();
+      return data.achievements || [];
     } catch (error) {
       console.error('Failed to get achievements:', error);
       return [];
@@ -24,8 +31,16 @@ class AchievementService {
 
   async getAchievementProgress(): Promise<any> {
     try {
-      const response = await api.get('/achievements/progress');
-      return response.data;
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return null;
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/achievements/progress`,
+        {
+          headers: getAuthHeader(authToken),
+        },
+      );
+      return await response.json();
     } catch (error) {
       console.error('Failed to get achievement progress:', error);
       return null;

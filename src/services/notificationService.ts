@@ -1,6 +1,7 @@
 import {Platform} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
-import api from './api';
+import {API_BASE_URL, getAuthHeader} from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface NotificationPreferences {
   expiry_alerts: boolean;
@@ -43,9 +44,16 @@ class NotificationService {
    */
   async registerToken(token: string): Promise<void> {
     try {
-      await api.post('/notifications/register', {
-        token,
-        platform: Platform.OS,
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return;
+
+      await fetch(`${API_BASE_URL}/api/v1/notifications/register`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeader(authToken),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({token, platform: Platform.OS}),
       });
     } catch (error) {
       console.error('Failed to register notification token:', error);
@@ -57,8 +65,16 @@ class NotificationService {
    */
   async getPreferences(): Promise<NotificationPreferences | null> {
     try {
-      const response = await api.get('/notifications/preferences');
-      return response.data;
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return null;
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/notifications/preferences`,
+        {
+          headers: getAuthHeader(authToken),
+        },
+      );
+      return await response.json();
     } catch (error) {
       console.error('Failed to get notification preferences:', error);
       return null;
@@ -72,7 +88,17 @@ class NotificationService {
     preferences: Partial<NotificationPreferences>,
   ): Promise<boolean> {
     try {
-      await api.put('/notifications/preferences', preferences);
+      const authToken = await AsyncStorage.getItem('auth_token');
+      if (!authToken) return false;
+
+      await fetch(`${API_BASE_URL}/api/v1/notifications/preferences`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeader(authToken),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences),
+      });
       return true;
     } catch (error) {
       console.error('Failed to update notification preferences:', error);
