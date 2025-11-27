@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -22,10 +23,24 @@ export default function HolidayRecipeSection({
 }: HolidayRecipeSectionProps) {
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
+    checkIfHidden();
     loadRecipes();
   }, [holiday]);
+
+  const checkIfHidden = async () => {
+    try {
+      const hiddenHolidays = await AsyncStorage.getItem('hidden_holidays');
+      if (hiddenHolidays) {
+        const hiddenList = JSON.parse(hiddenHolidays);
+        setHidden(hiddenList.includes(holiday.name));
+      }
+    } catch (error) {
+      console.error('Error checking hidden holidays:', error);
+    }
+  };
 
   const loadRecipes = async () => {
     try {
@@ -51,7 +66,7 @@ export default function HolidayRecipeSection({
     );
   }
 
-  if (recipes.length === 0) return null;
+  if (recipes.length === 0 || hidden) return null;
 
   return (
     <View style={styles.container}>

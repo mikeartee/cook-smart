@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Holiday, getDaysUntilHoliday} from '../utils/holidays';
 
 interface HolidayBannerProps {
@@ -10,9 +11,38 @@ interface HolidayBannerProps {
 
 export default function HolidayBanner({holiday, onPress}: HolidayBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const daysUntil = getDaysUntilHoliday(holiday);
 
-  if (dismissed) return null;
+  useEffect(() => {
+    checkIfHidden();
+  }, [holiday]);
+
+  const checkIfHidden = async () => {
+    try {
+      const hiddenHolidays = await AsyncStorage.getItem('hidden_holidays');
+      if (hiddenHolidays) {
+        const hiddenList = JSON.parse(hiddenHolidays);
+        setHidden(hiddenList.includes(holiday.name));
+      }
+    } catch (_error) {
+      console.error('Error checking hidden holidays:', _error);
+    }
+  };
+
+  const handleHide = async () => {
+    try {
+      const hiddenHolidays = await AsyncStorage.getItem('hidden_holidays');
+      const hiddenList = hiddenHolidays ? JSON.parse(hiddenHolidays) : [];
+      hiddenList.push(holiday.name);
+      await AsyncStorage.setItem('hidden_holidays', JSON.stringify(hiddenList));
+      setHidden(true);
+    } catch (_error) {
+      console.error('Error hiding holiday:', _error);
+    }
+  };
+
+  if (dismissed || hidden) return null;
 
   return (
     <TouchableOpacity
@@ -33,15 +63,26 @@ export default function HolidayBanner({holiday, onPress}: HolidayBannerProps) {
           </Text>
         </View>
       </View>
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={e => {
-          e.stopPropagation();
-          setDismissed(true);
-        }}
-        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-        <Icon name="close" size={20} color="#6B7280" />
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={e => {
+            e.stopPropagation();
+            handleHide();
+          }}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+          <Icon name="visibility-off" size={18} color="#6B7280" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={e => {
+            e.stopPropagation();
+            setDismissed(true);
+          }}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+          <Icon name="close" size={18} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -87,8 +128,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#B45309',
   },
-  closeButton: {
-    padding: 4,
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
     marginLeft: 8,
+  },
+  actionButton: {
+    padding: 4,
   },
 });

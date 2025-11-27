@@ -24,6 +24,7 @@ import MyRecipesScreen from '../screens/MyRecipesScreen';
 import CreateRecipeScreen from '../screens/CreateRecipeScreen';
 import MealPlanningScreen from '../screens/MealPlanningScreen';
 import RecipeCollectionsScreen from '../screens/RecipeCollectionsScreen';
+import HolidayPreferencesScreen from '../screens/HolidayPreferencesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -80,6 +81,10 @@ const AccountStack = () => (
       component={NotificationSettingsScreen}
     />
     <Stack.Screen name="Achievements" component={AchievementsScreen} />
+    <Stack.Screen
+      name="HolidayPreferences"
+      component={HolidayPreferencesScreen}
+    />
     <Stack.Screen
       name="SubscriptionDetails"
       component={SubscriptionDetailsScreen}

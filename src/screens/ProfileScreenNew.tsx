@@ -117,6 +117,14 @@ const ProfileScreenNew: React.FC = () => {
       onPress: () => navigation.navigate('NotificationSettings' as never),
     },
     {
+      id: 'holidays',
+      title: 'Holiday Preferences',
+      subtitle: 'Choose which holidays to see',
+      icon: 'celebration',
+      color: '#EC4899',
+      onPress: () => navigation.navigate('HolidayPreferences' as never),
+    },
+    {
       id: 'password',
       title: 'Change Password',
       subtitle: 'Update your password',
