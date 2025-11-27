@@ -7,7 +7,7 @@ import {
   Animated,
   TouchableOpacity,
 } from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface Props {
   visible: boolean;
@@ -60,7 +60,7 @@ export default function AchievementUnlockModal({
             },
           ]}>
           <View style={styles.header}>
-            <Ionicons name="trophy" size={32} color="#FFD93D" />
+            <Icon name="emoji-events" size={32} color="#FFD93D" />
             <Text style={styles.title}>Achievement Unlocked!</Text>
           </View>
 

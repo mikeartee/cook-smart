@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import achievementService, {Achievement} from '../services/achievementService';
 
 export default function AchievementsScreen() {
@@ -137,7 +137,7 @@ export default function AchievementsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="trophy" size={48} color="#FFD93D" />
+        <Icon name="emoji-events" size={48} color="#FFD93D" />
         <Text style={styles.title}>Achievements</Text>
         <Text style={styles.subtitle}>
           {achievements.length} badge{achievements.length !== 1 ? 's' : ''}{' '}
@@ -163,7 +163,7 @@ export default function AchievementsScreen() {
 
       {achievements.length === 0 && (
         <View style={styles.emptyState}>
-          <Ionicons name="trophy-outline" size={64} color="#ccc" />
+          <Icon name="emoji-events" size={64} color="#ccc" />
           <Text style={styles.emptyText}>No badges yet</Text>
           <Text style={styles.emptySubtext}>
             Start cooking to earn your first achievement!

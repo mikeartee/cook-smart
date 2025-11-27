@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import notificationService, {
   NotificationPreferences,
 } from '../services/notificationService';
@@ -88,7 +88,7 @@ export default function NotificationSettingsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="notifications" size={48} color="#FF6B6B" />
+        <Icon name="notifications" size={48} color="#FF6B6B" />
         <Text style={styles.title}>Notifications</Text>
         <Text style={styles.subtitle}>
           Stay updated with ingredient expiry alerts, recipe suggestions, and
@@ -98,7 +98,7 @@ export default function NotificationSettingsScreen() {
 
       {!enabled ? (
         <View style={styles.enableSection}>
-          <Ionicons name="notifications-off" size={64} color="#ccc" />
+          <Icon name="notifications-off" size={64} color="#ccc" />
           <Text style={styles.disabledText}>Notifications are disabled</Text>
           <TouchableOpacity
             style={styles.enableButton}
@@ -112,7 +112,7 @@ export default function NotificationSettingsScreen() {
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Ionicons name="time" size={24} color="#FF6B6B" />
+              <Icon name="schedule" size={24} color="#FF6B6B" />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Expiry Alerts</Text>
                 <Text style={styles.settingDescription}>
@@ -129,7 +129,7 @@ export default function NotificationSettingsScreen() {
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Ionicons name="restaurant" size={24} color="#4ECDC4" />
+              <Icon name="restaurant" size={24} color="#4ECDC4" />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Recipe Suggestions</Text>
                 <Text style={styles.settingDescription}>
@@ -148,7 +148,7 @@ export default function NotificationSettingsScreen() {
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Ionicons name="trophy" size={24} color="#FFD93D" />
+              <Icon name="emoji-events" size={24} color="#FFD93D" />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>
                   Achievement Notifications
@@ -169,7 +169,7 @@ export default function NotificationSettingsScreen() {
 
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Ionicons name="calendar" size={24} color="#A8E6CF" />
+              <Icon name="calendar-today" size={24} color="#A8E6CF" />
               <View style={styles.settingText}>
                 <Text style={styles.settingLabel}>Daily Reminders</Text>
                 <Text style={styles.settingDescription}>
@@ -189,7 +189,7 @@ export default function NotificationSettingsScreen() {
       )}
 
       <View style={styles.infoBox}>
-        <Ionicons name="information-circle" size={20} color="#666" />
+        <Icon name="info" size={20} color="#666" />
         <Text style={styles.infoText}>
           Notifications help you reduce food waste and discover new recipes. You
           can change these settings anytime.
