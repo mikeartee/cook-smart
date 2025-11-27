@@ -7,8 +7,8 @@ const router = express.Router();
 // Follow/Unfollow
 router.post('/follow/:userId', authenticateToken, async (req, res) => {
   try {
-    const followerId = req.user!.id;
-    const followingId = req.params.userId;
+    const followerId = req.user!.id as string;
+    const followingId = req.params.userId as string;
 
     if (followerId === followingId) {
       return res.status(400).json({error: 'Cannot follow yourself'});
@@ -23,8 +23,8 @@ router.post('/follow/:userId', authenticateToken, async (req, res) => {
 
 router.delete('/follow/:userId', authenticateToken, async (req, res) => {
   try {
-    const followerId = req.user!.id;
-    const followingId = req.params.userId;
+    const followerId = req.user!.id as string;
+    const followingId = req.params.userId as string;
 
     await SocialService.unfollowUser(followerId, followingId);
     res.json({success: true});
@@ -35,7 +35,7 @@ router.delete('/follow/:userId', authenticateToken, async (req, res) => {
 
 router.get('/followers/:userId', authenticateToken, async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.params.userId as string;
     const followers = await SocialService.getFollowers(userId);
     res.json({success: true, followers});
   } catch (error: any) {
@@ -45,7 +45,7 @@ router.get('/followers/:userId', authenticateToken, async (req, res) => {
 
 router.get('/following/:userId', authenticateToken, async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.params.userId as string;
     const following = await SocialService.getFollowing(userId);
     res.json({success: true, following});
   } catch (error: any) {
@@ -55,8 +55,8 @@ router.get('/following/:userId', authenticateToken, async (req, res) => {
 
 router.get('/is-following/:userId', authenticateToken, async (req, res) => {
   try {
-    const followerId = req.user!.id;
-    const followingId = req.params.userId;
+    const followerId = req.user!.id as string;
+    const followingId = req.params.userId as string;
     const isFollowing = await SocialService.isFollowing(
       followerId,
       followingId,
@@ -71,7 +71,7 @@ router.get('/is-following/:userId', authenticateToken, async (req, res) => {
 router.post('/comments/:recipeId', authenticateToken, async (req, res) => {
   try {
     const {recipeId} = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
     const {comment, parentId} = req.body;
 
     const result = await SocialService.addComment(
@@ -88,7 +88,7 @@ router.post('/comments/:recipeId', authenticateToken, async (req, res) => {
 
 router.get('/comments/:recipeId', async (req, res) => {
   try {
-    const {recipeId} = req.params;
+    const {recipeId} = req.params as {recipeId: string};
     const comments = await SocialService.getComments(recipeId);
     res.json({success: true, comments});
   } catch (error: any) {
@@ -99,7 +99,7 @@ router.get('/comments/:recipeId', async (req, res) => {
 router.delete('/comments/:commentId', authenticateToken, async (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId);
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
 
     await SocialService.deleteComment(commentId, userId);
     res.json({success: true});
@@ -112,7 +112,7 @@ router.delete('/comments/:commentId', authenticateToken, async (req, res) => {
 router.post('/likes/:recipeId', authenticateToken, async (req, res) => {
   try {
     const {recipeId} = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
 
     await SocialService.likeRecipe(recipeId, userId);
     const count = await SocialService.getLikesCount(recipeId);
@@ -125,7 +125,7 @@ router.post('/likes/:recipeId', authenticateToken, async (req, res) => {
 router.delete('/likes/:recipeId', authenticateToken, async (req, res) => {
   try {
     const {recipeId} = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
 
     await SocialService.unlikeRecipe(recipeId, userId);
     const count = await SocialService.getLikesCount(recipeId);
@@ -138,7 +138,7 @@ router.delete('/likes/:recipeId', authenticateToken, async (req, res) => {
 router.get('/likes/:recipeId', authenticateToken, async (req, res) => {
   try {
     const {recipeId} = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
 
     const isLiked = await SocialService.isLiked(recipeId, userId);
     const count = await SocialService.getLikesCount(recipeId);
@@ -152,7 +152,7 @@ router.get('/likes/:recipeId', authenticateToken, async (req, res) => {
 router.post('/shares/:recipeId', authenticateToken, async (req, res) => {
   try {
     const {recipeId} = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
     const {platform} = req.body;
 
     await SocialService.shareRecipe(recipeId, userId, platform);
@@ -166,7 +166,7 @@ router.post('/shares/:recipeId', authenticateToken, async (req, res) => {
 // Community Feed
 router.get('/feed', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
     const limit = parseInt(req.query.limit as string) || 50;
 
     const feed = await SocialService.getCommunityFeed(userId, limit);

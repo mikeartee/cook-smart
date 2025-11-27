@@ -7,7 +7,7 @@ const router = express.Router();
 // Nutrition
 router.post('/nutrition/:recipeId', authenticateToken, async (req, res) => {
   try {
-    const {recipeId} = req.params;
+    const {recipeId} = req.params as {recipeId: string};
     const nutrition = await AdvancedRecipeService.addNutrition(
       recipeId,
       req.body,
@@ -31,7 +31,7 @@ router.get('/nutrition/:recipeId', async (req, res) => {
 // Timers
 router.post('/timers/:recipeId', authenticateToken, async (req, res) => {
   try {
-    const {recipeId} = req.params;
+    const {recipeId} = req.params as {recipeId: string};
     const {stepNumber, durationMinutes, label} = req.body;
     const timer = await AdvancedRecipeService.addTimer(
       recipeId,
@@ -58,7 +58,7 @@ router.get('/timers/:recipeId', async (req, res) => {
 // Cooking Sessions
 router.post('/cooking-session/start', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.id as string;
     const {recipeId} = req.body;
     const session = await AdvancedRecipeService.startCookingSession(
       userId,
@@ -109,7 +109,7 @@ router.get(
   authenticateToken,
   async (req, res) => {
     try {
-      const userId = req.user!.id;
+      const userId = req.user!.id as string;
       const {recipeId} = req.params;
       const session = await AdvancedRecipeService.getCookingSession(
         userId,
@@ -125,7 +125,7 @@ router.get(
 // Tags
 router.post('/tags/:recipeId', authenticateToken, async (req, res) => {
   try {
-    const {recipeId} = req.params;
+    const {recipeId} = req.params as {recipeId: string};
     const {tag, tagType} = req.body;
     const result = await AdvancedRecipeService.addTag(recipeId, tag, tagType);
     res.json({success: true, tag: result});
@@ -157,7 +157,7 @@ router.post('/search-by-tags', async (req, res) => {
 // Seasonal
 router.post('/seasonal/:recipeId', authenticateToken, async (req, res) => {
   try {
-    const {recipeId} = req.params;
+    const {recipeId} = req.params as {recipeId: string};
     const {season, priority} = req.body;
     const result = await AdvancedRecipeService.addSeasonalRecipe(
       recipeId,
