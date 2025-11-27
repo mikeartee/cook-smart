@@ -1,28 +1,17 @@
-import nodemailer from 'nodemailer';
+import {Resend} from 'resend';
 
 class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
+  private resend: Resend | null = null;
 
   constructor() {
-    this.initializeTransporter();
+    this.initializeResend();
   }
 
-  private initializeTransporter() {
-    // For development, use console logging
-    // For production, configure AWS SES or other email service
-    if (process.env.NODE_ENV === 'production' && process.env.AWS_SES_REGION) {
-      // AWS SES configuration
-      this.transporter = nodemailer.createTransport({
-        host: `email-smtp.${process.env.AWS_SES_REGION}.amazonaws.com`,
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.AWS_SES_ACCESS_KEY,
-          pass: process.env.AWS_SES_SECRET_KEY,
-        },
-      });
+  private initializeResend() {
+    if (process.env.RESEND_API_KEY) {
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+      console.log('📧 Email Service: Resend initialized');
     } else {
-      // Development: Log to console
       console.log(
         '📧 Email Service: Running in development mode (emails logged to console)',
       );
@@ -33,8 +22,8 @@ class EmailService {
     email: string,
     resetToken: string,
   ): Promise<void> {
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@cooksmart.app',
+    const emailContent = {
+      from: 'Cook Smart <noreply@cooksmartapp.com>',
       to: email,
       subject: 'Reset Your Cook Smart Password',
       html: `
@@ -46,7 +35,6 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .header { background: #10B981; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
             .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
             .token { background: #e5e7eb; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 18px; text-align: center; margin: 20px 0; }
             .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
           </style>
@@ -92,15 +80,18 @@ class EmailService {
       `,
     };
 
-    if (this.transporter) {
-      // Send actual email
-      await this.transporter.sendMail(mailOptions);
-      console.log(`📧 Password reset email sent to: ${email}`);
+    if (this.resend) {
+      try {
+        const result = await this.resend.emails.send(emailContent);
+        console.log(`📧 Password reset email sent to: ${email}`, result);
+      } catch (error) {
+        console.error('❌ Failed to send email via Resend:', error);
+        throw error;
+      }
     } else {
-      // Development: Log to console
       console.log('\n📧 ========== PASSWORD RESET EMAIL ==========');
       console.log(`To: ${email}`);
-      console.log(`Subject: ${mailOptions.subject}`);
+      console.log(`Subject: ${emailContent.subject}`);
       console.log(`Reset Code: ${resetToken}`);
       console.log(`Expires: 1 hour`);
       console.log('============================================\n');

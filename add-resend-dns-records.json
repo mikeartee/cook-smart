@@ -1,0 +1,44 @@
+{
+  "Comment": "Add Resend email verification records",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "resend._domainkey.cooksmartapp.com",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEOWlRvvIuC2sWNE10dOa9pPjUrFh6hgCIAx0zgesPz8db8gZH2DdnKUhXlU9gUfsTLySOS0Sm7jiVWZdhSc6jPqWAx0cSJwEZpIe9M3Fa1z4YSaxst+ZuVADym+DkUoVPZvKuXmTjalvCmwfrkMFjcy9TESMnuy/J6iAbWlmrWwIDAQAB\""
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "send.cooksmartapp.com",
+        "Type": "MX",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "10 feedback-smtp.us-east-1.amazonses.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "send.cooksmartapp.com",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "\"v=spf1 include:amazonses.com ~all\""
+          }
+        ]
+      }
+    }
+  ]
+}
