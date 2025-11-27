@@ -1,6 +1,6 @@
 {
   "name": "CookSmartFresh",
-  "version": "1.0.24",
+  "version": "1.0.28",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

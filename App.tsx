@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {StripeProvider} from '@stripe/stripe-react-native';
 import {AuthProvider, useAuth} from './src/contexts/AuthContext';
 import {IngredientProvider} from './src/contexts/IngredientContext';
 import {RecipeProvider} from './src/contexts/RecipeContext';
@@ -10,6 +9,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CoFounderWelcomeScreen from './src/screens/CoFounderWelcomeScreen';
 import SpecialUserWelcomeScreen from './src/screens/SpecialUserWelcomeScreen';
+import {ForgotPasswordScreen} from './src/screens/ForgotPasswordScreen';
+import {ResetPasswordScreen} from './src/screens/ResetPasswordScreen';
 import {PrivacyPolicyScreen} from './src/screens/PrivacyPolicyScreen';
 import {TermsOfServiceScreen} from './src/screens/TermsOfServiceScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
@@ -19,16 +20,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {productLookupService} from './src/services/productLookupService';
 
-// Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY =
-  'pk_live_51QRbVQP3gNR4KkVLMiMXqJjhXMCiWLqhLKCPvJqYhwqvvPXxqJjhXMCiWLqhLKCPvJqYhwqvvPXxqJjhXMCiWLqhLKCPvJqYhwqvvPX';
-
 const Stack = createStackNavigator();
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
     <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
   </Stack.Navigator>
@@ -118,17 +117,15 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <IngredientProvider>
-            <RecipeProvider>
-              <AppContent />
-            </RecipeProvider>
-          </IngredientProvider>
-        </SubscriptionProvider>
-      </AuthProvider>
-    </StripeProvider>
+    <AuthProvider>
+      <SubscriptionProvider>
+        <IngredientProvider>
+          <RecipeProvider>
+            <AppContent />
+          </RecipeProvider>
+        </IngredientProvider>
+      </SubscriptionProvider>
+    </AuthProvider>
   );
 };
 

@@ -4,12 +4,14 @@
  */
 
 // Determine if we're in development mode
-const isDevelopment = __DEV__;
+// IMPORTANT: Always use production URL in release builds
+const isDevelopment = __DEV__ && !process.env.REACT_APP_FORCE_PRODUCTION;
 
 // API Base URLs - hardcoded for reliability
+// Release builds ALWAYS use production to avoid connection issues
 export const API_BASE_URL = isDevelopment
-  ? 'http://192.168.12.196:3000' // Local development
-  : 'http://3.237.38.24:3000'; // Production EC2 server
+  ? 'http://192.168.12.196:3000' // Local development only
+  : 'https://api.cooksmartapp.com'; // Production HTTPS domain (used in all release builds)
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -91,6 +93,16 @@ export const API_ENDPOINTS = {
   payments: {
     base: `${API_BASE_URL}/api/v1/payments`,
     subscribe: `${API_BASE_URL}/api/v1/payments/subscribe`,
+  },
+
+  // User Settings
+  settings: {
+    privacy: `${API_BASE_URL}/api/v1/settings/privacy`,
+    exportData: `${API_BASE_URL}/api/v1/settings/export-data`,
+    deleteAccount: `${API_BASE_URL}/api/v1/settings/account`,
+    twoFactor: `${API_BASE_URL}/api/v1/settings/two-factor`,
+    twoFactorEnable: `${API_BASE_URL}/api/v1/settings/two-factor/enable`,
+    twoFactorDisable: `${API_BASE_URL}/api/v1/settings/two-factor/disable`,
   },
 
   // Health Check
