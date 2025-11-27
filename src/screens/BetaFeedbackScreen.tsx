@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { FeedbackModal } from '../components/FeedbackModal';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Linking,
+} from 'react-native';
+import {FeedbackModal} from '../components/FeedbackModal';
 import feedbackService from '../services/feedbackService';
 
 interface FeedbackData {
@@ -39,7 +47,7 @@ export const BetaFeedbackScreen: React.FC = () => {
       await feedbackService.submitFeedback(feedback);
       Alert.alert(
         'Thank You! 🎉',
-        'Your feedback helps us improve Cook Smart. We appreciate your input during the BETA phase!'
+        'Your feedback helps us improve Cook Smart. We appreciate your input during the BETA phase!',
       );
       loadUserFeedback(); // Refresh the list
     } catch {
@@ -54,10 +62,14 @@ export const BetaFeedbackScreen: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return '#FFA500';
-      case 'reviewed': return '#4CAF50';
-      case 'resolved': return '#2196F3';
-      default: return '#9E9E9E';
+      case 'pending':
+        return '#FFA500';
+      case 'reviewed':
+        return '#4CAF50';
+      case 'resolved':
+        return '#2196F3';
+      default:
+        return '#9E9E9E';
     }
   };
 
@@ -65,26 +77,25 @@ export const BetaFeedbackScreen: React.FC = () => {
     return category || 'General';
   };
 
-  const FeedbackCard = ({ item }: { item: FeedbackItem }) => (
+  const FeedbackCard = ({item}: {item: FeedbackItem}) => (
     <View style={styles.feedbackCard}>
       <View style={styles.feedbackHeader}>
-        <Text style={styles.feedbackRating}>
-          {getRatingStars(item.rating)}
-        </Text>
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: getStatusColor(item.status) }
-        ]}>
+        <Text style={styles.feedbackRating}>{getRatingStars(item.rating)}</Text>
+        <View
+          style={[
+            styles.statusBadge,
+            {backgroundColor: getStatusColor(item.status)},
+          ]}>
           <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
         </View>
       </View>
-      
+
       <Text style={styles.feedbackCategory}>
         {getCategoryLabel(item.category)}
       </Text>
-      
+
       <Text style={styles.feedbackMessage}>{item.message}</Text>
-      
+
       <Text style={styles.feedbackDate}>
         Submitted: {new Date(item.createdAt).toLocaleDateString()}
       </Text>
@@ -105,21 +116,21 @@ export const BetaFeedbackScreen: React.FC = () => {
       <View style={styles.betaInfo}>
         <Text style={styles.betaTitle}>Your Voice Matters!</Text>
         <Text style={styles.betaText}>
-          As a BETA tester, your feedback is crucial for making Cook Smart the best recipe app possible. 
-          Share your thoughts, report bugs, and suggest new features.
+          As a BETA tester, your feedback is crucial for making Cook Smart the
+          best recipe app possible. Share your thoughts, report bugs, and
+          suggest new features.
         </Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.feedbackButton}
-          onPress={() => setShowFeedbackModal(true)}
-        >
+          onPress={() => setShowFeedbackModal(true)}>
           <Text style={styles.feedbackButtonText}>💬 Give Feedback</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Your Previous Feedback</Text>
-        
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text>Loading your feedback...</Text>
@@ -143,11 +154,50 @@ export const BetaFeedbackScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Feedback Guidelines</Text>
         <View style={styles.guidelinesList}>
-          <Text style={styles.guideline}>🐛 <Text style={styles.bold}>Bug Reports:</Text> Describe what happened and steps to reproduce</Text>
-          <Text style={styles.guideline}>💡 <Text style={styles.bold}>Feature Requests:</Text> Tell us what you'd like to see added</Text>
-          <Text style={styles.guideline}>🎨 <Text style={styles.bold}>UI/UX:</Text> Share thoughts on design and user experience</Text>
-          <Text style={styles.guideline}>⚡ <Text style={styles.bold}>Performance:</Text> Report slow loading or crashes</Text>
-          <Text style={styles.guideline}>💬 <Text style={styles.bold}>General:</Text> Any other thoughts or suggestions</Text>
+          <Text style={styles.guideline}>
+            🐛 <Text style={styles.bold}>Bug Reports:</Text> Describe what
+            happened and steps to reproduce
+          </Text>
+          <Text style={styles.guideline}>
+            💡 <Text style={styles.bold}>Feature Requests:</Text> Tell us what
+            you'd like to see added
+          </Text>
+          <Text style={styles.guideline}>
+            🎨 <Text style={styles.bold}>UI/UX:</Text> Share thoughts on design
+            and user experience
+          </Text>
+          <Text style={styles.guideline}>
+            ⚡ <Text style={styles.bold}>Performance:</Text> Report slow loading
+            or crashes
+          </Text>
+          <Text style={styles.guideline}>
+            💬 <Text style={styles.bold}>General:</Text> Any other thoughts or
+            suggestions
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Need Direct Support?</Text>
+        <View style={styles.supportCard}>
+          <Text style={styles.supportText}>
+            For urgent issues or direct assistance, you can reach our support
+            team:
+          </Text>
+          <TouchableOpacity
+            style={styles.emailButton}
+            onPress={() =>
+              Linking.openURL(
+                'mailto:services.cooksmart@gmail.com?subject=Cook Smart Support',
+              )
+            }>
+            <Text style={styles.emailButtonText}>
+              📧 services.cooksmart@gmail.com
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.supportNote}>
+            We typically respond within 24-48 hours during BETA.
+          </Text>
         </View>
       </View>
 
@@ -301,5 +351,36 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
     color: '#333',
+  },
+  supportCard: {
+    backgroundColor: '#E3F2FD',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#2196F3',
+  },
+  supportText: {
+    fontSize: 14,
+    color: '#1565C0',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  emailButton: {
+    backgroundColor: '#2196F3',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  emailButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  supportNote: {
+    fontSize: 12,
+    color: '#1565C0',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
