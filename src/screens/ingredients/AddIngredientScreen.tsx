@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,19 +10,21 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { SearchBar } from '../../components/common/SearchBar';
-import { useIngredients } from '../../contexts/IngredientContext';
-import { Ingredient } from '../../services/ingredientService';
-import { BarcodeScannerModal } from '../../components/barcode/BarcodeScannerModal';
-import { ManualBarcodeEntryModal } from '../../components/barcode/ManualBarcodeEntryModal';
-import { ScannedProduct } from '../../services/productLookupService';
-import { barcodeService } from '../../services/barcodeService';
+import {SearchBar} from '../../components/common/SearchBar';
+import {useIngredients} from '../../contexts/IngredientContext';
+import PhotoPicker from '../../components/PhotoPicker';
+import {uploadPhoto} from '../../services/userRecipeService';
+import {Ingredient} from '../../services/ingredientService';
+import {BarcodeScannerModal} from '../../components/barcode/BarcodeScannerModal';
+import {ManualBarcodeEntryModal} from '../../components/barcode/ManualBarcodeEntryModal';
+import {ScannedProduct} from '../../services/productLookupService';
+import {barcodeService} from '../../services/barcodeService';
 
 export const AddIngredientScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { searchIngredients, addIngredient } = useIngredients();
+  const {searchIngredients, addIngredient} = useIngredients();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
@@ -32,7 +34,9 @@ export const AddIngredientScreen: React.FC = () => {
   // Barcode scanner state
   const [showScannerModal, setShowScannerModal] = useState(false);
   const [showManualEntryModal, setShowManualEntryModal] = useState(false);
-  const [scannedProduct, setScannedProduct] = useState<ScannedProduct | null>(null);
+  const [scannedProduct, setScannedProduct] = useState<ScannedProduct | null>(
+    null,
+  );
   const [_hasCameraAvailable, setHasCameraAvailable] = useState(true);
 
   // Custom ingredient form state
@@ -40,6 +44,7 @@ export const AddIngredientScreen: React.FC = () => {
   const [customCategory, setCustomCategory] = useState('Other');
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('unit');
+  const [photo, setPhoto] = useState('');
 
   // Check camera availability on mount
   useEffect(() => {
@@ -110,7 +115,7 @@ export const AddIngredientScreen: React.FC = () => {
               setShowScannerModal(true);
             },
           },
-        ]
+        ],
       );
     } else {
       setShowScannerModal(true);
@@ -132,20 +137,16 @@ export const AddIngredientScreen: React.FC = () => {
         quantity: 1,
         unit: 'unit',
       });
-      
-      Alert.alert(
-        'Success', 
-        'Ingredient added to your inventory',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Navigate back to ingredients list
-              navigation.navigate('IngredientInventory' as never);
-            }
-          }
-        ]
-      );
+
+      Alert.alert('Success', 'Ingredient added to your inventory', [
+        {
+          text: 'OK',
+          onPress: () => {
+            // Navigate back to ingredients list
+            navigation.navigate('IngredientInventory' as never);
+          },
+        },
+      ]);
     } catch (_error) {
       Alert.alert('Error', 'Failed to add ingredient');
     }
@@ -158,25 +159,32 @@ export const AddIngredientScreen: React.FC = () => {
     }
 
     try {
+      let photoUrl = '';
+      if (photo) {
+        photoUrl = await uploadPhoto(photo, 'ingredient');
+      }
+
       await addIngredient({
         customName: customName.trim(),
         category: customCategory,
         quantity: parseFloat(quantity) || 1,
         unit: unit.trim() || 'unit',
+        photo_url: photoUrl,
       });
-      
+
       // Close modal first
       setShowCustomModal(false);
-      
+
       // Reset form
       setCustomName('');
       setCustomCategory('Other');
       setQuantity('1');
       setUnit('unit');
-      
+      setPhoto('');
+
       // Show success and navigate back
       Alert.alert(
-        'Success', 
+        'Success',
         'Custom ingredient added! Pull down to refresh the list.',
         [
           {
@@ -184,9 +192,9 @@ export const AddIngredientScreen: React.FC = () => {
             onPress: () => {
               // Navigate back to ingredients list
               navigation.goBack();
-            }
-          }
-        ]
+            },
+          },
+        ],
       );
     } catch (_error) {
       Alert.alert('Error', 'Failed to add custom ingredient');
@@ -203,11 +211,10 @@ export const AddIngredientScreen: React.FC = () => {
     'Other',
   ];
 
-  const renderSearchResult = ({ item }: { item: Ingredient }) => (
+  const renderSearchResult = ({item}: {item: Ingredient}) => (
     <TouchableOpacity
       style={styles.resultItem}
-      onPress={() => handleSelectIngredient(item)}
-    >
+      onPress={() => handleSelectIngredient(item)}>
       <View style={styles.resultContent}>
         <Text style={styles.resultName}>
           {item.ingredient_name || item.name}
@@ -223,8 +230,7 @@ export const AddIngredientScreen: React.FC = () => {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+          style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Ingredient</Text>
@@ -232,10 +238,7 @@ export const AddIngredientScreen: React.FC = () => {
       </View>
 
       {/* Scan Barcode Button - Always show */}
-      <TouchableOpacity
-        style={styles.scanButton}
-        onPress={handleScanBarcode}
-      >
+      <TouchableOpacity style={styles.scanButton} onPress={handleScanBarcode}>
         <Icon name="qr-code-scanner" size={24} color="#10B981" />
         <Text style={styles.scanButtonText}>Scan Barcode</Text>
       </TouchableOpacity>
@@ -273,15 +276,14 @@ export const AddIngredientScreen: React.FC = () => {
         <FlatList
           data={searchResults}
           renderItem={renderSearchResult}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.listContent}
         />
       )}
 
       <TouchableOpacity
         style={styles.customButton}
-        onPress={() => setShowCustomModal(true)}
-      >
+        onPress={() => setShowCustomModal(true)}>
         <Icon name="add" size={20} color="#FFFFFF" />
         <Text style={styles.customButtonText}>Add Custom Ingredient</Text>
       </TouchableOpacity>
@@ -306,8 +308,7 @@ export const AddIngredientScreen: React.FC = () => {
         visible={showCustomModal}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowCustomModal(false)}
-      >
+        onRequestClose={() => setShowCustomModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -316,6 +317,8 @@ export const AddIngredientScreen: React.FC = () => {
                 <Icon name="close" size={24} color="#374151" />
               </TouchableOpacity>
             </View>
+
+            <PhotoPicker onPhotoSelected={setPhoto} currentPhoto={photo} />
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Ingredient Name *</Text>
@@ -331,21 +334,19 @@ export const AddIngredientScreen: React.FC = () => {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Category</Text>
               <View style={styles.categoryGrid}>
-                {categories.map((cat) => (
+                {categories.map(cat => (
                   <TouchableOpacity
                     key={cat}
                     style={[
                       styles.categoryChip,
                       customCategory === cat && styles.categoryChipActive,
                     ]}
-                    onPress={() => setCustomCategory(cat)}
-                  >
+                    onPress={() => setCustomCategory(cat)}>
                     <Text
                       style={[
                         styles.categoryChipText,
                         customCategory === cat && styles.categoryChipTextActive,
-                      ]}
-                    >
+                      ]}>
                       {cat}
                     </Text>
                   </TouchableOpacity>
@@ -380,8 +381,7 @@ export const AddIngredientScreen: React.FC = () => {
 
             <TouchableOpacity
               style={styles.saveButton}
-              onPress={handleAddCustom}
-            >
+              onPress={handleAddCustom}>
               <Text style={styles.saveButtonText}>Add Ingredient</Text>
             </TouchableOpacity>
           </View>
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,

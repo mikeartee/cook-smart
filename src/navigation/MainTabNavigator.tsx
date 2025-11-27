@@ -22,6 +22,8 @@ import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import MyRecipesScreen from '../screens/MyRecipesScreen';
 import CreateRecipeScreen from '../screens/CreateRecipeScreen';
+import MealPlanningScreen from '../screens/MealPlanningScreen';
+import RecipeCollectionsScreen from '../screens/RecipeCollectionsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -51,6 +53,8 @@ const RecipesStack = () => (
 const SavedRecipesStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="SavedRecipesList" component={SavedRecipesScreen} />
+    <Stack.Screen name="MealPlanning" component={MealPlanningScreen} />
+    <Stack.Screen name="Collections" component={RecipeCollectionsScreen} />
   </Stack.Navigator>
 );
 

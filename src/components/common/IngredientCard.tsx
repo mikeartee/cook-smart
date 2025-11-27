@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Ingredient } from '../../services/ingredientService';
+import {API_BASE_URL} from '../../config/api';
+import {Ingredient} from '../../services/ingredientService';
 
 interface IngredientCardProps {
   ingredient: Ingredient;
@@ -10,7 +11,7 @@ interface IngredientCardProps {
 }
 
 const getCategoryIcon = (category: string): string => {
-  const categoryMap: { [key: string]: string } = {
+  const categoryMap: {[key: string]: string} = {
     proteins: 'set-meal',
     vegetables: 'eco',
     fruits: 'apple',
@@ -27,19 +28,26 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
   onDelete,
   onEdit,
 }) => {
-  const displayName = ingredient.ingredient_name || ingredient.name || 'Unknown';
+  const displayName =
+    ingredient.ingredient_name || ingredient.name || 'Unknown';
   const iconName = getCategoryIcon(ingredient.category);
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.card}
       onPress={() => onEdit?.(ingredient)}
-      activeOpacity={onEdit ? 0.7 : 1}
-    >
-      <View style={styles.iconContainer}>
-        <Icon name={iconName} size={24} color="#10B981" />
-      </View>
-      
+      activeOpacity={onEdit ? 0.7 : 1}>
+      {ingredient.photo_url ? (
+        <Image
+          source={{uri: `${API_BASE_URL}${ingredient.photo_url}`}}
+          style={styles.photo}
+        />
+      ) : (
+        <View style={styles.iconContainer}>
+          <Icon name={iconName} size={24} color="#10B981" />
+        </View>
+      )}
+
       <View style={styles.content}>
         <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.category}>{ingredient.category}</Text>
@@ -53,8 +61,7 @@ export const IngredientCard: React.FC<IngredientCardProps> = ({
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => onDelete(ingredient.id)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
         <Icon name="delete" size={20} color="#EF4444" />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -72,7 +79,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
@@ -84,6 +91,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1FAE5',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
+  },
+  photo: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
     marginRight: 12,
   },
   content: {

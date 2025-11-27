@@ -75,6 +75,24 @@ const ProfileScreenNew: React.FC = () => {
         navigation.navigate('Recipes' as never, {screen: 'MyRecipes'}),
     },
     {
+      id: 'mealplanning',
+      title: 'Meal Planning',
+      subtitle: 'Plan your weekly meals',
+      icon: 'calendar-today',
+      color: '#8B5CF6',
+      onPress: () =>
+        navigation.navigate('SavedRecipes' as never, {screen: 'MealPlanning'}),
+    },
+    {
+      id: 'collections',
+      title: 'Recipe Collections',
+      subtitle: 'Organize your recipes',
+      icon: 'collections-bookmark',
+      color: '#F59E0B',
+      onPress: () =>
+        navigation.navigate('SavedRecipes' as never, {screen: 'Collections'}),
+    },
+    {
       id: 'dietary',
       title: 'Dietary Preferences',
       subtitle: 'Manage restrictions & allergies',

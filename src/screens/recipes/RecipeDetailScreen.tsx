@@ -17,7 +17,15 @@ import {useAuth} from '../../contexts/AuthContext';
 import {RecipeDetails} from '../../services/recipeService';
 import {shoppingListService} from '../../services/shoppingListService';
 import {dietaryService} from '../../services/dietaryService';
-import {findSubstitutions, Substitution} from '../../utils/ingredientSubstitutions';
+import {
+  findSubstitutions,
+  Substitution,
+} from '../../utils/ingredientSubstitutions';
+import {
+  rateRecipe,
+  getRecipeRatings,
+  markRecipeCooked,
+} from '../../services/recipeEnhancementService';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -49,13 +57,58 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   const [selectedSubstitutions, setSelectedSubstitutions] = useState<{
     [ingredientIndex: number]: Substitution | null;
   }>({});
+  const [userRating, setUserRating] = useState(0);
+  const [avgRating, setAvgRating] = useState(0);
+  const [totalRatings, setTotalRatings] = useState(0);
 
   useEffect(() => {
     loadRecipe();
     checkIfSaved();
     loadUserIngredients();
     loadDietaryRestrictions();
+    loadRatings();
   }, [recipeId]);
+
+  const loadRatings = async () => {
+    try {
+      const data = await getRecipeRatings(recipeId, 'api');
+      setAvgRating(parseFloat(data.ratings.avg_rating) || 0);
+      setTotalRatings(parseInt(data.ratings.total_ratings) || 0);
+    } catch (_err) {
+      console.error('Error loading ratings:', _err);
+    }
+  };
+
+  const handleRate = async (rating: number) => {
+    try {
+      await rateRecipe(recipeId, 'api', rating);
+      setUserRating(rating);
+      await loadRatings();
+      Alert.alert('Success', 'Rating saved!');
+    } catch (_err) {
+      Alert.alert('Error', 'Failed to save rating');
+    }
+  };
+
+  const handleCookThis = async () => {
+    Alert.alert('Cook This Recipe', 'Mark this recipe as cooked?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Yes, I Cooked It!',
+        onPress: async () => {
+          try {
+            await markRecipeCooked(recipeId, 'api', userRating || undefined);
+            Alert.alert(
+              '🎉 Great Job!',
+              'Recipe marked as cooked! Keep cooking!',
+            );
+          } catch (_err) {
+            Alert.alert('Error', 'Failed to mark recipe as cooked');
+          }
+        },
+      },
+    ]);
+  };
 
   const loadDietaryRestrictions = async () => {
     if (!user?.id) return;
@@ -70,20 +123,36 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       const excluded: string[] = [];
       restrictions.forEach(r => {
         if (r.excluded_ingredients && Array.isArray(r.excluded_ingredients)) {
-          excluded.push(...r.excluded_ingredients.map((i: string) => i.toLowerCase()));
+          excluded.push(
+            ...r.excluded_ingredients.map((i: string) => i.toLowerCase()),
+          );
         }
       });
       setExcludedIngredients(excluded);
 
       // Collect allergy triggers by severity
-      const triggers = {severe: [] as string[], moderate: [] as string[], mild: [] as string[]};
+      const triggers = {
+        severe: [] as string[],
+        moderate: [] as string[],
+        mild: [] as string[],
+      };
       allergies.forEach((a: any) => {
-        const severity = (a.severity_override || a.severity) as 'severe' | 'moderate' | 'mild';
+        const severity = (a.severity_override || a.severity) as
+          | 'severe'
+          | 'moderate'
+          | 'mild';
         if (a.trigger_ingredients && Array.isArray(a.trigger_ingredients)) {
-          triggers[severity].push(...a.trigger_ingredients.map((i: string) => i.toLowerCase()));
+          triggers[severity].push(
+            ...a.trigger_ingredients.map((i: string) => i.toLowerCase()),
+          );
         }
-        if (a.cross_reactive_ingredients && Array.isArray(a.cross_reactive_ingredients)) {
-          triggers[severity].push(...a.cross_reactive_ingredients.map((i: string) => i.toLowerCase()));
+        if (
+          a.cross_reactive_ingredients &&
+          Array.isArray(a.cross_reactive_ingredients)
+        ) {
+          triggers[severity].push(
+            ...a.cross_reactive_ingredients.map((i: string) => i.toLowerCase()),
+          );
         }
       });
       setAllergyTriggers(triggers);
@@ -100,7 +169,9 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     setUserIngredients(ingredientNames);
   };
 
-  const checkIngredientConflict = (ingredientName: string): {
+  const checkIngredientConflict = (
+    ingredientName: string,
+  ): {
     hasConflict: boolean;
     severity: 'severe' | 'moderate' | 'mild' | 'dietary' | null;
     reason: string;
@@ -110,28 +181,44 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     // Check severe allergies first
     for (const trigger of allergyTriggers.severe) {
       if (cleanName.includes(trigger)) {
-        return {hasConflict: true, severity: 'severe', reason: `Severe allergy: ${trigger}`};
+        return {
+          hasConflict: true,
+          severity: 'severe',
+          reason: `Severe allergy: ${trigger}`,
+        };
       }
     }
 
     // Check moderate allergies
     for (const trigger of allergyTriggers.moderate) {
       if (cleanName.includes(trigger)) {
-        return {hasConflict: true, severity: 'moderate', reason: `Allergy: ${trigger}`};
+        return {
+          hasConflict: true,
+          severity: 'moderate',
+          reason: `Allergy: ${trigger}`,
+        };
       }
     }
 
     // Check mild allergies
     for (const trigger of allergyTriggers.mild) {
       if (cleanName.includes(trigger)) {
-        return {hasConflict: true, severity: 'mild', reason: `Sensitivity: ${trigger}`};
+        return {
+          hasConflict: true,
+          severity: 'mild',
+          reason: `Sensitivity: ${trigger}`,
+        };
       }
     }
 
     // Check dietary restrictions
     for (const excluded of excludedIngredients) {
       if (cleanName.includes(excluded)) {
-        return {hasConflict: true, severity: 'dietary', reason: `Dietary restriction: ${excluded}`};
+        return {
+          hasConflict: true,
+          severity: 'dietary',
+          reason: `Dietary restriction: ${excluded}`,
+        };
       }
     }
 
@@ -156,31 +243,35 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     });
   };
 
-  const handleSelectSubstitution = (ingredientIndex: number, substitution: Substitution) => {
+  const handleSelectSubstitution = (
+    ingredientIndex: number,
+    substitution: Substitution,
+  ) => {
     setSelectedSubstitutions(prev => ({
       ...prev,
-      [ingredientIndex]: prev[ingredientIndex]?.substitute === substitution.substitute 
-        ? null  // Deselect if already selected
-        : substitution  // Select new substitution
+      [ingredientIndex]:
+        prev[ingredientIndex]?.substitute === substitution.substitute
+          ? null // Deselect if already selected
+          : substitution, // Select new substitution
     }));
   };
 
   const calculateSubstitutionQuantity = (
-    originalQuantity: string, 
-    ratio: string
+    originalQuantity: string,
+    ratio: string,
   ): string => {
     // Parse ratio (e.g., "1:1", "3:4", "1.5:1")
     const ratioMatch = ratio.match(/([\d.]+):([\d.]+)/);
     if (!ratioMatch) return originalQuantity;
-    
+
     const numerator = parseFloat(ratioMatch[1] || '1');
     const denominator = parseFloat(ratioMatch[2] || '1');
     const ratioValue = numerator / denominator;
-    
+
     // Parse original quantity
     const qtyNum = parseFloat(originalQuantity);
     if (isNaN(qtyNum)) return originalQuantity;
-    
+
     // Calculate new quantity
     const newQty = qtyNum * ratioValue;
     return Math.round(newQty * 100) / 100 + ''; // Round to 2 decimals
@@ -288,35 +379,39 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         recipe.ingredients.forEach((ing, index) => {
           // Check if user already has this ingredient
           const alreadyHave = hasIngredient(ing);
-          
+
           // Check for dietary/allergy conflicts
           const conflict = checkIngredientConflict(ing);
-          
+
           // Check if user selected a substitution
-          const hasSelectedSubstitution = selectedSubstitutions[index] !== undefined && selectedSubstitutions[index] !== null;
-          
+          const hasSelectedSubstitution =
+            selectedSubstitutions[index] !== undefined &&
+            selectedSubstitutions[index] !== null;
+
           console.log(`Ingredient ${index}: "${ing}"`, {
             alreadyHave,
             hasConflict: conflict.hasConflict,
             hasSelectedSubstitution,
-            selectedSub: selectedSubstitutions[index]?.substitute
+            selectedSub: selectedSubstitutions[index]?.substitute,
           });
-          
+
           // Only add if user doesn't already have it
           if (!alreadyHave) {
             // If there's a conflict AND user selected a substitution, use the substitution
             if (conflict.hasConflict && hasSelectedSubstitution) {
               const sub = selectedSubstitutions[index];
               const parsed = parseIngredient(ing);
-              
+
               // Calculate quantity based on substitution ratio
               const adjustedQuantity = calculateSubstitutionQuantity(
-                parsed.quantity, 
-                sub!.ratio
+                parsed.quantity,
+                sub!.ratio,
               );
-              
-              console.log(`✅ Adding substitution: ${sub!.substitute} (${adjustedQuantity} ${parsed.unit})`);
-              
+
+              console.log(
+                `✅ Adding substitution: ${sub!.substitute} (${adjustedQuantity} ${parsed.unit})`,
+              );
+
               missingIngredients.push({
                 ingredient: sub!.substitute,
                 quantity: adjustedQuantity,
@@ -325,9 +420,11 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             } else {
               // No substitution selected, add original ingredient
               const parsed = parseIngredient(ing);
-              
-              console.log(`➕ Adding original: ${parsed.ingredient} (${parsed.quantity} ${parsed.unit})`);
-              
+
+              console.log(
+                `➕ Adding original: ${parsed.ingredient} (${parsed.quantity} ${parsed.unit})`,
+              );
+
               missingIngredients.push(parsed);
             }
           }
@@ -508,6 +605,35 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         <View style={styles.content}>
           <Text style={styles.title}>{recipe.title}</Text>
 
+          {/* Rating */}
+          <View style={styles.ratingContainer}>
+            <View style={styles.ratingStars}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <TouchableOpacity key={star} onPress={() => handleRate(star)}>
+                  <Icon
+                    name={
+                      star <= (userRating || avgRating) ? 'star' : 'star-border'
+                    }
+                    size={24}
+                    color="#F59E0B"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            {totalRatings > 0 && (
+              <Text style={styles.ratingText}>
+                {avgRating.toFixed(1)} ({totalRatings}{' '}
+                {totalRatings === 1 ? 'rating' : 'ratings'})
+              </Text>
+            )}
+          </View>
+
+          {/* Cook This Button */}
+          <TouchableOpacity style={styles.cookButton} onPress={handleCookThis}>
+            <Icon name="restaurant" size={20} color="#FFFFFF" />
+            <Text style={styles.cookButtonText}>I Cooked This!</Text>
+          </TouchableOpacity>
+
           {/* Quick Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
@@ -575,14 +701,17 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
               recipe.ingredients.map((ingredient: string, index: number) => {
                 const haveIt = hasIngredient(ingredient);
                 const conflict = checkIngredientConflict(ingredient);
-                const substitutions = conflict.hasConflict ? findSubstitutions(ingredient) : [];
-                
+                const substitutions = conflict.hasConflict
+                  ? findSubstitutions(ingredient)
+                  : [];
+
                 // Determine icon and color
                 let iconName = 'cancel';
                 let iconColor = '#EF4444';
                 if (conflict.hasConflict) {
                   iconName = 'warning';
-                  iconColor = conflict.severity === 'severe' ? '#DC2626' : '#EF4444';
+                  iconColor =
+                    conflict.severity === 'severe' ? '#DC2626' : '#EF4444';
                 } else if (haveIt) {
                   iconName = 'check-circle';
                   iconColor = '#10B981';
@@ -610,32 +739,46 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
                               <Text style={styles.substitutionLabel}>
                                 💡 Try instead:
                               </Text>
-                              {substitutions.slice(0, 2).map((sub: Substitution, subIndex: number) => {
-                                const isSelected = selectedSubstitutions[index]?.substitute === sub.substitute;
-                                return (
-                                  <TouchableOpacity
-                                    key={subIndex}
-                                    style={[
-                                      styles.substitutionButton,
-                                      isSelected && styles.substitutionButtonSelected
-                                    ]}
-                                    onPress={() => handleSelectSubstitution(index, sub)}
-                                  >
-                                    <Icon 
-                                      name={isSelected ? 'check-circle' : 'radio-button-unchecked'} 
-                                      size={16} 
-                                      color={isSelected ? '#10B981' : '#9CA3AF'} 
-                                    />
-                                    <Text style={[
-                                      styles.substitutionButtonText,
-                                      isSelected && styles.substitutionButtonTextSelected
-                                    ]}>
-                                      {sub.substitute} ({sub.ratio})
-                                      {sub.notes ? ` - ${sub.notes}` : ''}
-                                    </Text>
-                                  </TouchableOpacity>
-                                );
-                              })}
+                              {substitutions
+                                .slice(0, 2)
+                                .map((sub: Substitution, subIndex: number) => {
+                                  const isSelected =
+                                    selectedSubstitutions[index]?.substitute ===
+                                    sub.substitute;
+                                  return (
+                                    <TouchableOpacity
+                                      key={subIndex}
+                                      style={[
+                                        styles.substitutionButton,
+                                        isSelected &&
+                                          styles.substitutionButtonSelected,
+                                      ]}
+                                      onPress={() =>
+                                        handleSelectSubstitution(index, sub)
+                                      }>
+                                      <Icon
+                                        name={
+                                          isSelected
+                                            ? 'check-circle'
+                                            : 'radio-button-unchecked'
+                                        }
+                                        size={16}
+                                        color={
+                                          isSelected ? '#10B981' : '#9CA3AF'
+                                        }
+                                      />
+                                      <Text
+                                        style={[
+                                          styles.substitutionButtonText,
+                                          isSelected &&
+                                            styles.substitutionButtonTextSelected,
+                                        ]}>
+                                        {sub.substitute} ({sub.ratio})
+                                        {sub.notes ? ` - ${sub.notes}` : ''}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  );
+                                })}
                             </View>
                           )}
                         </>
@@ -730,6 +873,42 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     marginBottom: 16,
+  },
+  ratingContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  ratingStars: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  cookButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cookButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   statsContainer: {
     flexDirection: 'row',
