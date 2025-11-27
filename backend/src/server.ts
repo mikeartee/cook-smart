@@ -11,6 +11,7 @@ import AutoRepairSystem from './services/AutoRepairSystem';
 import HealthMonitor from './services/HealthMonitor';
 import SystemGuardian from './services/SystemGuardian';
 import {SubscriptionMonitor} from './services/SubscriptionMonitor';
+import {DailyNotificationService} from './services/DailyNotificationService';
 import pool from './config/database';
 import healthRoutes from './routes/health';
 
@@ -171,6 +172,10 @@ app.listen(PORT, '0.0.0.0', () => {
   // Start subscription monitoring
   SubscriptionMonitor.startDailyMonitoring();
   console.log('📧 Subscription monitoring activated');
+
+  // Start daily notifications
+  DailyNotificationService.startDailyChecks();
+  console.log('🔔 Daily notifications activated');
 
   // Start System Guardian (automated monitoring and repair)
   if (process.env.NODE_ENV === 'production') {
