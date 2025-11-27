@@ -20,6 +20,8 @@ import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
 import {ChangePasswordScreen} from '../screens/ChangePasswordScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
+import MyRecipesScreen from '../screens/MyRecipesScreen';
+import CreateRecipeScreen from '../screens/CreateRecipeScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -40,6 +42,8 @@ const RecipesStack = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="RecipeSearch" component={RecipeSearchScreen} />
     <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+    <Stack.Screen name="MyRecipes" component={MyRecipesScreen} />
+    <Stack.Screen name="CreateRecipe" component={CreateRecipeScreen} />
   </Stack.Navigator>
 );
 

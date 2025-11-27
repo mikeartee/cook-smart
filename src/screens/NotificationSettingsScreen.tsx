@@ -7,7 +7,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import notificationService, {
   NotificationPreferences,
@@ -26,6 +28,13 @@ export default function NotificationSettingsScreen() {
   useEffect(() => {
     loadSettings();
   }, []);
+
+  // Re-check permissions when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSettings();
+    }, []),
+  );
 
   const loadSettings = async () => {
     try {
@@ -104,6 +113,16 @@ export default function NotificationSettingsScreen() {
             style={styles.enableButton}
             onPress={handleEnableNotifications}>
             <Text style={styles.enableButtonText}>Enable Notifications</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => Linking.openSettings()}>
+            <Icon name="settings" size={20} color="#666" />
+            <Text style={styles.settingsButtonText}>Open Phone Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.refreshButton} onPress={loadSettings}>
+            <Icon name="refresh" size={20} color="#FF6B6B" />
+            <Text style={styles.refreshButtonText}>Refresh Status</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -241,6 +260,34 @@ const styles = StyleSheet.create({
   enableButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  settingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginTop: 12,
+  },
+  settingsButtonText: {
+    color: '#666',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    marginTop: 12,
+  },
+  refreshButtonText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    marginLeft: 8,
     fontWeight: '600',
   },
   settingsSection: {

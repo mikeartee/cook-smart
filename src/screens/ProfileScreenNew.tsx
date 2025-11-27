@@ -66,6 +66,15 @@ const ProfileScreenNew: React.FC = () => {
       onPress: () => navigation.navigate('SubscriptionDetails' as never),
     },
     {
+      id: 'myrecipes',
+      title: 'My Recipes',
+      subtitle: 'Create & manage your recipes',
+      icon: 'menu-book',
+      color: '#FF6B6B',
+      onPress: () =>
+        navigation.navigate('Recipes' as never, {screen: 'MyRecipes'}),
+    },
+    {
       id: 'dietary',
       title: 'Dietary Preferences',
       subtitle: 'Manage restrictions & allergies',

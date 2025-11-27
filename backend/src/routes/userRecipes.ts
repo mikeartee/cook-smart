@@ -1,202 +1,85 @@
-import express from 'express';
-import {UserRecipeModel} from '../models/UserRecipe';
-import {authenticateToken} from '../middleware/auth';
+import {Router} from 'express';
+import {UserRecipeService} from '../services/UserRecipeService';
+import {authenticateToken, AuthRequest} from '../middleware/auth';
 
-const router = express.Router();
+const router = Router();
 
-// Create a new recipe
-router.post('/', authenticateToken, async (req, res) => {
+// Create recipe
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
+    const userId = parseInt(req.user!.id);
+    const recipe = req.body;
 
-    const {
-      title,
-      description,
-      prepTime,
-      cookTime,
-      servings,
-      category,
-      difficulty,
-      imageUrl,
-      isPublic,
-      ingredients,
-      instructions,
-    } = req.body;
-
-    if (!title || !ingredients || !instructions) {
-      return res.status(400).json({
-        error: 'Title, ingredients, and instructions are required',
-      });
-    }
-
-    const recipe = await UserRecipeModel.createRecipe(userId, {
-      title,
-      description,
-      prepTime: parseInt(prepTime) || 0,
-      cookTime: parseInt(cookTime) || 0,
-      servings: parseInt(servings) || 4,
-      category,
-      difficulty: difficulty || 'medium',
-      imageUrl,
-      isPublic: isPublic || false,
-      ingredients,
-      instructions,
+    const recipeId = await UserRecipeService.createRecipe(userId, {
+      ...recipe,
+      user_id: userId,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: 'Recipe created successfully',
-      recipe,
-    });
+    res.json({success: true, recipeId});
   } catch (error) {
     console.error('Error creating recipe:', error);
-    return res.status(500).json({error: 'Failed to create recipe'});
+    res.status(500).json({error: 'Failed to create recipe'});
   }
 });
 
-// Get current user's recipes
-router.get('/', authenticateToken, async (req, res) => {
+// Get user's recipes
+router.get('/my-recipes', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
+    const userId = parseInt(req.user!.id);
+    const recipes = await UserRecipeService.getUserRecipes(userId);
 
-    const recipes = await UserRecipeModel.getUserRecipes(userId);
-    return res.json({recipes});
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to get recipes'});
+    res.json({success: true, recipes});
+  } catch (error) {
+    console.error('Error getting recipes:', error);
+    res.status(500).json({error: 'Failed to get recipes'});
   }
 });
 
-// Get a specific recipe by ID
-router.get('/:recipeId', async (req, res) => {
+// Get recipe details
+router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const {recipeId} = req.params;
-    const recipe = await UserRecipeModel.getRecipeById(parseInt(recipeId));
+    const userId = parseInt(req.user!.id);
+    const recipeId = parseInt(req.params.id);
+
+    const recipe = await UserRecipeService.getRecipeDetails(recipeId, userId);
 
     if (!recipe) {
-      return res.status(404).json({error: 'Recipe not found'});
+      res.status(404).json({error: 'Recipe not found'});
+      return;
     }
 
-    return res.json({recipe});
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to get recipe'});
+    res.json({success: true, recipe});
+  } catch (error) {
+    console.error('Error getting recipe:', error);
+    res.status(500).json({error: 'Failed to get recipe'});
   }
 });
 
-// Update a recipe
-router.put('/:recipeId', authenticateToken, async (req, res) => {
+// Search public recipes
+router.get('/search/:query', async (req, res) => {
   try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
+    const query = req.params.query;
+    const recipes = await UserRecipeService.searchPublicRecipes(query);
 
-    const {recipeId} = req.params;
-    const updates = req.body;
-
-    if (!recipeId) {
-      return res.status(400).json({error: 'Recipe ID is required'});
-    }
-
-    const recipe = await UserRecipeModel.updateRecipe(
-      parseInt(recipeId as string),
-      userId,
-      updates,
-    );
-
-    if (!recipe) {
-      return res.status(404).json({error: 'Recipe not found or unauthorized'});
-    }
-
-    return res.json({
-      success: true,
-      message: 'Recipe updated successfully',
-      recipe,
-    });
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to update recipe'});
+    res.json({success: true, recipes});
+  } catch (error) {
+    console.error('Error searching recipes:', error);
+    res.status(500).json({error: 'Failed to search recipes'});
   }
 });
 
-// Delete a recipe
-router.delete('/:recipeId', authenticateToken, async (req, res) => {
+// Delete recipe
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
+    const userId = parseInt(req.user!.id);
+    const recipeId = parseInt(req.params.id);
 
-    const {recipeId} = req.params;
+    await UserRecipeService.deleteRecipe(recipeId, userId);
 
-    if (!recipeId) {
-      return res.status(400).json({error: 'Recipe ID is required'});
-    }
-
-    const deleted = await UserRecipeModel.deleteRecipe(
-      parseInt(recipeId as string),
-      userId,
-    );
-
-    if (!deleted) {
-      return res.status(404).json({error: 'Recipe not found or unauthorized'});
-    }
-
-    return res.json({
-      success: true,
-      message: 'Recipe deleted successfully',
-    });
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to delete recipe'});
-  }
-});
-
-// Get public recipes (community recipes)
-router.get('/public/all', async (req, res) => {
-  try {
-    const {limit = '20', offset = '0'} = req.query;
-    const recipes = await UserRecipeModel.getPublicRecipes(
-      parseInt(limit as string),
-      parseInt(offset as string),
-    );
-    return res.json({recipes});
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to get public recipes'});
-  }
-});
-
-// Toggle favorite on a recipe
-router.post('/:recipeId/favorite', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
-
-    const {recipeId} = req.params;
-
-    if (!recipeId) {
-      return res.status(400).json({error: 'Recipe ID is required'});
-    }
-
-    const isFavorited = await UserRecipeModel.toggleFavorite(
-      parseInt(recipeId as string),
-      userId,
-    );
-
-    return res.json({
-      success: true,
-      isFavorited,
-      message: isFavorited
-        ? 'Recipe added to favorites'
-        : 'Recipe removed from favorites',
-    });
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to toggle favorite'});
+    res.json({success: true, message: 'Recipe deleted'});
+  } catch (error: any) {
+    console.error('Error deleting recipe:', error);
+    res.status(500).json({error: error.message || 'Failed to delete recipe'});
   }
 });
 

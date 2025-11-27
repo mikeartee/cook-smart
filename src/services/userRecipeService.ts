@@ -1,6 +1,5 @@
-import axios from 'axios';
-import {API_ENDPOINTS} from '../config/api';
-import {getAuthToken} from '../utils/auth';
+import {API_BASE_URL, getAuthHeader} from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface UserRecipeIngredient {
   name: string;
@@ -55,17 +54,64 @@ export interface CreateRecipeData {
   instructions: string[];
 }
 
+export const createUserRecipe = async (data: any) => {
+  const token = await AsyncStorage.getItem('auth_token');
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/user-recipes`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeader(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) throw new Error('Failed to create recipe');
+  return response.json();
+};
+
+export const uploadPhoto = async (
+  photo: string,
+  entityType: string,
+  entityId?: number,
+) => {
+  const token = await AsyncStorage.getItem('auth_token');
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/photos/upload`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeader(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({photo, entityType, entityId}),
+  });
+
+  if (!response.ok) throw new Error('Failed to upload photo');
+  const data = await response.json();
+  return data.photoUrl;
+};
+
+export const getUserRecipes = async () => {
+  const token = await AsyncStorage.getItem('auth_token');
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/user-recipes/my-recipes`,
+    {
+      headers: getAuthHeader(token),
+    },
+  );
+
+  if (!response.ok) throw new Error('Failed to get recipes');
+  const data = await response.json();
+  return data.recipes;
+};
+
 export const userRecipeService = {
   async createRecipe(data: CreateRecipeData): Promise<UserRecipeWithDetails> {
-    const token = await getAuthToken();
-    const response = await axios.post(
-      `${API_ENDPOINTS.userRecipes.base}`,
-      data,
-      {
-        headers: {Authorization: `Bearer ${token}`},
-      },
-    );
-    return response.data.recipe;
+    return createUserRecipe(data);
   },
 
   async getUserRecipes(): Promise<UserRecipe[]> {

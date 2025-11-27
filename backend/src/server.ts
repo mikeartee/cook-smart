@@ -64,6 +64,7 @@ app.use(limiter);
 
 // Serve static files (favicon, etc.)
 app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
 
 // Stripe webhook route (must be before body parser)
 import stripeWebhookRoutes from './routes/stripeWebhook';
@@ -112,6 +113,8 @@ import userRecipesRoutes from './routes/userRecipes';
 import userSettingsRoutes from './routes/userSettings';
 import notificationRoutes from './routes/notifications';
 import achievementRoutes from './routes/achievements';
+import photoRoutes from './routes/photos';
+import userRecipesApiRoutes from './routes/userRecipes';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
@@ -144,6 +147,8 @@ app.use('/api/v1/subscriptions', subscriptionSyncRoutes);
 app.use('/api/v1/system-guardian', systemGuardianRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/achievements', achievementRoutes);
+app.use('/api/v1/photos', photoRoutes);
+app.use('/api/v1/user-recipes', userRecipesApiRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({
