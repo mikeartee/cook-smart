@@ -26,6 +26,8 @@ import {
   getRecipeRatings,
   markRecipeCooked,
 } from '../../services/recipeEnhancementService';
+import RecipeSocialActions from '../../components/RecipeSocialActions';
+import RecipeComments from '../../components/RecipeComments';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -628,11 +630,26 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             )}
           </View>
 
-          {/* Cook This Button */}
-          <TouchableOpacity style={styles.cookButton} onPress={handleCookThis}>
-            <Icon name="restaurant" size={20} color="#FFFFFF" />
-            <Text style={styles.cookButtonText}>I Cooked This!</Text>
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={[styles.cookButton, {flex: 1}]}
+              onPress={handleCookThis}>
+              <Icon name="restaurant" size={20} color="#FFFFFF" />
+              <Text style={styles.cookButtonText}>I Cooked This!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.stepByStepButton, {flex: 1}]}
+              onPress={() =>
+                navigation.navigate('StepByStepCooking', {recipe})
+              }>
+              <Icon name="play-arrow" size={20} color="#10B981" />
+              <Text style={styles.stepByStepButtonText}>Step-by-Step</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Social Actions */}
+          <RecipeSocialActions recipeId={recipeId} recipeTitle={recipe.title} />
 
           {/* Quick Stats */}
           <View style={styles.statsContainer}>
@@ -818,6 +835,11 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             )}
           </View>
 
+          {/* Comments */}
+          <View style={styles.section}>
+            <RecipeComments recipeId={recipeId} />
+          </View>
+
           {/* Source Link */}
           {recipe.sourceUrl && (
             <TouchableOpacity
@@ -889,6 +911,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontWeight: '500',
   },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
   cookButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -898,7 +925,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
@@ -909,6 +935,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  stepByStepButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  stepByStepButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#10B981',
   },
   statsContainer: {
     flexDirection: 'row',

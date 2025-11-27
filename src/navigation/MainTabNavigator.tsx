@@ -25,6 +25,10 @@ import CreateRecipeScreen from '../screens/CreateRecipeScreen';
 import MealPlanningScreen from '../screens/MealPlanningScreen';
 import RecipeCollectionsScreen from '../screens/RecipeCollectionsScreen';
 import HolidayPreferencesScreen from '../screens/HolidayPreferencesScreen';
+import CommunityFeedScreen from '../screens/CommunityFeedScreen';
+import TrendingRecipesScreen from '../screens/TrendingRecipesScreen';
+import StepByStepCookingScreen from '../screens/StepByStepCookingScreen';
+import SeasonalRecipesScreen from '../screens/SeasonalRecipesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -47,6 +51,13 @@ const RecipesStack = () => (
     <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
     <Stack.Screen name="MyRecipes" component={MyRecipesScreen} />
     <Stack.Screen name="CreateRecipe" component={CreateRecipeScreen} />
+    <Stack.Screen
+      name="StepByStepCooking"
+      component={StepByStepCookingScreen}
+    />
+    <Stack.Screen name="CommunityFeed" component={CommunityFeedScreen} />
+    <Stack.Screen name="TrendingRecipes" component={TrendingRecipesScreen} />
+    <Stack.Screen name="SeasonalRecipes" component={SeasonalRecipesScreen} />
   </Stack.Navigator>
 );
 

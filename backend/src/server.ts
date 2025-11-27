@@ -116,6 +116,8 @@ import achievementRoutes from './routes/achievements';
 import photoRoutes from './routes/photos';
 import userRecipesApiRoutes from './routes/userRecipes';
 import recipeEnhancementsRoutes from './routes/recipeEnhancements';
+import socialRoutes from './routes/social';
+import advancedRecipesRoutes from './routes/advancedRecipes';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
@@ -151,6 +153,8 @@ app.use('/api/v1/achievements', achievementRoutes);
 app.use('/api/v1/photos', photoRoutes);
 app.use('/api/v1/user-recipes', userRecipesApiRoutes);
 app.use('/api/v1/recipe-enhancements', recipeEnhancementsRoutes);
+app.use('/api/v1/social', socialRoutes);
+app.use('/api/v1/advanced-recipes', advancedRecipesRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({

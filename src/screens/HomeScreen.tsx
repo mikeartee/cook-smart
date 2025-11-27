@@ -47,19 +47,44 @@ const HomeScreen: React.FC = () => {
       onPress: () => navigation.navigate('Recipes' as never),
     },
     {
-      id: 'saved',
-      title: 'Saved Recipes',
-      subtitle: 'Your favorites',
-      icon: 'favorite',
-      color: '#EF4444',
-      onPress: () => navigation.navigate('SavedRecipes' as never),
+      id: 'trending',
+      title: 'Trending',
+      subtitle: 'Popular recipes',
+      icon: 'trending-up',
+      color: '#F59E0B',
+      onPress: () =>
+        navigation.navigate('Recipes' as never, {
+          screen: 'TrendingRecipes',
+        }),
+    },
+    {
+      id: 'seasonal',
+      title: 'Seasonal',
+      subtitle: 'Perfect for now',
+      icon: 'wb-sunny',
+      color: '#EC4899',
+      onPress: () =>
+        navigation.navigate('Recipes' as never, {
+          screen: 'SeasonalRecipes',
+        }),
+    },
+    {
+      id: 'community',
+      title: 'Community',
+      subtitle: 'See what others cook',
+      icon: 'people',
+      color: '#8B5CF6',
+      onPress: () =>
+        navigation.navigate('Recipes' as never, {
+          screen: 'CommunityFeed',
+        }),
     },
     {
       id: 'feedback',
       title: 'Send Feedback',
       subtitle: 'Help us improve',
       icon: 'feedback',
-      color: '#8B5CF6',
+      color: '#6B7280',
       onPress: () => setFeedbackModalVisible(true),
     },
   ];
