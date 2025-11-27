@@ -18,6 +18,8 @@ import ProfileScreen from '../screens/ProfileScreenNew';
 import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
 import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
 import {ChangePasswordScreen} from '../screens/ChangePasswordScreen';
+import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
+import AchievementsScreen from '../screens/AchievementsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -65,6 +67,11 @@ const AccountStack = () => (
     />
     <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+    <Stack.Screen
+      name="NotificationSettings"
+      component={NotificationSettingsScreen}
+    />
+    <Stack.Screen name="Achievements" component={AchievementsScreen} />
     <Stack.Screen
       name="SubscriptionDetails"
       component={SubscriptionDetailsScreen}

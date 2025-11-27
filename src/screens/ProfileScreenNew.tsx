@@ -74,14 +74,20 @@ const ProfileScreenNew: React.FC = () => {
       onPress: () => navigation.navigate('DietaryPreferences' as never),
     },
     {
+      id: 'achievements',
+      title: 'Achievements',
+      subtitle: 'View your badges',
+      icon: 'emoji-events',
+      color: '#FFD93D',
+      onPress: () => navigation.navigate('Achievements' as never),
+    },
+    {
       id: 'notifications',
       title: 'Notifications',
       subtitle: 'Manage your alerts',
       icon: 'notifications',
       color: '#F59E0B',
-      onPress: () => {
-        Alert.alert('Coming Soon', 'Notification settings coming soon');
-      },
+      onPress: () => navigation.navigate('NotificationSettings' as never),
     },
     {
       id: 'password',
