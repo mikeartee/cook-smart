@@ -82,6 +82,24 @@ export class StripeWebhookController {
           );
           break;
 
+        case 'payment_intent.payment_failed':
+          await this.handlePaymentIntentFailed(
+            event.data.object as Stripe.PaymentIntent,
+          );
+          break;
+
+        case 'checkout.session.completed':
+          await this.handleCheckoutCompleted(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+
+        case 'checkout.session.expired':
+          await this.handleCheckoutExpired(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+
         case 'customer.subscription.trial_will_end':
           await this.handleTrialWillEnd(
             event.data.object as Stripe.Subscription,
@@ -419,6 +437,68 @@ export class StripeWebhookController {
       }
     } catch (error) {
       console.error('Error handling trial will end:', error);
+    }
+  }
+
+  /**
+   * Handle payment_intent.payment_failed event
+   */
+  private static async handlePaymentIntentFailed(
+    paymentIntent: Stripe.PaymentIntent,
+  ): Promise<void> {
+    console.log(`Payment intent failed: ${paymentIntent.id}`);
+
+    try {
+      const metadata = paymentIntent.metadata;
+      if (metadata.userId) {
+        // Notify user of payment failure
+        await NotificationService.sendErrorNotification(
+          new Error(`Payment failed for user ${metadata.userId}`),
+          'critical' as any,
+        );
+      }
+    } catch (error) {
+      console.error('Error handling payment intent failure:', error);
+    }
+  }
+
+  /**
+   * Handle checkout.session.completed event
+   */
+  private static async handleCheckoutCompleted(
+    session: Stripe.Checkout.Session,
+  ): Promise<void> {
+    console.log(`Checkout completed: ${session.id}`);
+
+    try {
+      await pool.query(
+        `UPDATE subscription_checkout_sessions 
+         SET status = 'complete', updated_at = NOW() 
+         WHERE checkout_session_id = $1`,
+        [session.id],
+      );
+    } catch (error) {
+      console.error('Error handling checkout completion:', error);
+    }
+  }
+
+  /**
+   * Handle checkout.session.expired event
+   */
+  private static async handleCheckoutExpired(
+    session: Stripe.Checkout.Session,
+  ): Promise<void> {
+    console.log(`Checkout expired: ${session.id}`);
+
+    try {
+      await pool.query(
+        `UPDATE subscription_checkout_sessions 
+         SET status = 'expired', updated_at = NOW() 
+         WHERE checkout_session_id = $1`,
+        [session.id],
+      );
+    } catch (error) {
+      console.error('Error handling checkout expiration:', error);
     }
   }
 }

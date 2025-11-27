@@ -10,7 +10,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+
 import {subscriptionService} from '../services/subscriptionService';
 
 interface SubscriptionPlan {
@@ -31,10 +31,23 @@ export default function SubscriptionPlansScreen() {
   const [referralCode, setReferralCode] = useState('');
   const [showReferralInput, setShowReferralInput] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   useEffect(() => {
     loadPlans();
+    checkExistingSubscription();
   }, []);
+
+  const checkExistingSubscription = async () => {
+    try {
+      const sub = await subscriptionService.getUserSubscription();
+      if (sub && (sub.status === 'active' || sub.status === 'trialing')) {
+        setHasActiveSubscription(true);
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
 
   const loadPlans = async () => {
     try {
@@ -57,6 +70,14 @@ export default function SubscriptionPlansScreen() {
   };
 
   const handleSubscribe = async (planName: string) => {
+    if (hasActiveSubscription) {
+      Alert.alert(
+        'Already Subscribed',
+        'You already have an active subscription',
+      );
+      return;
+    }
+
     try {
       setSubscribing(true);
       const checkoutUrl = await subscriptionService.createCheckoutSession(
@@ -135,9 +156,13 @@ export default function SubscriptionPlansScreen() {
 
         {isSelected && (
           <TouchableOpacity
-            style={styles.subscribeButton}
+            style={[
+              styles.subscribeButton,
+              (subscribing || hasActiveSubscription) &&
+                styles.subscribeButtonDisabled,
+            ]}
             onPress={() => handleSubscribe(plan.name)}
-            disabled={subscribing}>
+            disabled={subscribing || hasActiveSubscription}>
             {subscribing ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -378,6 +403,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  subscribeButtonDisabled: {
+    backgroundColor: '#CCC',
+    opacity: 0.6,
   },
   footer: {
     padding: 24,

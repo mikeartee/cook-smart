@@ -3,7 +3,7 @@ import {body, validationResult} from 'express-validator';
 import {UserModel} from '../models/User';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import pool from '../config/database';
-import EmailService from '../services/EmailService';
+import {EmailService} from '../services/EmailService';
 
 const router = Router();
 

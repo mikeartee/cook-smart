@@ -1,4 +1,5 @@
 import express from 'express';
+import {requireActiveSubscription} from './middleware/subscriptionAccess';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -9,6 +10,7 @@ import {requestLogger} from './middleware/logger';
 import AutoRepairSystem from './services/AutoRepairSystem';
 import HealthMonitor from './services/HealthMonitor';
 import SystemGuardian from './services/SystemGuardian';
+import {SubscriptionMonitor} from './services/SubscriptionMonitor';
 import pool from './config/database';
 import healthRoutes from './routes/health';
 
@@ -103,6 +105,7 @@ import adminReferralsRoutes from './routes/adminReferrals';
 import adminDashboardRoutes from './routes/adminDashboard';
 import feedbackRoutes from './routes/feedback';
 import subscriptionPricingRoutes from './routes/subscriptionPricing';
+import subscriptionSyncRoutes from './routes/subscriptionSync';
 import systemGuardianRoutes from './routes/systemGuardian';
 import userRecipesRoutes from './routes/userRecipes';
 import userSettingsRoutes from './routes/userSettings';
@@ -110,9 +113,9 @@ import userSettingsRoutes from './routes/userSettings';
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
 app.use('/api/v1/settings', userSettingsRoutes);
-app.use('/api/v1/ingredients', ingredientRoutes);
-app.use('/api/v1/barcode', barcodeRoutes);
-app.use('/api/v1/recipes', recipeRoutes);
+app.use('/api/v1/ingredients', requireActiveSubscription, ingredientRoutes);
+app.use('/api/v1/barcode', requireActiveSubscription, barcodeRoutes);
+app.use('/api/v1/recipes', requireActiveSubscription, recipeRoutes);
 app.use('/api/v1/recipes/user', userRecipesRoutes);
 app.use('/api/v1/dietary', dietaryRoutes);
 app.use('/api/v1/shopping-list', shoppingRoutes);
@@ -134,6 +137,7 @@ app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/api/v1/subscriptions', subscriptionPricingRoutes);
+app.use('/api/v1/subscriptions', subscriptionSyncRoutes);
 app.use('/api/v1/system-guardian', systemGuardianRoutes);
 
 app.get('/api/v1/test', (req, res) => {
@@ -163,6 +167,10 @@ app.listen(PORT, '0.0.0.0', () => {
 
   // Start health monitoring
   HealthMonitor.startDailyHealthSummary();
+
+  // Start subscription monitoring
+  SubscriptionMonitor.startDailyMonitoring();
+  console.log('📧 Subscription monitoring activated');
 
   // Start System Guardian (automated monitoring and repair)
   if (process.env.NODE_ENV === 'production') {

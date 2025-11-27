@@ -202,6 +202,83 @@ class SubscriptionService {
   }
 
   /**
+   * Sync subscription status with Stripe
+   */
+  async syncSubscriptionStatus(): Promise<void> {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+
+      if (!token) {
+        return;
+      }
+
+      await fetch(`${API_URL}/subscriptions/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error('Error syncing subscription:', error);
+    }
+  }
+
+  /**
+   * Check for pending checkout sessions
+   */
+  async checkPendingCheckouts(): Promise<any[]> {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+
+      if (!token) {
+        return [];
+      }
+
+      const response = await fetch(`${API_URL}/subscriptions/check-pending`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      return data.pending || [];
+    } catch (error) {
+      console.error('Error checking pending checkouts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get subscription access level
+   */
+  async getSubscriptionAccess(): Promise<any> {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+
+      if (!token) {
+        return {accessLevel: 'none'};
+      }
+
+      const response = await fetch(`${API_URL}/subscriptions/access`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error getting subscription access:', error);
+      return {accessLevel: 'none'};
+    }
+  }
+
+  /**
    * Cancel subscription
    */
   async cancelSubscription(subscriptionId: string): Promise<void> {

@@ -9,7 +9,7 @@ By accessing or using Cook Smart ("the App"), you agree to be bound by these Ter
 
 **Service Provider**: Bradley L Turnbough  
 **Location**: 75442, Texas, United States  
-**Contact**: tootallgames2020@gmail.com
+**Contact**: services.cooksmart@gmail.com
 
 ## 2. BETA Testing Program
 
@@ -72,8 +72,39 @@ After BETA completion:
 ### 6.3 Payment Processing
 Payments processed via Stripe. All sales final unless required by law.
 
-### 6.4 Refunds
-Refunds handled per Stripe's policies and applicable law.
+### 6.4 Automatic Renewal
+Subscriptions automatically renew at the end of each billing period (weekly, monthly, or yearly) unless you cancel before the renewal date. You will be charged the then-current subscription rate at each renewal. You can disable automatic renewal in your account settings at any time.
+
+### 6.5 Cancellation Policy
+- You may cancel your subscription at any time from your account settings
+- Cancellation takes effect at the end of your current billing period
+- You will retain full access until the end of the paid period
+- No refunds are provided for partial billing periods
+- No cancellation fees are charged
+
+### 6.6 Failed Payment Grace Period
+If a subscription renewal payment fails:
+- You will receive immediate email notification
+- You have 7 days to update your payment method
+- During this 7-day grace period, you maintain full access to the App
+- After 7 days, if payment is not resolved, access will be restricted to:
+  - Subscription management
+  - Payment method updates
+  - Account settings
+  - Feedback submission
+  - Account deletion
+- Full access is restored immediately upon successful payment
+- Stripe will continue attempting to process payment during this period
+
+### 6.7 Price Changes
+- We reserve the right to change subscription prices at any time
+- Existing subscribers will receive 30 days advance notice of price changes via email
+- Price changes apply to your next renewal after the notice period
+- If you do not agree to a price change, you may cancel before your next renewal
+- Promotional pricing (such as BETA Pre-Purchase) is locked for the initial subscription period only
+
+### 6.8 Refunds
+Refunds handled per our Refund Policy and applicable law. See REFUND_POLICY.md for details.
 
 ## 7. Privacy and Data
 
@@ -133,14 +164,31 @@ These Terms are governed by Texas law. Disputes resolved in Texas courts.
 For questions about these Terms:
 
 **Bradley L Turnbough**  
-Email: tootallgames2020@gmail.com  
+Email: services.cooksmart@gmail.com  
 Location: 75442, Texas, United States
 
-## 16. Severability
+## 16. Customer Support
+
+### 16.1 Support Contact
+For billing, subscription, or payment issues:
+- Email: services.cooksmart@gmail.com
+- Response time: Within 24 hours (business hours)
+- Business hours: Monday-Friday, 9 AM - 5 PM Central Time
+
+### 16.2 Refund Requests
+Refund requests must be submitted in writing via email to services.cooksmart@gmail.com and include:
+- Your account email address
+- Order/Transaction ID
+- Reason for refund request
+- Date of purchase
+
+Refund requests are processed within 5-10 business days of approval.
+
+## 17. Severability
 
 If any provision is unenforceable, remaining provisions remain in effect.
 
-## 17. Entire Agreement
+## 18. Entire Agreement
 
 These Terms constitute the entire agreement between you and Bradley L Turnbough regarding Cook Smart.
 

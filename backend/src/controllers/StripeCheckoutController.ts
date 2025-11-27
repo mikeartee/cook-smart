@@ -127,6 +127,12 @@ export class StripeCheckoutController {
             renewalPriceId: pricing.renewalPriceId,
           },
         },
+        automatic_tax: {
+          enabled: true,
+        },
+        customer_update: {
+          address: 'auto',
+        },
         success_url: `${process.env.APP_URL || 'cooksmartapp://'}payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.APP_URL || 'cooksmartapp://'}payment-cancelled`,
         metadata: {

@@ -16,12 +16,12 @@ router.get('/plans', SubscriptionPricingController.getPlans);
 // Public route - get current phase status
 router.get('/phase', SubscriptionPricingController.getPhase);
 
-// Protected route - get current user's subscription (if method exists)
-// router.get(
-//   '/me',
-//   authenticateToken,
-//   SubscriptionPricingController.getMySubscription,
-// );
+// Protected route - get subscription access level
+router.get(
+  '/access',
+  authenticateToken,
+  require('../middleware/subscriptionAccess').getSubscriptionAccess,
+);
 
 // Protected route - create subscription (requires user authentication)
 router.post(
@@ -34,6 +34,25 @@ router.post(
 router.post(
   '/create-checkout-session',
   authenticateToken,
+  async (req: any, res, next): Promise<any> => {
+    // Check for existing active subscription
+    const pool = require('../config/database').default;
+    const existing = await pool.query(
+      `SELECT id FROM subscriptions 
+       WHERE user_id = $1 
+         AND status IN ('active', 'trialing') 
+       LIMIT 1`,
+      [req.user.id],
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'You already have an active subscription',
+      });
+    }
+    next();
+  },
   StripeCheckoutController.createCheckoutSession,
 );
 
