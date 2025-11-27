@@ -1,17 +1,18 @@
 import {Router} from 'express';
 import {PushNotificationService} from '../services/PushNotificationService';
-import {authenticateToken} from '../middleware/auth';
+import {authenticateToken, AuthRequest} from '../middleware/auth';
 
 const router = Router();
 
 // Register push notification token
-router.post('/register', authenticateToken, async (req, res) => {
+router.post('/register', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = parseInt(req.user!.id);
     const {token, platform} = req.body;
 
     if (!token || !platform) {
-      return res.status(400).json({error: 'Token and platform are required'});
+      res.status(400).json({error: 'Token and platform are required'});
+      return;
     }
 
     await PushNotificationService.registerToken(userId, token, platform);
@@ -24,9 +25,9 @@ router.post('/register', authenticateToken, async (req, res) => {
 });
 
 // Get notification preferences
-router.get('/preferences', authenticateToken, async (req, res) => {
+router.get('/preferences', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = parseInt(req.user!.id);
     const preferences = await PushNotificationService.getPreferences(userId);
 
     res.json(preferences);
@@ -37,9 +38,9 @@ router.get('/preferences', authenticateToken, async (req, res) => {
 });
 
 // Update notification preferences
-router.put('/preferences', authenticateToken, async (req, res) => {
+router.put('/preferences', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = parseInt(req.user!.id);
     const preferences = req.body;
 
     await PushNotificationService.updatePreferences(userId, preferences);
