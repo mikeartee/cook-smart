@@ -7,7 +7,7 @@ const router = Router();
 // RATINGS
 router.post('/ratings', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const {recipeId, recipeType, rating, review} = req.body;
     const result = await RecipeEnhancementService.rateRecipe(
       userId,
@@ -47,7 +47,7 @@ router.post(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = parseInt(req.user!.id as string);
       const {name, description, icon} = req.body;
       const collection = await RecipeEnhancementService.createCollection(
         userId,
@@ -65,7 +65,7 @@ router.post(
 
 router.get('/collections', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const collections =
       await RecipeEnhancementService.getUserCollections(userId);
     res.json({success: true, collections});
@@ -114,7 +114,7 @@ router.get(
 // MEAL PLANNING
 router.post('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const {recipeId, recipeType, plannedDate, mealType, notes} = req.body;
     const mealPlan = await RecipeEnhancementService.addMealPlan(
       userId,
@@ -133,7 +133,7 @@ router.post('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
 
 router.get('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const {startDate, endDate} = req.query;
     const mealPlans = await RecipeEnhancementService.getMealPlans(
       userId,
@@ -152,7 +152,7 @@ router.put(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = parseInt(req.user!.id as string);
       const mealPlanId = parseInt(req.params.id);
       await RecipeEnhancementService.markMealComplete(mealPlanId, userId);
       res.json({success: true});
@@ -168,7 +168,7 @@ router.delete(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = parseInt(req.user!.id as string);
       const mealPlanId = parseInt(req.params.id);
       await RecipeEnhancementService.deleteMealPlan(mealPlanId, userId);
       res.json({success: true});
@@ -185,7 +185,7 @@ router.post(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = parseInt(req.user!.id as string);
       const {recipeId, recipeType, rating, notes} = req.body;
       const history = await RecipeEnhancementService.markRecipeCooked(
         userId,
@@ -207,7 +207,7 @@ router.get(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
+      const userId = parseInt(req.user!.id as string);
       const history = await RecipeEnhancementService.getCookingHistory(userId);
       res.json({success: true, history});
     } catch (error) {

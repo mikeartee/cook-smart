@@ -7,7 +7,7 @@ const router = Router();
 // Create recipe
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const recipe = req.body;
 
     const recipeId = await UserRecipeService.createRecipe(userId, {
@@ -25,7 +25,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 // Get user's recipes
 router.get('/my-recipes', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const recipes = await UserRecipeService.getUserRecipes(userId);
 
     res.json({success: true, recipes});
@@ -38,7 +38,7 @@ router.get('/my-recipes', authenticateToken, async (req: AuthRequest, res) => {
 // Get recipe details
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const recipeId = parseInt(req.params.id);
 
     const recipe = await UserRecipeService.getRecipeDetails(recipeId, userId);
@@ -71,7 +71,7 @@ router.get('/search/:query', async (req, res) => {
 // Delete recipe
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const recipeId = parseInt(req.params.id);
 
     await UserRecipeService.deleteRecipe(recipeId, userId);

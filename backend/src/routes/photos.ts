@@ -7,7 +7,7 @@ const router = Router();
 // Upload photo
 router.post('/upload', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const {photo, entityType, entityId} = req.body;
 
     if (!photo || !entityType) {
@@ -35,8 +35,8 @@ router.delete(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id);
-      const photoUrl = decodeURIComponent(req.params.photoUrl);
+      const userId = parseInt(req.user!.id as string);
+      const photoUrl = decodeURIComponent(req.params.photoUrl!);
 
       await PhotoUploadService.deletePhoto(photoUrl, userId);
 
@@ -51,7 +51,7 @@ router.delete(
 // Get user photo stats
 router.get('/stats', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = parseInt(req.user!.id as string);
     const stats = await PhotoUploadService.getUserPhotoStats(userId);
 
     res.json({success: true, stats});

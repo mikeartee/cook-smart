@@ -50,11 +50,13 @@ export class UserRecipeService {
       // Insert ingredients
       for (let i = 0; i < recipe.ingredients.length; i++) {
         const ing = recipe.ingredients[i];
-        await client.query(
-          `INSERT INTO user_recipe_ingredients (recipe_id, name, quantity, unit, sort_order)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [recipeId, ing.name, ing.quantity, ing.unit, i],
-        );
+        if (ing) {
+          await client.query(
+            `INSERT INTO user_recipe_ingredients (recipe_id, name, quantity, unit, sort_order)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [recipeId, ing.name, ing.quantity, ing.unit, i],
+          );
+        }
       }
 
       // Insert instructions
