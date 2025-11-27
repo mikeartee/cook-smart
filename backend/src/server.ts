@@ -111,6 +111,7 @@ import systemGuardianRoutes from './routes/systemGuardian';
 import userRecipesRoutes from './routes/userRecipes';
 import userSettingsRoutes from './routes/userSettings';
 import notificationRoutes from './routes/notifications';
+import achievementRoutes from './routes/achievements';
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
@@ -142,6 +143,7 @@ app.use('/api/v1/subscriptions', subscriptionPricingRoutes);
 app.use('/api/v1/subscriptions', subscriptionSyncRoutes);
 app.use('/api/v1/system-guardian', systemGuardianRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/achievements', achievementRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({

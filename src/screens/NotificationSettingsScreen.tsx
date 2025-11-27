@@ -11,7 +11,7 @@ import {
 import {Ionicons} from '@expo/vector-icons';
 import notificationService, {
   NotificationPreferences,
-} from '../services/notificationService.simple';
+} from '../services/notificationService';
 
 export default function NotificationSettingsScreen() {
   const [loading, setLoading] = useState(true);
