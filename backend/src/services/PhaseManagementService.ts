@@ -3,7 +3,7 @@ import pool from '../config/database';
 export interface PhaseConfig {
   isBeta: boolean;
   updatedAt: Date;
-  updatedBy: number | null;
+  updatedBy: string | null;
 }
 
 /**
@@ -65,7 +65,7 @@ export class PhaseManagementService {
    */
   static async setPhase(
     phase: 'beta' | 'post-beta',
-    adminId: number,
+    adminId: string,
   ): Promise<void> {
     const isBeta = phase === 'beta';
 

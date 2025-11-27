@@ -16,8 +16,13 @@ module.exports = [
       'metro.config.js',
       'jest.config.js',
       '.kiro/verify-and-scan.js',
+      '.kiro/deep-cleanup.js',
       'test-bundle.js',
-      '*.bundle.js'
+      '*.bundle.js',
+      'android/app/build/**',
+      'android/build/**',
+      'ios/build/**',
+      '**/intermediates/**'
     ]
   },
   {

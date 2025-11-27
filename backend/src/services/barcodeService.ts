@@ -66,12 +66,15 @@ class BarcodeService {
       if (response.data.status === 1 && response.data.product) {
         const product = response.data.product;
         
+        // Get English category name, fallback to 'other' if mapping fails
+        const mappedCategory = this.mapToCategory(product.categories || product.categories_tags?.join(',') || '');
+        
         return {
           found: true,
           product: {
             name: product.product_name || product.product_name_en || 'Unknown Product',
             brand: product.brands,
-            category: this.mapToCategory(product.categories),
+            category: mappedCategory,
             nutrition_per_100g: this.extractNutrition(product.nutriments),
             barcode,
             source: 'openfoodfacts'
@@ -199,30 +202,55 @@ class BarcodeService {
   }
 
   private mapToCategory(categories: string): string {
-    if (!categories) return 'condiments';
+    if (!categories) return 'other';
     
     const categoryStr = categories.toLowerCase();
     
-    if (categoryStr.includes('meat') || categoryStr.includes('poultry') || categoryStr.includes('fish') || categoryStr.includes('seafood')) {
+    // Proteins (English and Spanish)
+    if (categoryStr.includes('meat') || categoryStr.includes('poultry') || categoryStr.includes('fish') || 
+        categoryStr.includes('seafood') || categoryStr.includes('carne') || categoryStr.includes('pescado') ||
+        categoryStr.includes('protein')) {
       return 'proteins';
     }
-    if (categoryStr.includes('vegetable') || categoryStr.includes('produce')) {
+    
+    // Vegetables (English and Spanish)
+    if (categoryStr.includes('vegetable') || categoryStr.includes('produce') || categoryStr.includes('vegetal') ||
+        categoryStr.includes('verdura')) {
       return 'vegetables';
     }
-    if (categoryStr.includes('fruit')) {
+    
+    // Fruits (English and Spanish)
+    if (categoryStr.includes('fruit') || categoryStr.includes('fruta')) {
       return 'fruits';
     }
-    if (categoryStr.includes('dairy') || categoryStr.includes('milk') || categoryStr.includes('cheese') || categoryStr.includes('yogurt')) {
+    
+    // Dairy (English and Spanish)
+    if (categoryStr.includes('dairy') || categoryStr.includes('milk') || categoryStr.includes('cheese') || 
+        categoryStr.includes('yogurt') || categoryStr.includes('lácteo') || categoryStr.includes('lacteo') ||
+        categoryStr.includes('leche') || categoryStr.includes('queso')) {
       return 'dairy';
     }
-    if (categoryStr.includes('grain') || categoryStr.includes('bread') || categoryStr.includes('cereal') || categoryStr.includes('pasta')) {
+    
+    // Grains (English and Spanish)
+    if (categoryStr.includes('grain') || categoryStr.includes('bread') || categoryStr.includes('cereal') || 
+        categoryStr.includes('pasta') || categoryStr.includes('grano') || categoryStr.includes('pan') ||
+        categoryStr.includes('arroz') || categoryStr.includes('rice')) {
       return 'grains';
     }
-    if (categoryStr.includes('spice') || categoryStr.includes('herb') || categoryStr.includes('seasoning')) {
+    
+    // Spices (English and Spanish)
+    if (categoryStr.includes('spice') || categoryStr.includes('herb') || categoryStr.includes('seasoning') ||
+        categoryStr.includes('especia') || categoryStr.includes('condimento')) {
       return 'spices';
     }
     
-    return 'condiments';
+    // Plant-based foods (English and Spanish)
+    if (categoryStr.includes('plant-based') || categoryStr.includes('plant based') || 
+        categoryStr.includes('alimento') || categoryStr.includes('bebida')) {
+      return 'vegetables'; // Default plant-based to vegetables
+    }
+    
+    return 'other';
   }
 
   // Usage tracking methods

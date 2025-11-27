@@ -208,13 +208,13 @@ export class AdminSubscriptionsController {
    */
   async getBillingHistory(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const userId = req.query.userId as string | undefined;
       const status = req.query.status as string | undefined;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
 
       const filters: {
-        userId?: number;
+        userId?: string;
         status?: string;
         page?: number;
         limit?: number;

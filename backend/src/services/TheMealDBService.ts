@@ -33,40 +33,45 @@ export class TheMealDBService implements IRecipeProvider {
       return [];
     }
 
-    // Use the first ingredient for search and simplify the name
-    // Remove brand names, parentheses, and extra details
-    const mainIngredient = this.simplifyIngredientName(ingredients[0] || '');
+    // Try searching with multiple ingredients until we find results
+    for (const ingredient of ingredients) {
+      const searchTerms = this.getSearchTerms(ingredient);
+      
+      for (const searchTerm of searchTerms) {
+        console.log(
+          `🔍 Searching TheMealDB for: "${searchTerm}" (original: "${ingredient}")`,
+        );
 
-    console.log(
-      `🔍 Searching TheMealDB for: "${mainIngredient}" (original: "${ingredients[0]}")`,
-    );
+        try {
+          const response = await axios.get(`${THEMEALDB_BASE_URL}/filter.php`, {
+            params: {i: searchTerm},
+            timeout: 10000, // 10 second timeout
+          });
 
-    try {
-      const response = await axios.get(`${THEMEALDB_BASE_URL}/filter.php`, {
-        params: {i: mainIngredient},
-        timeout: 10000, // 10 second timeout
-      });
+          if (response.data && response.data.meals && response.data.meals.length > 0) {
+            console.log(
+              `✅ Found ${response.data.meals.length} meals for "${searchTerm}"`,
+            );
 
-      if (!response.data || !response.data.meals) {
-        console.log(`⚠️  No meals found for "${mainIngredient}"`);
-        return [];
+            // Get details for each meal (up to limit)
+            const meals = response.data.meals.slice(0, limit);
+            const detailedRecipes = await Promise.all(
+              meals.map((meal: any) => this.getRecipeDetails(meal.idMeal)),
+            );
+
+            return detailedRecipes;
+          } else {
+            console.log(`⚠️  No meals found for "${searchTerm}"`);
+          }
+        } catch (error: any) {
+          console.log(`⚠️  Search failed for "${searchTerm}": ${error.message}`);
+        }
       }
-
-      console.log(
-        `✅ Found ${response.data.meals.length} meals for "${mainIngredient}"`,
-      );
-
-      // Get details for each meal (up to limit)
-      const meals = response.data.meals.slice(0, limit);
-      const detailedRecipes = await Promise.all(
-        meals.map((meal: any) => this.getRecipeDetails(meal.idMeal)),
-      );
-
-      return detailedRecipes;
-    } catch (error: any) {
-      console.error('TheMealDB API error:', error.message);
-      throw new Error(`TheMealDB API request failed: ${error.message}`);
     }
+
+    // No results found for any ingredient
+    console.log(`⚠️  No meals found for any of the provided ingredients`);
+    return [];
   }
 
   /**
@@ -111,24 +116,50 @@ export class TheMealDBService implements IRecipeProvider {
   }
 
   /**
-   * Simplify ingredient name for better search results
-   * Removes brand names, parentheses, and extra details
+   * Generate multiple search terms for an ingredient
+   * Returns array of search terms from most specific to most general
    */
-  private simplifyIngredientName(ingredient: string): string {
+  private getSearchTerms(ingredient: string): string[] {
+    const terms: string[] = [];
+    
     // Remove content in parentheses (brand names, details)
-    let simplified = ingredient.replace(/\([^)]*\)/g, '').trim();
-
+    let cleaned = ingredient.replace(/\([^)]*\)/g, '').trim();
+    
     // Remove common prefixes
-    simplified = simplified.replace(
+    cleaned = cleaned.replace(
       /^(sliced|diced|chopped|fresh|frozen|canned|organic)\s+/i,
       '',
     );
-
-    // Take only the first word if multiple words (e.g., "Hamburger Buns" -> "Hamburger")
-    const words = simplified.split(' ');
-    simplified = words[0] || ingredient;
-
-    return simplified.toLowerCase().trim();
+    
+    // Try full cleaned name first
+    if (cleaned) {
+      terms.push(cleaned.toLowerCase());
+    }
+    
+    // Try each word individually (for compound ingredients)
+    const words = cleaned.split(' ').filter(w => w.length > 2);
+    for (const word of words) {
+      const lowerWord = word.toLowerCase();
+      if (!terms.includes(lowerWord)) {
+        terms.push(lowerWord);
+      }
+    }
+    
+    // Fallback to original if nothing else worked
+    if (terms.length === 0) {
+      terms.push(ingredient.toLowerCase().trim());
+    }
+    
+    return terms;
+  }
+  
+  /**
+   * Simplify ingredient name for better search results (deprecated - use getSearchTerms)
+   * Removes brand names, parentheses, and extra details
+   */
+  private simplifyIngredientName(ingredient: string): string {
+    const terms = this.getSearchTerms(ingredient);
+    return terms[0] || ingredient.toLowerCase();
   }
 
   /**

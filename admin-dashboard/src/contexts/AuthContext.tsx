@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const response = await api.get<{ admin: Admin }>('/admin/auth/me');
         setAdmin(response.data.admin);
-      } catch (error) {
+      } catch (_error) {
         localStorage.removeItem(config.tokenKey);
       }
     }

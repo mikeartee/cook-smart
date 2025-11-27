@@ -13,7 +13,16 @@ export class AllergyModel {
 
   static async getUserAllergies(userId: string): Promise<any[]> {
     const query = `
-      SELECT ua.*, a.name, a.severity, a.description, a.trigger_ingredients, a.cross_reactive_ingredients
+      SELECT 
+        a.id,
+        a.name, 
+        a.severity, 
+        a.description, 
+        a.trigger_ingredients, 
+        a.cross_reactive_ingredients,
+        ua.severity_override,
+        ua.custom_notes,
+        ua.created_at
       FROM user_allergies ua
       JOIN allergies a ON ua.allergy_id = a.id
       WHERE ua.user_id = $1 AND a.is_active = true
@@ -26,15 +35,16 @@ export class AllergyModel {
     }));
   }
 
-  static async addUserAllergy(userId: string, allergyId: string, severityOverride?: string, notes?: string): Promise<void> {
+  static async addUserAllergy(userId: string, allergyId: number, severityOverride?: string, notes?: string): Promise<void> {
     const query = `
       INSERT INTO user_allergies (user_id, allergy_id, severity_override, custom_notes)
       VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id, allergy_id) DO NOTHING
     `;
     await pool.query(query, [userId, allergyId, severityOverride, notes]);
   }
 
-  static async removeUserAllergy(userId: string, allergyId: string): Promise<void> {
+  static async removeUserAllergy(userId: string, allergyId: number): Promise<void> {
     const query = 'DELETE FROM user_allergies WHERE user_id = $1 AND allergy_id = $2';
     await pool.query(query, [userId, allergyId]);
   }

@@ -2,7 +2,9 @@
 
 ## Introduction
 
-The Admin Dashboard is a web-based administrative interface for Cook Smart that provides comprehensive visibility into application health, user management, analytics, and system monitoring. The dashboard enables administrators to monitor the application, manage users, review feedback, track errors, and make data-driven decisions about the platform's growth and performance.
+The Admin Dashboard is a standalone web-based administrative interface for Cook Smart that provides comprehensive visibility into application health, user management, analytics, and system monitoring. This is a separate professional website (not part of the main Cook Smart mobile app) designed specifically for administrators to monitor the application, manage users, review feedback, track errors, and make data-driven decisions about the platform's growth and performance.
+
+The dashboard is built as a modern React web application with a thoughtful, organized, and professional design using Material-UI components. It connects to the Cook Smart backend via REST APIs and provides a comprehensive suite of administrative tools.
 
 ## Glossary
 
@@ -16,6 +18,12 @@ The Admin Dashboard is a web-based administrative interface for Cook Smart that 
 - **Authentication Service**: The backend service that validates admin credentials
 - **Metrics Service**: The backend service that aggregates and provides analytics data
 - **Real-time Updates**: Live data updates without page refresh
+- **Content Moderation Module**: The section for reviewing and managing user-generated content
+- **Points System**: The gamification system that rewards users for actions
+- **Community Activity**: User interactions including shares, achievements, and milestones
+- **Broadcast Notification**: A notification sent to all users or a specific user segment
+- **Feature Flag**: A toggle that enables or disables specific features for testing or gradual rollout
+- **Bulk Operation**: An action performed on multiple records simultaneously
 
 ## Requirements
 
@@ -166,3 +174,171 @@ The Admin Dashboard is a web-based administrative interface for Cook Smart that 
 5. THE Dashboard System SHALL retain audit logs for 90 days before automatic deletion
 6. THE Dashboard System SHALL use HTTPS for all communications between frontend and backend
 7. THE Dashboard System SHALL implement CSRF protection for all state-changing operations
+
+### Requirement 11: User-Generated Content Moderation
+
+**User Story:** As an administrator, I want to review and moderate user-generated recipes, so that I can maintain content quality and remove inappropriate material.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a paginated list of all public user recipes with title, author, creation date, and status
+2. THE Dashboard System SHALL provide filter options for recipe status (approved, pending, flagged, hidden)
+3. WHEN an admin clicks on a recipe, THE Dashboard System SHALL display full recipe details including ingredients, instructions, and images
+4. THE Dashboard System SHALL provide an action to hide a recipe from public view with a reason field
+5. THE Dashboard System SHALL provide an action to delete a recipe with a confirmation dialog
+6. THE Dashboard System SHALL provide an action to flag a recipe for review
+7. THE Dashboard System SHALL display a list of reported recipes with report reason and reporter information
+8. THE Dashboard System SHALL allow admins to approve flagged recipes or take action
+9. THE Dashboard System SHALL track moderation actions in the audit log
+
+### Requirement 12: Points and Gamification Management
+
+**User Story:** As an administrator, I want to manage the points system and gamification features, so that I can reward users appropriately and adjust the system as needed.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a points leaderboard showing top 100 users by total points
+2. THE Dashboard System SHALL provide an action to manually add points to a user account with a reason field
+3. THE Dashboard System SHALL provide an action to manually subtract points from a user account with a reason field
+4. THE Dashboard System SHALL display a user's complete points transaction history with action type and timestamp
+5. THE Dashboard System SHALL allow admins to modify point values for existing actions
+6. THE Dashboard System SHALL allow admins to create custom point-earning actions with name, description, and point value
+7. THE Dashboard System SHALL display level progression statistics showing user distribution across levels
+8. THE Dashboard System SHALL provide an action to award bonus points to multiple users for events or promotions
+9. THE Dashboard System SHALL track all points adjustments in the audit log
+
+### Requirement 13: Community Activity Monitoring
+
+**User Story:** As an administrator, I want to monitor community activities and engagement, so that I can understand user behavior and identify highly engaged users.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a feed of recent community activities including recipe shares, achievements, and milestones
+2. THE Dashboard System SHALL provide filter options for activity type (share, achievement, milestone, contribution)
+3. THE Dashboard System SHALL display a list of most active users with activity count over the last 30 days
+4. THE Dashboard System SHALL display achievement unlock statistics showing most common achievements
+5. THE Dashboard System SHALL display milestone tracking showing user progression
+6. THE Dashboard System SHALL display contribution impact metrics showing community contributions
+7. THE Dashboard System SHALL display community engagement trends over time with a line chart
+
+### Requirement 14: Notifications Management
+
+**User Story:** As an administrator, I want to create and manage system notifications, so that I can communicate important information to users.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a list of all sent notifications with title, recipient count, and delivery date
+2. THE Dashboard System SHALL provide an action to create a broadcast notification to all users
+3. THE Dashboard System SHALL provide an action to create a targeted notification to a specific user segment
+4. THE Dashboard System SHALL allow admins to select user segments by account type, subscription status, or activity level
+5. THE Dashboard System SHALL display notification delivery status showing sent, delivered, and opened counts
+6. THE Dashboard System SHALL display notification engagement metrics including open rate and click rate
+7. THE Dashboard System SHALL provide a preview function to test notifications before sending
+8. THE Dashboard System SHALL track notification sends in the audit log
+
+### Requirement 15: Recipe and Ingredient Analytics
+
+**User Story:** As an administrator, I want to view analytics about recipes and ingredients, so that I can understand user preferences and improve the recipe database.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a list of most searched recipes with search count over the last 30 days
+2. THE Dashboard System SHALL display a list of most popular ingredients with usage count
+3. THE Dashboard System SHALL display recipe search trends over time with a line chart
+4. THE Dashboard System SHALL display barcode scan statistics including total scans and success rate
+5. THE Dashboard System SHALL display a list of failed barcode lookups with barcode number and frequency
+6. THE Dashboard System SHALL display recipe API usage breakdown showing calls per API service
+7. THE Dashboard System SHALL display ingredient category distribution with a pie chart
+
+### Requirement 16: Shopping List Analytics
+
+**User Story:** As an administrator, I want to view shopping list analytics, so that I can understand how users utilize the shopping feature.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a list of most common shopping list items with frequency count
+2. THE Dashboard System SHALL display shopping list completion rate as a percentage
+3. THE Dashboard System SHALL display average items per shopping list metric
+4. THE Dashboard System SHALL display shopping list creation trends over time with a line chart
+5. THE Dashboard System SHALL display shopping list engagement metrics including active users with shopping lists
+
+### Requirement 17: Dietary Restrictions Analytics
+
+**User Story:** As an administrator, I want to view dietary restriction analytics, so that I can understand user dietary needs and improve filtering.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a list of most common dietary restrictions with user count
+2. THE Dashboard System SHALL display allergy distribution among users with a pie chart
+3. THE Dashboard System SHALL display dietary filter usage statistics showing filter application frequency
+4. THE Dashboard System SHALL display users with multiple dietary restrictions count
+
+### Requirement 18: Discord Integration Management
+
+**User Story:** As an administrator, I want to manage Discord integration settings, so that I can monitor and configure Discord notifications.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display Discord webhook connection status
+2. THE Dashboard System SHALL provide an action to test Discord notifications with a sample message
+3. THE Dashboard System SHALL allow admins to configure Discord channel settings
+4. THE Dashboard System SHALL display Discord notification history with timestamp and message content
+5. THE Dashboard System SHALL display Discord bot activity logs showing successful and failed notifications
+6. THE Dashboard System SHALL provide an action to enable or disable Discord notifications
+
+### Requirement 19: API Usage and Rate Limiting
+
+**User Story:** As an administrator, I want to monitor API usage and rate limits, so that I can optimize API calls and avoid service disruptions.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display total API calls per service (Open Food Facts, TheMealDB, Edamam) for the current month
+2. THE Dashboard System SHALL display rate limit status for each API service showing remaining calls
+3. THE Dashboard System SHALL display average API response times per service
+4. THE Dashboard System SHALL display API failure rate per service as a percentage
+5. THE Dashboard System SHALL display cost per API call for paid services
+6. THE Dashboard System SHALL display API usage trends over time with a line chart
+7. WHEN an API approaches its rate limit, THE Dashboard System SHALL display a warning indicator
+
+### Requirement 20: Bulk Operations
+
+**User Story:** As an administrator, I want to perform bulk operations on multiple records, so that I can efficiently manage large datasets.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL provide an action to suspend multiple user accounts simultaneously with a reason field
+2. THE Dashboard System SHALL provide an action to grant subscriptions to multiple users simultaneously
+3. THE Dashboard System SHALL provide an action to send email notifications to multiple users simultaneously
+4. THE Dashboard System SHALL provide an action to adjust points for multiple users simultaneously
+5. THE Dashboard System SHALL display a confirmation dialog showing the number of affected records before executing bulk operations
+6. THE Dashboard System SHALL display progress indicators during bulk operation execution
+7. THE Dashboard System SHALL display a summary report after bulk operation completion showing success and failure counts
+8. THE Dashboard System SHALL track all bulk operations in the audit log
+
+### Requirement 21: Feature Flags and A/B Testing
+
+**User Story:** As an administrator, I want to manage feature flags and A/B tests, so that I can safely roll out new features and test variations.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL display a list of all feature flags with name, status, and affected user count
+2. THE Dashboard System SHALL provide an action to enable or disable a feature flag
+3. THE Dashboard System SHALL allow admins to create user segments for A/B testing based on account type or registration date
+4. THE Dashboard System SHALL display feature adoption rates showing percentage of users using enabled features
+5. THE Dashboard System SHALL allow admins to gradually roll out features by percentage (10%, 25%, 50%, 100%)
+6. THE Dashboard System SHALL track feature flag changes in the audit log
+
+### Requirement 22: Content Management
+
+**User Story:** As an administrator, I want to manage app content and announcements, so that I can keep users informed and promote features.
+
+#### Acceptance Criteria
+
+1. THE Dashboard System SHALL allow admins to create and edit featured recipe collections
+2. THE Dashboard System SHALL allow admins to create promotional banners with title, message, and display duration
+3. THE Dashboard System SHALL allow admins to create app announcements visible to all users
+4. THE Dashboard System SHALL allow admins to update terms of service content
+5. THE Dashboard System SHALL allow admins to update privacy policy content
+6. THE Dashboard System SHALL allow admins to manage FAQ content with questions and answers
+7. THE Dashboard System SHALL provide a preview function for all content before publishing
+8. THE Dashboard System SHALL track content changes in the audit log

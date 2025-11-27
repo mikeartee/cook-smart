@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,112 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {getAuthToken} from '../utils/auth';
+import {API_ENDPOINTS} from '../config/api';
+import {useAuth} from '../contexts/AuthContext';
 
 interface Props {
   navigation: any;
 }
 
 export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
+  const {logout} = useAuth();
   const [dataSharing, setDataSharing] = useState(false);
   const [analytics, setAnalytics] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [locationServices, setLocationServices] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+
+  // Load privacy settings on mount
+  useEffect(() => {
+    loadPrivacySettings();
+  }, []);
+
+  const loadPrivacySettings = async () => {
+    try {
+      console.log('🔄 Loading privacy settings...');
+      const token = await getAuthToken();
+      console.log('✅ Got auth token:', token ? 'exists' : 'missing');
+      console.log('📡 Calling:', API_ENDPOINTS.settings.privacy);
+      
+      const response = await fetch(API_ENDPOINTS.settings.privacy, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('📥 Response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Privacy settings loaded:', data);
+        setDataSharing(data.data_sharing || false);
+        setAnalytics(data.analytics_enabled !== false);
+        setNotifications(data.push_notifications !== false);
+        setLocationServices(data.location_services || false);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Failed to load settings:', response.status, errorText);
+      }
+    } catch (error) {
+      console.error('❌ Error loading privacy settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePrivacySetting = async (setting: string, value: boolean) => {
+    setUpdating(true);
+    try {
+      console.log('🔄 Updating setting:', setting, '=', value);
+      const token = await getAuthToken();
+      console.log('📡 Calling PATCH:', API_ENDPOINTS.settings.privacy);
+      
+      const response = await fetch(API_ENDPOINTS.settings.privacy, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({[setting]: value}),
+      });
+
+      console.log('📥 Update response:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Update failed:', response.status, errorText);
+        throw new Error('Failed to update setting');
+      }
+      
+      console.log('✅ Setting updated successfully');
+    } catch (error) {
+      console.error('❌ Error updating privacy setting:', error);
+      Alert.alert('Error', 'Failed to update setting. Please try again.');
+      // Revert the change
+      switch (setting) {
+        case 'data_sharing':
+          setDataSharing(!value);
+          break;
+        case 'analytics_enabled':
+          setAnalytics(!value);
+          break;
+        case 'push_notifications':
+          setNotifications(!value);
+          break;
+        case 'location_services':
+          setLocationServices(!value);
+          break;
+      }
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -28,25 +121,99 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
       [
         {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Delete',
+          text: 'I Understand, Delete My Account',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Implement account deletion
-            console.log('Delete account');
+          onPress: async () => {
+            try {
+              setUpdating(true);
+              const token = await getAuthToken();
+              console.log('🗑️ Deleting account...');
+              
+              const response = await fetch(
+                API_ENDPOINTS.settings.deleteAccount,
+                {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({confirmation: 'DELETE'}),
+                },
+              );
+
+              console.log('📥 Delete response:', response.status);
+
+              if (response.ok) {
+                // Clear auth state
+                await logout();
+                
+                Alert.alert(
+                  'Account Deleted',
+                  'Your account has been permanently deleted.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        // Navigation will happen automatically after logout
+                      },
+                    },
+                  ],
+                );
+              } else {
+                const errorText = await response.text();
+                console.error('❌ Delete failed:', response.status, errorText);
+                throw new Error('Failed to delete account');
+              }
+            } catch (error) {
+              console.error('❌ Error deleting account:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete account. Please try again or contact support.',
+              );
+            } finally {
+              setUpdating(false);
+            }
           },
         },
       ],
     );
   };
 
-  const handleExportData = () => {
-    Alert.alert(
-      'Export Data',
-      'We will send a copy of your data to your registered email address within 24 hours.',
-      [{text: 'OK'}],
-    );
-    // TODO: Implement data export
+  const handleExportData = async () => {
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(API_ENDPOINTS.settings.exportData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert(
+          'Export Complete',
+          'Your data has been exported. In production, this would be sent to your email.',
+          [{text: 'OK'}],
+        );
+        console.log('Exported data:', data);
+      } else {
+        throw new Error('Failed to export data');
+      }
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to export data. Please try again.');
+    }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>Loading settings...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -75,7 +242,11 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <Switch
               value={dataSharing}
-              onValueChange={setDataSharing}
+              onValueChange={(value) => {
+                setDataSharing(value);
+                updatePrivacySetting('data_sharing', value);
+              }}
+              disabled={updating}
               trackColor={{false: '#D1D5DB', true: '#4CAF50'}}
               thumbColor="#FFFFFF"
             />
@@ -90,7 +261,11 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <Switch
               value={analytics}
-              onValueChange={setAnalytics}
+              onValueChange={(value) => {
+                setAnalytics(value);
+                updatePrivacySetting('analytics_enabled', value);
+              }}
+              disabled={updating}
               trackColor={{false: '#D1D5DB', true: '#4CAF50'}}
               thumbColor="#FFFFFF"
             />
@@ -105,7 +280,11 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <Switch
               value={notifications}
-              onValueChange={setNotifications}
+              onValueChange={(value) => {
+                setNotifications(value);
+                updatePrivacySetting('push_notifications', value);
+              }}
+              disabled={updating}
               trackColor={{false: '#D1D5DB', true: '#4CAF50'}}
               thumbColor="#FFFFFF"
             />
@@ -120,7 +299,11 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <Switch
               value={locationServices}
-              onValueChange={setLocationServices}
+              onValueChange={(value) => {
+                setLocationServices(value);
+                updatePrivacySetting('location_services', value);
+              }}
+              disabled={updating}
               trackColor={{false: '#D1D5DB', true: '#4CAF50'}}
               thumbColor="#FFFFFF"
             />
@@ -195,7 +378,7 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
 
           <TouchableOpacity
             style={styles.actionItem}
-            onPress={() => navigation.navigate('PrivacyPolicy')}>
+            onPress={() => navigation.navigate('PrivacyPolicyView')}>
             <Icon name="description" size={24} color="#6B7280" />
             <View style={styles.actionInfo}>
               <Text style={styles.actionLabel}>Privacy Policy</Text>
@@ -208,7 +391,7 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
 
           <TouchableOpacity
             style={styles.actionItem}
-            onPress={() => navigation.navigate('TermsOfService')}>
+            onPress={() => navigation.navigate('TermsOfServiceView')}>
             <Icon name="gavel" size={24} color="#6B7280" />
             <View style={styles.actionInfo}>
               <Text style={styles.actionLabel}>Terms of Service</Text>
@@ -228,7 +411,8 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
 
           <TouchableOpacity
             style={[styles.actionItem, styles.dangerItem]}
-            onPress={handleDeleteAccount}>
+            onPress={handleDeleteAccount}
+            disabled={updating}>
             <Icon name="delete-forever" size={24} color="#EF4444" />
             <View style={styles.actionInfo}>
               <Text style={[styles.actionLabel, styles.dangerLabel]}>
@@ -238,7 +422,11 @@ export const PrivacySecurityScreen: React.FC<Props> = ({navigation}) => {
                 Permanently delete your account and data
               </Text>
             </View>
-            <Icon name="chevron-right" size={24} color="#EF4444" />
+            {updating ? (
+              <ActivityIndicator size="small" color="#EF4444" />
+            ) : (
+              <Icon name="chevron-right" size={24} color="#EF4444" />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -259,6 +447,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
   scrollView: {
     flex: 1,

@@ -2,7 +2,7 @@ import pool from '../config/database';
 
 export interface Subscription {
   id: string;
-  user_id: number;
+  user_id: string;
   plan_id: string;
   status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trial';
   current_period_start: Date;
@@ -21,7 +21,7 @@ export interface Subscription {
 export interface SubscriptionTransaction {
   id: number;
   subscription_id: string;
-  user_id: number;
+  user_id: string;
   amount: number;
   currency: string;
   status: 'succeeded' | 'failed' | 'pending' | 'refunded';
@@ -139,7 +139,7 @@ export class SubscriptionModel {
    * Grant subscription to user
    */
   static async grant(data: {
-    userId: number;
+    userId: string;
     planId: string;
     durationMonths: number;
   }): Promise<Subscription> {
@@ -232,7 +232,7 @@ export class SubscriptionModel {
    * Get billing history
    */
   static async getBillingHistory(filters?: {
-    userId?: number;
+    userId?: string;
     status?: string;
     page?: number;
     limit?: number;
@@ -392,7 +392,7 @@ export class SubscriptionModel {
    * Get user's active subscription
    */
   static async getUserActiveSubscription(
-    userId: number,
+    userId: string,
   ): Promise<Subscription | null> {
     const query = `
       SELECT * FROM subscriptions

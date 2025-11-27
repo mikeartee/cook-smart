@@ -9,9 +9,11 @@ import {
   Alert,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
+import {dietaryService} from '../services/dietaryService';
 
 const DIETARY_RESTRICTIONS = [
   {id: 'vegetarian', label: 'Vegetarian', icon: 'eco'},
@@ -45,30 +47,104 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({
   navigation,
 }) => {
   const {user} = useAuth();
-  const [selectedDiets, setSelectedDiets] = useState<string[]>([]);
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
+  const [selectedDiets, setSelectedDiets] = useState<number[]>([]);
+  const [selectedAllergies, setSelectedAllergies] = useState<number[]>([]);
   const [customDiets, setCustomDiets] = useState<string[]>([]);
   const [customAllergies, setCustomAllergies] = useState<string[]>([]);
   const [showNutrition, setShowNutrition] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showDietModal, setShowDietModal] = useState(false);
   const [showAllergyModal, setShowAllergyModal] = useState(false);
   const [customInput, setCustomInput] = useState('');
+  const [availableRestrictions, setAvailableRestrictions] = useState<any[]>([]);
+  const [availableAllergies, setAvailableAllergies] = useState<any[]>([]);
+
+  // Map UI keys to database names for matching
+  const dietKeyToName: Record<string, string> = {
+    'vegetarian': 'Vegetarian',
+    'vegan': 'Vegan',
+    'gluten-free': 'Gluten-Free',
+    'dairy-free': 'Dairy-Free',
+    'keto': 'Keto',
+    'paleo': 'Paleo',
+    'low-carb': 'Low-Sodium', // Map low-carb to low-sodium
+    'halal': 'Halal',
+    'kosher': 'Kosher',
+  };
+
+  const allergyKeyToName: Record<string, string> = {
+    'peanuts': 'Peanut Allergy',
+    'tree-nuts': 'Tree Nut Allergy',
+    'milk': 'Dairy Allergy',
+    'eggs': 'Egg Allergy',
+    'soy': 'Soy Allergy',
+    'wheat': 'Wheat Allergy',
+    'fish': 'Fish Allergy',
+    'shellfish': 'Shellfish Allergy',
+    'sesame': 'Sesame Allergy',
+  };
+
+  // Helper to get ID from key
+  const getDietIdFromKey = (key: string): number | undefined => {
+    const name = dietKeyToName[key];
+    const found = availableRestrictions.find(r => r.name === name);
+    if (!found) {
+      console.log('Diet not found:', {key, name, available: availableRestrictions.map(r => r.name)});
+    }
+    return found?.id;
+  };
+
+  const getAllergyIdFromKey = (key: string): number | undefined => {
+    const name = allergyKeyToName[key];
+    const found = availableAllergies.find(a => a.name === name);
+    if (!found) {
+      console.log('Allergy not found:', {key, name, available: availableAllergies.map(a => a.name)});
+    }
+    return found?.id;
+  };
 
   useEffect(() => {
-    // Load user preferences
-    if (user?.dietary_restrictions) {
-      setSelectedDiets(user.dietary_restrictions);
+    if (user?.id) {
+      loadUserPreferences();
     }
-    if (user?.allergies) {
-      setSelectedAllergies(user.allergies);
-    }
-    if (user?.show_nutrition !== undefined) {
-      setShowNutrition(user.show_nutrition);
-    }
-  }, [user]);
+  }, [user?.id]);
 
-  const toggleDiet = (dietId: string) => {
+  const loadUserPreferences = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      const [allRestrictions, allAllergies, userRestrictions, userAllergies] = await Promise.all([
+        dietaryService.getAllRestrictions(),
+        dietaryService.getAllAllergies(),
+        dietaryService.getUserRestrictions(user.id),
+        dietaryService.getUserAllergies(user.id),
+      ]);
+
+      console.log('Loaded restrictions:', allRestrictions.map(r => ({id: r.id, name: r.name})));
+      console.log('User selected restrictions:', userRestrictions.map(r => ({id: r.id, name: r.name})));
+
+      setAvailableRestrictions(allRestrictions);
+      setAvailableAllergies(allAllergies);
+      setSelectedDiets(userRestrictions.map(r => r.id));
+      setSelectedAllergies(userAllergies.map(a => a.id));
+      
+      console.log('Selected diet IDs:', userRestrictions.map(r => r.id));
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleDiet = (dietKey: string) => {
+    const dietId = getDietIdFromKey(dietKey);
+    if (!dietId) {
+      console.warn('Diet ID not found for key:', dietKey);
+      return;
+    }
+
     setSelectedDiets(prev =>
       prev.includes(dietId)
         ? prev.filter(id => id !== dietId)
@@ -76,7 +152,13 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({
     );
   };
 
-  const toggleAllergy = (allergyId: string) => {
+  const toggleAllergy = (allergyKey: string) => {
+    const allergyId = getAllergyIdFromKey(allergyKey);
+    if (!allergyId) {
+      console.warn('Allergy ID not found for key:', allergyKey);
+      return;
+    }
+
     setSelectedAllergies(prev =>
       prev.includes(allergyId)
         ? prev.filter(id => id !== allergyId)
@@ -109,23 +191,72 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({
   };
 
   const handleSave = async () => {
+    if (!user?.id) {
+      Alert.alert('Error', 'User not found');
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Call API to save preferences
-      // await dietaryService.updatePreferences({
-      //   dietary_restrictions: selectedDiets,
-      //   allergies: selectedAllergies,
-      //   show_nutrition: showNutrition
-      // });
+      // Get current saved preferences to compare
+      const [currentRestrictions, currentAllergies] = await Promise.all([
+        dietaryService.getUserRestrictions(user.id),
+        dietaryService.getUserAllergies(user.id),
+      ]);
+
+      const currentRestrictionIds = currentRestrictions.map(r => r.id);
+      const currentAllergyIds = currentAllergies.map(a => a.id);
+
+      // Add new restrictions
+      const restrictionsToAdd = selectedDiets.filter(
+        id => !currentRestrictionIds.includes(id),
+      );
+      for (const restrictionId of restrictionsToAdd) {
+        await dietaryService.addUserRestriction(user.id, restrictionId);
+      }
+
+      // Remove unselected restrictions
+      const restrictionsToRemove = currentRestrictionIds.filter(
+        id => !selectedDiets.includes(id),
+      );
+      for (const restrictionId of restrictionsToRemove) {
+        await dietaryService.removeUserRestriction(user.id, restrictionId);
+      }
+
+      // Add new allergies
+      const allergiesToAdd = selectedAllergies.filter(
+        id => !currentAllergyIds.includes(id),
+      );
+      for (const allergyId of allergiesToAdd) {
+        await dietaryService.addUserAllergy(user.id, allergyId);
+      }
+
+      // Remove unselected allergies
+      const allergiesToRemove = currentAllergyIds.filter(
+        id => !selectedAllergies.includes(id),
+      );
+      for (const allergyId of allergiesToRemove) {
+        await dietaryService.removeUserAllergy(user.id, allergyId);
+      }
 
       Alert.alert('Success', 'Your dietary preferences have been saved!');
       navigation.goBack();
-    } catch (_error) {
+    } catch (error) {
+      console.error('Save error:', error);
       Alert.alert('Error', 'Failed to save preferences. Please try again.');
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading || availableRestrictions.length === 0) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#10B981" />
+        <Text style={styles.loadingText}>Loading preferences...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -152,39 +283,52 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({
             Select any dietary preferences you follow
           </Text>
           <View style={styles.optionsGrid}>
-            {DIETARY_RESTRICTIONS.map(diet => (
-              <TouchableOpacity
-                key={diet.id}
-                style={[
-                  styles.optionCard,
-                  selectedDiets.includes(diet.id) && styles.optionCardSelected,
-                ]}
-                onPress={() => toggleDiet(diet.id)}>
-                <Icon
-                  name={diet.icon}
-                  size={24}
-                  color={
-                    selectedDiets.includes(diet.id) ? '#10B981' : '#6B7280'
-                  }
-                />
-                <Text
+            {DIETARY_RESTRICTIONS.map(diet => {
+              const dietId = getDietIdFromKey(diet.id);
+              const isSelected = dietId !== undefined && selectedDiets.includes(dietId);
+              
+              // Debug logging
+              if (diet.id === 'dairy-free' || diet.id === 'vegetarian') {
+                console.log(`Rendering ${diet.label}:`, {
+                  key: diet.id,
+                  dietId,
+                  selectedDiets,
+                  isSelected,
+                  availableCount: availableRestrictions.length
+                });
+              }
+              
+              return (
+                <TouchableOpacity
+                  key={diet.id}
                   style={[
-                    styles.optionLabel,
-                    selectedDiets.includes(diet.id) &&
-                      styles.optionLabelSelected,
-                  ]}>
-                  {diet.label}
-                </Text>
-                {selectedDiets.includes(diet.id) && (
+                    styles.optionCard,
+                    isSelected && styles.optionCardSelected,
+                  ]}
+                  onPress={() => toggleDiet(diet.id)}>
                   <Icon
-                    name="check-circle"
-                    size={20}
-                    color="#10B981"
-                    style={styles.checkIcon}
+                    name={diet.icon}
+                    size={24}
+                    color={isSelected ? '#10B981' : '#6B7280'}
                   />
-                )}
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.optionLabel,
+                      isSelected && styles.optionLabelSelected,
+                    ]}>
+                    {diet.label}
+                  </Text>
+                  {isSelected && (
+                    <Icon
+                      name="check-circle"
+                      size={20}
+                      color="#10B981"
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
             {/* Add Other Button */}
             <TouchableOpacity
               style={[styles.optionCard, styles.otherCard]}
@@ -216,43 +360,41 @@ const DietaryPreferencesScreen: React.FC<DietaryPreferencesScreenProps> = ({
             Select any foods you're allergic to or intolerant of
           </Text>
           <View style={styles.optionsGrid}>
-            {COMMON_ALLERGIES.map(allergy => (
-              <TouchableOpacity
-                key={allergy.id}
-                style={[
-                  styles.optionCard,
-                  styles.allergyCard,
-                  selectedAllergies.includes(allergy.id) &&
-                    styles.allergyCardSelected,
-                ]}
-                onPress={() => toggleAllergy(allergy.id)}>
-                <Icon
-                  name={allergy.icon}
-                  size={24}
-                  color={
-                    selectedAllergies.includes(allergy.id)
-                      ? '#EF4444'
-                      : '#6B7280'
-                  }
-                />
-                <Text
+            {COMMON_ALLERGIES.map(allergy => {
+              const allergyId = getAllergyIdFromKey(allergy.id);
+              const isSelected = allergyId !== undefined && selectedAllergies.includes(allergyId);
+              return (
+                <TouchableOpacity
+                  key={allergy.id}
                   style={[
-                    styles.optionLabel,
-                    selectedAllergies.includes(allergy.id) &&
-                      styles.allergyLabelSelected,
-                  ]}>
-                  {allergy.label}
-                </Text>
-                {selectedAllergies.includes(allergy.id) && (
+                    styles.optionCard,
+                    styles.allergyCard,
+                    isSelected && styles.allergyCardSelected,
+                  ]}
+                  onPress={() => toggleAllergy(allergy.id)}>
                   <Icon
-                    name="check-circle"
-                    size={20}
-                    color="#EF4444"
-                    style={styles.checkIcon}
+                    name={allergy.icon}
+                    size={24}
+                    color={isSelected ? '#EF4444' : '#6B7280'}
                   />
-                )}
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.optionLabel,
+                      isSelected && styles.allergyLabelSelected,
+                    ]}>
+                    {allergy.label}
+                  </Text>
+                  {isSelected && (
+                    <Icon
+                      name="check-circle"
+                      size={20}
+                      color="#EF4444"
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
             {/* Add Other Button */}
             <TouchableOpacity
               style={[styles.optionCard, styles.allergyCard, styles.otherCard]}
@@ -389,6 +531,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
   },
   header: {
     flexDirection: 'row',

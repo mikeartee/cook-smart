@@ -31,13 +31,15 @@ router.post('/restrictions/user/:userId', async (req, res) => {
   try {
     const {userId} = req.params;
     const {restrictionId, notes} = req.body;
+    console.log('Adding restriction:', {userId, restrictionId, notes});
     await DietaryRestrictionModel.addUserRestriction(
       userId,
       restrictionId,
       notes,
     );
     res.json({success: true});
-  } catch (_error) {
+  } catch (error) {
+    console.error('Add restriction error:', error);
     res.status(500).json({error: 'Failed to add restriction'});
   }
 });
@@ -85,6 +87,7 @@ router.post('/allergies/user/:userId', async (req, res) => {
   try {
     const {userId} = req.params;
     const {allergyId, severityOverride, notes} = req.body;
+    console.log('Adding allergy:', {userId, allergyId, severityOverride, notes});
     await AllergyModel.addUserAllergy(
       userId,
       allergyId,
@@ -92,7 +95,8 @@ router.post('/allergies/user/:userId', async (req, res) => {
       notes,
     );
     res.json({success: true});
-  } catch (_error) {
+  } catch (error) {
+    console.error('Add allergy error:', error);
     res.status(500).json({error: 'Failed to add allergy'});
   }
 });
@@ -112,6 +116,28 @@ router.post('/allergies/custom/:userId', async (req, res) => {
     res.json({success: true});
   } catch (_error) {
     res.status(500).json({error: 'Failed to add custom allergy'});
+  }
+});
+
+// Remove user dietary restriction
+router.delete('/restrictions/user/:userId/:restrictionId', async (req, res) => {
+  try {
+    const {userId, restrictionId} = req.params;
+    await DietaryRestrictionModel.removeUserRestriction(userId, parseInt(restrictionId));
+    res.json({success: true});
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to remove restriction'});
+  }
+});
+
+// Remove user allergy
+router.delete('/allergies/user/:userId/:allergyId', async (req, res) => {
+  try {
+    const {userId, allergyId} = req.params;
+    await AllergyModel.removeUserAllergy(userId, parseInt(allergyId));
+    res.json({success: true});
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to remove allergy'});
   }
 });
 

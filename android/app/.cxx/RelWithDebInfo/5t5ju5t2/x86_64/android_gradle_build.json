@@ -1,7 +1,6 @@
 {
   "buildFiles": [
     "C:\\Users\\toota\\Documents\\Projects\\cook-smart\\node_modules\\@react-native-async-storage\\async-storage\\android\\build\\generated\\source\\codegen\\jni\\CMakeLists.txt",
-    "C:\\Users\\toota\\Documents\\Projects\\cook-smart\\node_modules\\@stripe\\stripe-react-native\\android\\build\\generated\\source\\codegen\\jni\\CMakeLists.txt",
     "C:\\Users\\toota\\Documents\\Projects\\cook-smart\\node_modules\\react-native-camera-kit\\android\\build\\generated\\source\\codegen\\jni\\CMakeLists.txt",
     "C:\\Users\\toota\\Documents\\Projects\\cook-smart\\node_modules\\react-native-gesture-handler\\android\\build\\generated\\source\\codegen\\jni\\CMakeLists.txt",
     "C:\\Users\\toota\\Documents\\Projects\\cook-smart\\node_modules\\react-native-haptic-feedback\\android\\build\\generated\\source\\codegen\\jni\\CMakeLists.txt",
@@ -92,11 +91,6 @@
         "C:\\Users\\toota\\.gradle\\caches\\8.13\\transforms\\b142e6f75603c774d9881af962aaafa7\\transformed\\react-android-0.82.1-release\\prefab\\modules\\jsi\\libs\\android.x86_64\\libjsi.so",
         "C:\\Users\\toota\\.gradle\\caches\\8.13\\transforms\\066ab4ee048cd2b737a2cef809d0db8a\\transformed\\fbjni-0.7.0\\prefab\\modules\\fbjni\\libs\\android.x86_64\\libfbjni.so"
       ]
-    },
-    "react_codegen_rnstripe::@65863f00eb0279fa1385": {
-      "toolchain": "toolchain",
-      "abi": "x86_64",
-      "artifactName": "react_codegen_rnstripe"
     },
     "react_codegen_rnworklets::@68f58d84d4754f193387": {
       "toolchain": "toolchain",

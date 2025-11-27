@@ -1,110 +1,97 @@
-# Deploy Password Reset Feature to EC2
-# Run this script to upload backend changes
-
-$EC2_IP = "3.237.38.24"
-$EC2_USER = "ubuntu"
-$KEY_PATH = "C:\Users\toota\.ssh\cook-smart-key.pem"
-$REMOTE_PATH = "/home/ubuntu/cook-smart-backend"
-
-Write-Host "🚀 Deploying Password Reset Feature to EC2..." -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Cook Smart - Deploy Password Reset Feature" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check if key file exists
-if (-not (Test-Path $KEY_PATH)) {
-    Write-Host "❌ SSH key not found at: $KEY_PATH" -ForegroundColor Red
-    Write-Host "Please update the KEY_PATH in this script" -ForegroundColor Yellow
+# Configuration
+$EC2_HOST = "api.cooksmartapp.com"
+$EC2_USER = "ec2-user"
+$SSH_KEY = "$env:USERPROFILE\.ssh\cook-smart-key.pem"
+$BACKEND_PATH = "/home/ec2-user/cook-smart-backend"
+
+Write-Host "Step 1: Checking backend directory..." -ForegroundColor Yellow
+if (-not (Test-Path "backend")) {
+    Write-Host "ERROR: backend directory not found!" -ForegroundColor Red
+    pause
     exit 1
 }
 
-Write-Host "📤 Step 1: Uploading password reset routes..." -ForegroundColor Cyan
-scp -i $KEY_PATH backend/src/routes/passwordReset.ts "${EC2_USER}@${EC2_IP}:${REMOTE_PATH}/src/routes/"
+Write-Host "Step 2: Installing dependencies..." -ForegroundColor Yellow
+Set-Location backend
+npm install resend
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to upload passwordReset.ts" -ForegroundColor Red
+    Write-Host "ERROR: Failed to install dependencies" -ForegroundColor Red
+    Set-Location ..
+    pause
     exit 1
 }
-Write-Host "✅ Routes uploaded" -ForegroundColor Green
 
 Write-Host ""
-Write-Host "📤 Step 2: Uploading email service..." -ForegroundColor Cyan
-scp -i $KEY_PATH backend/src/services/EmailService.ts "${EC2_USER}@${EC2_IP}:${REMOTE_PATH}/src/services/"
+Write-Host "Step 3: Building backend..." -ForegroundColor Yellow
+npm run build
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to upload EmailService.ts" -ForegroundColor Red
+    Write-Host "ERROR: Build failed" -ForegroundColor Red
+    Set-Location ..
+    pause
     exit 1
 }
-Write-Host "✅ Email service uploaded" -ForegroundColor Green
+
+Set-Location ..
 
 Write-Host ""
-Write-Host "📤 Step 3: Uploading User model..." -ForegroundColor Cyan
-scp -i $KEY_PATH backend/src/models/User.ts "${EC2_USER}@${EC2_IP}:${REMOTE_PATH}/src/models/"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to upload User.ts" -ForegroundColor Red
-    exit 1
+Write-Host "Step 4: Checking environment variables..." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "IMPORTANT: Make sure your production .env has:" -ForegroundColor Yellow
+Write-Host "  - RESEND_API_KEY=re_..." -ForegroundColor White
+Write-Host "  - EMAIL_FROM=Cook Smart <noreply@cooksmartapp.com>" -ForegroundColor White
+Write-Host ""
+
+$continue = Read-Host "Continue with deployment? (y/n)"
+if ($continue -ne "y") {
+    Write-Host "Deployment cancelled." -ForegroundColor Yellow
+    pause
+    exit 0
 }
-Write-Host "✅ User model uploaded" -ForegroundColor Green
 
 Write-Host ""
-Write-Host "📤 Step 4: Uploading server.ts..." -ForegroundColor Cyan
-scp -i $KEY_PATH backend/src/server.ts "${EC2_USER}@${EC2_IP}:${REMOTE_PATH}/src/"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to upload server.ts" -ForegroundColor Red
-    exit 1
-}
-Write-Host "✅ Server file uploaded" -ForegroundColor Green
+Write-Host "Step 5: Uploading backend files..." -ForegroundColor Yellow
+scp -i $SSH_KEY -r backend/dist/* "${EC2_USER}@${EC2_HOST}:${BACKEND_PATH}/dist/"
+scp -i $SSH_KEY backend/migrations/create-password-reset-tokens-table.sql "${EC2_USER}@${EC2_HOST}:${BACKEND_PATH}/migrations/"
 
 Write-Host ""
-Write-Host "📤 Step 5: Uploading database migration..." -ForegroundColor Cyan
-scp -i $KEY_PATH backend/migrations/create-password-reset-tokens-table.sql "${EC2_USER}@${EC2_IP}:${REMOTE_PATH}/migrations/"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to upload migration" -ForegroundColor Red
-    exit 1
-}
-Write-Host "✅ Migration uploaded" -ForegroundColor Green
+Write-Host "Step 6: Running database migration..." -ForegroundColor Yellow
+ssh -i $SSH_KEY "${EC2_USER}@${EC2_HOST}" @"
+cd $BACKEND_PATH
+source .env
+PGPASSWORD=`$DB_PASSWORD psql -h `$DB_HOST -U `$DB_USER -d `$DB_NAME -f migrations/create-password-reset-tokens-table.sql
+"@
 
 Write-Host ""
-Write-Host "🔨 Step 6: Building TypeScript on server..." -ForegroundColor Cyan
-ssh -i $KEY_PATH "${EC2_USER}@${EC2_IP}" "cd ${REMOTE_PATH}; npm run build"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Build failed" -ForegroundColor Red
-    exit 1
-}
-Write-Host "✅ Build successful" -ForegroundColor Green
+Write-Host "Step 7: Restarting backend service..." -ForegroundColor Yellow
+ssh -i $SSH_KEY "${EC2_USER}@${EC2_HOST}" "pm2 restart cook-smart-backend"
 
 Write-Host ""
-Write-Host "🗄️ Step 7: Running database migration..." -ForegroundColor Cyan
-ssh -i $KEY_PATH "${EC2_USER}@${EC2_IP}" "cd ${REMOTE_PATH}; PGPASSWORD='CookSmart2024!' psql -h cook-smart-db.c9wt8gzmu6qo.us-east-1.rds.amazonaws.com -U postgres -d cooksmart -f migrations/create-password-reset-tokens-table.sql"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "⚠️ Migration may have already run (this is OK if table exists)" -ForegroundColor Yellow
-}
-Write-Host "✅ Migration completed" -ForegroundColor Green
-
-Write-Host ""
-Write-Host "🔄 Step 8: Restarting PM2..." -ForegroundColor Cyan
-ssh -i $KEY_PATH "${EC2_USER}@${EC2_IP}" "pm2 restart cook-smart-backend"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ PM2 restart failed" -ForegroundColor Red
-    exit 1
-}
-Write-Host "✅ Server restarted" -ForegroundColor Green
-
-Write-Host ""
-Write-Host "🏥 Step 9: Checking server health..." -ForegroundColor Cyan
+Write-Host "Step 8: Verifying deployment..." -ForegroundColor Yellow
 Start-Sleep -Seconds 3
-$response = Invoke-WebRequest -Uri "http://${EC2_IP}:3000/health" -UseBasicParsing
+$response = Invoke-WebRequest -Uri "https://${EC2_HOST}/health" -UseBasicParsing
 if ($response.StatusCode -eq 200) {
-    Write-Host "✅ Server is healthy!" -ForegroundColor Green
+    Write-Host "✓ Backend is running!" -ForegroundColor Green
 } else {
-    Write-Host "⚠️ Server health check returned: $($response.StatusCode)" -ForegroundColor Yellow
+    Write-Host "⚠ Backend health check failed" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "✅ DEPLOYMENT COMPLETE!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
+Write-Host "Deployment Complete!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "📋 What was deployed:" -ForegroundColor Cyan
-Write-Host "  • Password reset routes (/api/v1/password/*)" -ForegroundColor White
-Write-Host "  • Email service for sending reset codes" -ForegroundColor White
-Write-Host "  • User model with updatePassword method" -ForegroundColor White
-Write-Host "  • Database table: password_reset_tokens" -ForegroundColor White
+Write-Host "Password reset feature is now LIVE!" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "🧪 Test the endpoints:" -ForegroundColor Cyan
-Write-Host "  curl -X POST http://${EC2_IP}:3000/api/v1/password/forgot-password -H 'Content-Type: application/json' -d '{\"email\":\"test@example.com\"}'" -ForegroundColor Gray
+Write-Host "Test it:" -ForegroundColor Yellow
+Write-Host "1. Open Cook Smart app" -ForegroundColor White
+Write-Host "2. Tap 'Forgot Password?'" -ForegroundColor White
+Write-Host "3. Enter your email" -ForegroundColor White
+Write-Host "4. Check email for reset code" -ForegroundColor White
 Write-Host ""
+pause
+

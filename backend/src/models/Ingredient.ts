@@ -83,8 +83,8 @@ export class IngredientModel {
     isCustom?: boolean;
   }): Promise<Ingredient> {
     const query = `
-      INSERT INTO ingredients (name, category, description, is_common, default_unit, nutrition_per_100g, common_names)
-      VALUES ($1, $2, $3, $4, 'piece', '{}', '{}')
+      INSERT INTO ingredients (name, category, description, is_common, default_unit, nutrition_per_100g)
+      VALUES ($1, $2, $3, $4, 'piece', '{}')
       RETURNING *
     `;
     const values = [

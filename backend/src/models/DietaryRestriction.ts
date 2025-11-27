@@ -13,7 +13,15 @@ export class DietaryRestrictionModel {
 
   static async getUserRestrictions(userId: string): Promise<any[]> {
     const query = `
-      SELECT udr.*, dr.name, dr.category, dr.description, dr.excluded_ingredients, dr.excluded_tags
+      SELECT 
+        dr.id,
+        dr.name, 
+        dr.category, 
+        dr.description, 
+        dr.excluded_ingredients, 
+        dr.excluded_tags,
+        udr.custom_notes,
+        udr.created_at
       FROM user_dietary_restrictions udr
       JOIN dietary_restrictions dr ON udr.restriction_id = dr.id
       WHERE udr.user_id = $1 AND dr.is_active = true
@@ -26,15 +34,16 @@ export class DietaryRestrictionModel {
     }));
   }
 
-  static async addUserRestriction(userId: string, restrictionId: string, notes?: string): Promise<void> {
+  static async addUserRestriction(userId: string, restrictionId: number, notes?: string): Promise<void> {
     const query = `
       INSERT INTO user_dietary_restrictions (user_id, restriction_id, custom_notes)
       VALUES ($1, $2, $3)
+      ON CONFLICT (user_id, restriction_id) DO NOTHING
     `;
     await pool.query(query, [userId, restrictionId, notes]);
   }
 
-  static async removeUserRestriction(userId: string, restrictionId: string): Promise<void> {
+  static async removeUserRestriction(userId: string, restrictionId: number): Promise<void> {
     const query = 'DELETE FROM user_dietary_restrictions WHERE user_id = $1 AND restriction_id = $2';
     await pool.query(query, [userId, restrictionId]);
   }

@@ -13,8 +13,11 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
 import {useIngredients} from '../../contexts/IngredientContext';
+import {useAuth} from '../../contexts/AuthContext';
 import {RecipeDetails} from '../../services/recipeService';
 import {shoppingListService} from '../../services/shoppingListService';
+import {dietaryService} from '../../services/dietaryService';
+import {findSubstitutions, Substitution} from '../../utils/ingredientSubstitutions';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -29,6 +32,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   const {getRecipeDetails, saveRecipe, isRecipeSaved, deleteSavedRecipe} =
     useRecipes();
   const {ingredients} = useIngredients();
+  const {user} = useAuth();
 
   const [recipe, setRecipe] = useState<RecipeDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,12 +40,57 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [servings, setServings] = useState<number>(1);
   const [userIngredients, setUserIngredients] = useState<string[]>([]);
+  const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
+  const [allergyTriggers, setAllergyTriggers] = useState<{
+    severe: string[];
+    moderate: string[];
+    mild: string[];
+  }>({severe: [], moderate: [], mild: []});
+  const [selectedSubstitutions, setSelectedSubstitutions] = useState<{
+    [ingredientIndex: number]: Substitution | null;
+  }>({});
 
   useEffect(() => {
     loadRecipe();
     checkIfSaved();
     loadUserIngredients();
+    loadDietaryRestrictions();
   }, [recipeId]);
+
+  const loadDietaryRestrictions = async () => {
+    if (!user?.id) return;
+
+    try {
+      const [restrictions, allergies] = await Promise.all([
+        dietaryService.getUserRestrictions(user.id),
+        dietaryService.getUserAllergies(user.id),
+      ]);
+
+      // Collect all excluded ingredients from dietary restrictions
+      const excluded: string[] = [];
+      restrictions.forEach(r => {
+        if (r.excluded_ingredients && Array.isArray(r.excluded_ingredients)) {
+          excluded.push(...r.excluded_ingredients.map((i: string) => i.toLowerCase()));
+        }
+      });
+      setExcludedIngredients(excluded);
+
+      // Collect allergy triggers by severity
+      const triggers = {severe: [] as string[], moderate: [] as string[], mild: [] as string[]};
+      allergies.forEach((a: any) => {
+        const severity = (a.severity_override || a.severity) as 'severe' | 'moderate' | 'mild';
+        if (a.trigger_ingredients && Array.isArray(a.trigger_ingredients)) {
+          triggers[severity].push(...a.trigger_ingredients.map((i: string) => i.toLowerCase()));
+        }
+        if (a.cross_reactive_ingredients && Array.isArray(a.cross_reactive_ingredients)) {
+          triggers[severity].push(...a.cross_reactive_ingredients.map((i: string) => i.toLowerCase()));
+        }
+      });
+      setAllergyTriggers(triggers);
+    } catch (err) {
+      console.error('Error loading dietary restrictions:', err);
+    }
+  };
 
   const loadUserIngredients = () => {
     // Extract ingredient names from user's pantry
@@ -49,6 +98,44 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       .filter(ing => ing.name)
       .map(ing => ing.name!.toLowerCase().trim());
     setUserIngredients(ingredientNames);
+  };
+
+  const checkIngredientConflict = (ingredientName: string): {
+    hasConflict: boolean;
+    severity: 'severe' | 'moderate' | 'mild' | 'dietary' | null;
+    reason: string;
+  } => {
+    const cleanName = ingredientName.toLowerCase().trim();
+
+    // Check severe allergies first
+    for (const trigger of allergyTriggers.severe) {
+      if (cleanName.includes(trigger)) {
+        return {hasConflict: true, severity: 'severe', reason: `Severe allergy: ${trigger}`};
+      }
+    }
+
+    // Check moderate allergies
+    for (const trigger of allergyTriggers.moderate) {
+      if (cleanName.includes(trigger)) {
+        return {hasConflict: true, severity: 'moderate', reason: `Allergy: ${trigger}`};
+      }
+    }
+
+    // Check mild allergies
+    for (const trigger of allergyTriggers.mild) {
+      if (cleanName.includes(trigger)) {
+        return {hasConflict: true, severity: 'mild', reason: `Sensitivity: ${trigger}`};
+      }
+    }
+
+    // Check dietary restrictions
+    for (const excluded of excludedIngredients) {
+      if (cleanName.includes(excluded)) {
+        return {hasConflict: true, severity: 'dietary', reason: `Dietary restriction: ${excluded}`};
+      }
+    }
+
+    return {hasConflict: false, severity: null, reason: ''};
   };
 
   const hasIngredient = (ingredientName: string): boolean => {
@@ -67,6 +154,36 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     return userIngredients.some(userIng => {
       return ingredientsMatch(searchName, userIng);
     });
+  };
+
+  const handleSelectSubstitution = (ingredientIndex: number, substitution: Substitution) => {
+    setSelectedSubstitutions(prev => ({
+      ...prev,
+      [ingredientIndex]: prev[ingredientIndex]?.substitute === substitution.substitute 
+        ? null  // Deselect if already selected
+        : substitution  // Select new substitution
+    }));
+  };
+
+  const calculateSubstitutionQuantity = (
+    originalQuantity: string, 
+    ratio: string
+  ): string => {
+    // Parse ratio (e.g., "1:1", "3:4", "1.5:1")
+    const ratioMatch = ratio.match(/([\d.]+):([\d.]+)/);
+    if (!ratioMatch) return originalQuantity;
+    
+    const numerator = parseFloat(ratioMatch[1] || '1');
+    const denominator = parseFloat(ratioMatch[2] || '1');
+    const ratioValue = numerator / denominator;
+    
+    // Parse original quantity
+    const qtyNum = parseFloat(originalQuantity);
+    if (isNaN(qtyNum)) return originalQuantity;
+    
+    // Calculate new quantity
+    const newQty = qtyNum * ratioValue;
+    return Math.round(newQty * 100) / 100 + ''; // Round to 2 decimals
   };
 
   const parseIngredient = (
@@ -168,10 +285,51 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
       }> = [];
 
       if (recipe.ingredients && recipe.ingredients.length > 0) {
-        recipe.ingredients.forEach(ing => {
-          if (!hasIngredient(ing)) {
-            const parsed = parseIngredient(ing);
-            missingIngredients.push(parsed);
+        recipe.ingredients.forEach((ing, index) => {
+          // Check if user already has this ingredient
+          const alreadyHave = hasIngredient(ing);
+          
+          // Check for dietary/allergy conflicts
+          const conflict = checkIngredientConflict(ing);
+          
+          // Check if user selected a substitution
+          const hasSelectedSubstitution = selectedSubstitutions[index] !== undefined && selectedSubstitutions[index] !== null;
+          
+          console.log(`Ingredient ${index}: "${ing}"`, {
+            alreadyHave,
+            hasConflict: conflict.hasConflict,
+            hasSelectedSubstitution,
+            selectedSub: selectedSubstitutions[index]?.substitute
+          });
+          
+          // Only add if user doesn't already have it
+          if (!alreadyHave) {
+            // If there's a conflict AND user selected a substitution, use the substitution
+            if (conflict.hasConflict && hasSelectedSubstitution) {
+              const sub = selectedSubstitutions[index];
+              const parsed = parseIngredient(ing);
+              
+              // Calculate quantity based on substitution ratio
+              const adjustedQuantity = calculateSubstitutionQuantity(
+                parsed.quantity, 
+                sub!.ratio
+              );
+              
+              console.log(`✅ Adding substitution: ${sub!.substitute} (${adjustedQuantity} ${parsed.unit})`);
+              
+              missingIngredients.push({
+                ingredient: sub!.substitute,
+                quantity: adjustedQuantity,
+                unit: parsed.unit,
+              });
+            } else {
+              // No substitution selected, add original ingredient
+              const parsed = parseIngredient(ing);
+              
+              console.log(`➕ Adding original: ${parsed.ingredient} (${parsed.quantity} ${parsed.unit})`);
+              
+              missingIngredients.push(parsed);
+            }
           }
         });
       }
@@ -416,20 +574,73 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             {recipe.ingredients && recipe.ingredients.length > 0 ? (
               recipe.ingredients.map((ingredient: string, index: number) => {
                 const haveIt = hasIngredient(ingredient);
+                const conflict = checkIngredientConflict(ingredient);
+                const substitutions = conflict.hasConflict ? findSubstitutions(ingredient) : [];
+                
+                // Determine icon and color
+                let iconName = 'cancel';
+                let iconColor = '#EF4444';
+                if (conflict.hasConflict) {
+                  iconName = 'warning';
+                  iconColor = conflict.severity === 'severe' ? '#DC2626' : '#EF4444';
+                } else if (haveIt) {
+                  iconName = 'check-circle';
+                  iconColor = '#10B981';
+                }
+
                 return (
                   <View key={index} style={styles.ingredientItem}>
-                    <Icon
-                      name={haveIt ? 'check-circle' : 'cancel'}
-                      size={16}
-                      color={haveIt ? '#10B981' : '#EF4444'}
-                    />
-                    <Text
-                      style={[
-                        styles.ingredientText,
-                        haveIt && styles.ingredientHave,
-                      ]}>
-                      {getScaledAmount(ingredient)}
-                    </Text>
+                    <Icon name={iconName} size={16} color={iconColor} />
+                    <View style={{flex: 1}}>
+                      <Text
+                        style={[
+                          styles.ingredientText,
+                          haveIt && styles.ingredientHave,
+                          conflict.hasConflict && styles.ingredientConflict,
+                        ]}>
+                        {getScaledAmount(ingredient)}
+                      </Text>
+                      {conflict.hasConflict && (
+                        <>
+                          <Text style={styles.conflictReason}>
+                            ⚠️ {conflict.reason}
+                          </Text>
+                          {substitutions.length > 0 && (
+                            <View style={styles.substitutionContainer}>
+                              <Text style={styles.substitutionLabel}>
+                                💡 Try instead:
+                              </Text>
+                              {substitutions.slice(0, 2).map((sub: Substitution, subIndex: number) => {
+                                const isSelected = selectedSubstitutions[index]?.substitute === sub.substitute;
+                                return (
+                                  <TouchableOpacity
+                                    key={subIndex}
+                                    style={[
+                                      styles.substitutionButton,
+                                      isSelected && styles.substitutionButtonSelected
+                                    ]}
+                                    onPress={() => handleSelectSubstitution(index, sub)}
+                                  >
+                                    <Icon 
+                                      name={isSelected ? 'check-circle' : 'radio-button-unchecked'} 
+                                      size={16} 
+                                      color={isSelected ? '#10B981' : '#9CA3AF'} 
+                                    />
+                                    <Text style={[
+                                      styles.substitutionButtonText,
+                                      isSelected && styles.substitutionButtonTextSelected
+                                    ]}>
+                                      {sub.substitute} ({sub.ratio})
+                                      {sub.notes ? ` - ${sub.notes}` : ''}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              })}
+                            </View>
+                          )}
+                        </>
+                      )}
+                    </View>
                   </View>
                 );
               })
@@ -623,6 +834,63 @@ const styles = StyleSheet.create({
   ingredientHave: {
     color: '#059669',
     fontWeight: '500',
+  },
+  ingredientConflict: {
+    color: '#DC2626',
+    fontWeight: '600',
+  },
+  conflictReason: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontStyle: 'italic',
+    marginTop: 2,
+    marginLeft: 20,
+  },
+  substitutionContainer: {
+    marginTop: 4,
+    marginLeft: 20,
+    padding: 8,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#10B981',
+  },
+  substitutionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#059669',
+    marginBottom: 4,
+  },
+  substitutionText: {
+    fontSize: 11,
+    color: '#047857',
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  substitutionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 4,
+  },
+  substitutionButtonSelected: {
+    backgroundColor: '#D1FAE5',
+    borderColor: '#10B981',
+  },
+  substitutionButtonText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#374151',
+    lineHeight: 16,
+  },
+  substitutionButtonTextSelected: {
+    color: '#047857',
+    fontWeight: '600',
   },
   shoppingListButton: {
     flexDirection: 'row',

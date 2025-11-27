@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
+  Linking,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {subscriptionService} from '../services/subscriptionService';
@@ -24,7 +25,6 @@ interface SubscriptionPlan {
 }
 
 export default function SubscriptionPlansScreen() {
-  const navigation = useNavigation();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -59,31 +59,26 @@ export default function SubscriptionPlansScreen() {
   const handleSubscribe = async (planName: string) => {
     try {
       setSubscribing(true);
-      await subscriptionService.createSubscription(
+      const checkoutUrl = await subscriptionService.createCheckoutSession(
         planName as 'yearly' | 'monthly' | 'weekly',
         referralCode || undefined,
       );
 
-      Alert.alert(
-        'Success!',
-        'Your subscription has been created. Redirecting to payment...',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // TODO: Navigate to payment confirmation screen
-              navigation.goBack();
-            },
-          },
-        ],
-      );
+      // Open Stripe Checkout in browser
+      const supported = await Linking.canOpenURL(checkoutUrl);
+
+      if (supported) {
+        await Linking.openURL(checkoutUrl);
+      } else {
+        Alert.alert('Error', 'Unable to open payment page');
+      }
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      console.error('Error creating checkout session:', error);
       Alert.alert(
         'Error',
         error instanceof Error
           ? error.message
-          : 'Failed to create subscription',
+          : 'Failed to create checkout session',
       );
     } finally {
       setSubscribing(false);

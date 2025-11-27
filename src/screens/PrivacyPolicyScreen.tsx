@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface PrivacyPolicyScreenProps {
@@ -15,8 +16,9 @@ interface PrivacyPolicyScreenProps {
 export const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({
   navigation,
 }) => {
+  console.log('🟢 PrivacyPolicyScreen rendered');
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -127,7 +129,7 @@ export const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({
 
         <View style={styles.bottomPadding} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -191,5 +193,3 @@ const styles = StyleSheet.create({
     height: 40,
   },
 });
-
-export default PrivacyPolicyScreen;

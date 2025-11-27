@@ -6,6 +6,8 @@
 
 
 
+
+
   - Create admin_users table with email, username, password_hash, is_super_admin, email_verified fields
   - Create approved_admin_emails table with email, is_super_admin, added_by fields
   - Create admin_activity_logs table for login/logout tracking
@@ -217,6 +219,135 @@
   - POST /api/admin/referrals/codes - Create custom referral code
   - PATCH /api/admin/referrals/codes/:code/disable - Disable referral code
   - _Requirements: 3.5_
+
+- [ ] 13. Implement content moderation API
+  - Create backend/src/routes/adminContent.ts
+  - GET /api/admin/content/recipes - List all public user recipes with filters
+  - GET /api/admin/content/recipes/:id - Get recipe details with reports
+  - PATCH /api/admin/content/recipes/:id/hide - Hide recipe from public view
+  - DELETE /api/admin/content/recipes/:id - Delete recipe
+  - PATCH /api/admin/content/recipes/:id/flag - Flag recipe for review
+  - PATCH /api/admin/content/recipes/:id/approve - Approve flagged recipe
+  - GET /api/admin/content/reports - List reported content
+  - Add audit logging for all moderation actions
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9_
+
+- [ ] 14. Implement points management API
+  - Create backend/src/routes/adminPoints.ts
+  - GET /api/admin/points/leaderboard - Get top users by points
+  - POST /api/admin/points/adjust - Manually add/subtract points
+  - GET /api/admin/points/transactions/:userId - Get user's points history
+  - PATCH /api/admin/points/actions/:action - Modify point values
+  - POST /api/admin/points/actions - Create custom point-earning actions
+  - GET /api/admin/points/levels - Get level distribution statistics
+  - POST /api/admin/points/bulk-award - Award bonus points to multiple users
+  - Add audit logging for all points adjustments
+  - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9_
+
+- [ ] 15. Implement community activity API
+  - Create backend/src/routes/adminCommunity.ts
+  - GET /api/admin/community/activities - Get recent community activities
+  - GET /api/admin/community/active-users - Get most active users
+  - GET /api/admin/community/achievements - Get achievement statistics
+  - GET /api/admin/community/milestones - Get milestone tracking data
+  - GET /api/admin/community/engagement - Get engagement trends
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
+
+- [ ] 16. Implement notifications management API
+  - Create backend/src/routes/adminNotifications.ts
+  - GET /api/admin/notifications - List all sent notifications
+  - POST /api/admin/notifications/broadcast - Create broadcast notification
+  - POST /api/admin/notifications/targeted - Create targeted notification
+  - GET /api/admin/notifications/:id/stats - Get notification delivery stats
+  - POST /api/admin/notifications/preview - Preview notification before sending
+  - Implement user segmentation logic
+  - Track notification engagement metrics
+  - Add audit logging for notification sends
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8_
+
+- [ ] 17. Implement recipe and ingredient analytics API
+  - Create backend/src/routes/adminAnalyticsRecipes.ts
+  - GET /api/admin/analytics/recipes/popular - Most searched recipes
+  - GET /api/admin/analytics/ingredients/popular - Most used ingredients
+  - GET /api/admin/analytics/recipes/trends - Recipe search trends
+  - GET /api/admin/analytics/barcodes - Barcode scan statistics
+  - GET /api/admin/analytics/api-usage - Recipe API usage breakdown
+  - GET /api/admin/analytics/ingredients/categories - Ingredient category distribution
+  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7_
+
+- [ ] 18. Implement shopping list analytics API
+  - Create backend/src/routes/adminAnalyticsShopping.ts
+  - GET /api/admin/analytics/shopping/items - Most common shopping list items
+  - GET /api/admin/analytics/shopping/completion - Shopping list completion metrics
+  - GET /api/admin/analytics/shopping/trends - Shopping list creation trends
+  - GET /api/admin/analytics/shopping/engagement - Shopping list engagement metrics
+  - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+
+- [ ] 19. Implement dietary analytics API
+  - Create backend/src/routes/adminAnalyticsDietary.ts
+  - GET /api/admin/analytics/dietary/restrictions - Common dietary restrictions
+  - GET /api/admin/analytics/dietary/allergies - Allergy distribution
+  - GET /api/admin/analytics/dietary/filters - Dietary filter usage
+  - GET /api/admin/analytics/dietary/multiple - Users with multiple restrictions
+  - _Requirements: 17.1, 17.2, 17.3, 17.4_
+
+- [ ] 20. Implement Discord integration API
+  - Create backend/src/routes/adminDiscord.ts
+  - GET /api/admin/discord/status - Get Discord connection status
+  - POST /api/admin/discord/test - Send test Discord notification
+  - PATCH /api/admin/discord/config - Update Discord configuration
+  - GET /api/admin/discord/history - Get Discord notification history
+  - GET /api/admin/discord/activity - Get Discord activity statistics
+  - PATCH /api/admin/discord/toggle - Enable/disable Discord notifications
+  - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6_
+
+- [ ] 21. Implement API usage and rate limiting API
+  - Create backend/src/routes/adminApiUsage.ts
+  - GET /api/admin/api-usage/summary - Get API usage summary
+  - GET /api/admin/api-usage/response-times - Get API response time metrics
+  - GET /api/admin/api-usage/failures - Get API failure statistics
+  - GET /api/admin/api-usage/costs - Get API cost breakdown
+  - GET /api/admin/api-usage/trends - Get API usage trends
+  - Implement rate limit monitoring
+  - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 19.7_
+
+- [ ] 22. Implement bulk operations API
+  - Create backend/src/routes/adminBulk.ts
+  - POST /api/admin/bulk/users/suspend - Bulk suspend users
+  - POST /api/admin/bulk/subscriptions/grant - Bulk grant subscriptions
+  - POST /api/admin/bulk/notifications/send - Bulk send notifications
+  - POST /api/admin/bulk/points/adjust - Bulk adjust points
+  - GET /api/admin/bulk/export - Export data in bulk
+  - Implement progress tracking for bulk operations
+  - Add comprehensive error handling
+  - Add audit logging for all bulk operations
+  - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.7, 20.8_
+
+- [ ] 23. Implement feature flags API
+  - Create backend/src/routes/adminFeatures.ts
+  - GET /api/admin/features/flags - List all feature flags
+  - PATCH /api/admin/features/flags/:name - Enable/disable feature flag
+  - POST /api/admin/features/segments - Create user segment for A/B testing
+  - GET /api/admin/features/adoption - Get feature adoption metrics
+  - PATCH /api/admin/features/rollout/:name - Set gradual rollout percentage
+  - Add audit logging for feature flag changes
+  - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 21.6_
+
+- [ ] 24. Implement content management API
+  - Create backend/src/routes/adminCMS.ts
+  - GET /api/admin/cms/featured-recipes - Get featured recipes
+  - POST /api/admin/cms/featured-recipes - Set featured recipes
+  - GET /api/admin/cms/banners - List promotional banners
+  - POST /api/admin/cms/banners - Create promotional banner
+  - PATCH /api/admin/cms/banners/:id - Update banner
+  - DELETE /api/admin/cms/banners/:id - Delete banner
+  - GET /api/admin/cms/announcements - List announcements
+  - POST /api/admin/cms/announcements - Create announcement
+  - PATCH /api/admin/cms/content/:type - Update legal content (terms, privacy, FAQ)
+  - GET /api/admin/cms/content/:type - Get legal content
+  - POST /api/admin/cms/preview - Preview content before publishing
+  - Add audit logging for all content changes
+  - _Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 22.6, 22.7, 22.8_
 
 ## Phase 3: Frontend Setup & Authentication
 
@@ -630,9 +761,423 @@
     - Admin actions history
     - _Requirements: 10.1, 10.2_
 
-## Phase 8: Testing & Deployment
+## Phase 8: Frontend Pages - New Features
 
-- [ ] 27. Write backend tests
+- [ ] 27. Create ContentModerationPage
+  - [ ] 27.1 Create public recipes data table
+    - Paginated table with recipe title, author, creation date, status
+    - Filter by status (approved, pending, flagged, hidden)
+    - Search by title or author
+    - Sort by date, views, favorites
+    - _Requirements: 11.1, 11.2_
+
+  - [ ] 27.2 Create recipe detail modal
+    - Display full recipe details (ingredients, instructions, images)
+    - Show author information
+    - Display view count and favorite count
+    - Show report history if flagged
+    - _Requirements: 11.3_
+
+  - [ ] 27.3 Implement moderation actions
+    - Hide recipe button with reason input
+    - Delete recipe button with confirmation
+    - Flag for review button
+    - Approve recipe button
+    - Success/error notifications
+    - _Requirements: 11.4, 11.5, 11.6, 11.8_
+
+  - [ ] 27.4 Create reported content section
+    - List of reported recipes
+    - Report reason and reporter info
+    - Quick action buttons
+    - _Requirements: 11.7_
+
+- [ ] 28. Create PointsManagementPage
+  - [ ] 28.1 Create points leaderboard
+    - Top 100 users by points
+    - Display user name, points, level
+    - Filter by time period
+    - _Requirements: 12.1_
+
+  - [ ] 28.2 Create points adjustment section
+    - Search user by name or email
+    - Add/subtract points form with reason
+    - View adjustment history
+    - _Requirements: 12.2, 12.3, 12.4_
+
+  - [ ] 28.3 Create points configuration section
+    - List of all point-earning actions
+    - Edit point values
+    - Create custom actions form
+    - Enable/disable actions toggle
+    - _Requirements: 12.5, 12.6_
+
+  - [ ] 28.4 Create level statistics section
+    - User distribution across levels chart
+    - Level progression visualization
+    - Average points per level
+    - _Requirements: 12.7_
+
+  - [ ] 28.5 Create bulk points award section
+    - Multi-select users
+    - Award bonus points form
+    - Reason field for audit
+    - _Requirements: 12.8_
+
+- [ ] 29. Create CommunityActivityPage
+  - [ ] 29.1 Create activity feed
+    - Recent community activities list
+    - Filter by type (share, achievement, milestone, contribution)
+    - User information and timestamp
+    - _Requirements: 13.1, 13.2_
+
+  - [ ] 29.2 Create most active users section
+    - Leaderboard of active users
+    - Activity count over last 30 days
+    - User profile links
+    - _Requirements: 13.3_
+
+  - [ ] 29.3 Create achievement statistics section
+    - Most unlocked achievements
+    - Achievement distribution chart
+    - Unlock trends over time
+    - _Requirements: 13.4_
+
+  - [ ] 29.4 Create milestone tracking section
+    - User progression through milestones
+    - Milestone completion rates
+    - _Requirements: 13.5_
+
+  - [ ] 29.5 Create engagement trends chart
+    - Line chart showing engagement over time
+    - Breakdown by activity type
+    - _Requirements: 13.7_
+
+- [ ] 30. Create NotificationsManagementPage
+  - [ ] 30.1 Create notification history section
+    - List of all sent notifications
+    - Title, recipient count, delivery date
+    - Delivery status indicators
+    - _Requirements: 14.1_
+
+  - [ ] 30.2 Create broadcast notification form
+    - Title and message inputs
+    - Notification type selector
+    - Preview function
+    - Send to all users button
+    - _Requirements: 14.2, 14.7_
+
+  - [ ] 30.3 Create targeted notification form
+    - User segment selector
+    - Filter by account type, subscription, activity level
+    - Estimated recipient count display
+    - Preview and send
+    - _Requirements: 14.3, 14.4_
+
+  - [ ] 30.4 Create notification analytics section
+    - Delivery rate metrics
+    - Open rate metrics
+    - Click rate metrics
+    - Engagement trends chart
+    - _Requirements: 14.5, 14.6_
+
+- [ ] 31. Create RecipeAnalyticsPage
+  - [ ] 31.1 Create popular recipes section
+    - Most searched recipes list
+    - Search count over time
+    - Recipe details on click
+    - _Requirements: 15.1_
+
+  - [ ] 31.2 Create popular ingredients section
+    - Most used ingredients list
+    - Usage frequency
+    - Category distribution pie chart
+    - _Requirements: 15.2, 15.7_
+
+  - [ ] 31.3 Create search trends chart
+    - Recipe search trends line chart
+    - Trending searches list
+    - Search volume over time
+    - _Requirements: 15.3_
+
+  - [ ] 31.4 Create barcode statistics section
+    - Total scans metric
+    - Success rate metric
+    - Failed lookups list
+    - Barcode database coverage
+    - _Requirements: 15.4_
+
+  - [ ] 31.5 Create API usage breakdown section
+    - Calls per API service
+    - Cost per service
+    - Response times
+    - _Requirements: 15.6_
+
+- [ ] 32. Create ShoppingAnalyticsPage
+  - [ ] 32.1 Create common items section
+    - Most added shopping list items
+    - Frequency distribution chart
+    - _Requirements: 16.1_
+
+  - [ ] 32.2 Create completion metrics section
+    - Shopping list completion rate
+    - Average items per list
+    - Completion trends chart
+    - _Requirements: 16.2, 16.3_
+
+  - [ ] 32.3 Create engagement section
+    - Active users with shopping lists
+    - List creation trends
+    - Usage patterns
+    - _Requirements: 16.4, 16.5_
+
+- [ ] 33. Create DietaryAnalyticsPage
+  - [ ] 33.1 Create dietary restrictions section
+    - Most common restrictions list
+    - User count per restriction
+    - Distribution chart
+    - _Requirements: 17.1_
+
+  - [ ] 33.2 Create allergy distribution section
+    - Allergy types and prevalence
+    - Pie chart visualization
+    - _Requirements: 17.2_
+
+  - [ ] 33.3 Create filter usage section
+    - Most used dietary filters
+    - Filter application frequency
+    - _Requirements: 17.3_
+
+  - [ ] 33.4 Create multiple restrictions section
+    - Users with multiple restrictions count
+    - Average restrictions per user
+    - _Requirements: 17.4_
+
+- [ ] 34. Create DiscordManagementPage
+  - [ ] 34.1 Create connection status section
+    - Webhook connection indicator
+    - Last check timestamp
+    - Connection health status
+    - _Requirements: 18.1_
+
+  - [ ] 34.2 Create configuration section
+    - Webhook URL input
+    - Channel settings
+    - Enable/disable toggle
+    - _Requirements: 18.3, 18.6_
+
+  - [ ] 34.3 Create test notifications section
+    - Send test message form
+    - View test results
+    - _Requirements: 18.2_
+
+  - [ ] 34.4 Create notification history section
+    - Recent Discord notifications
+    - Success/failure status
+    - Message content
+    - _Requirements: 18.4_
+
+  - [ ] 34.5 Create activity logs section
+    - Total notifications sent
+    - Success rate
+    - Error logs
+    - _Requirements: 18.5_
+
+- [ ] 35. Create APIUsagePage
+  - [ ] 35.1 Create usage summary section
+    - API calls per service
+    - Rate limit status
+    - Remaining calls
+    - Reset dates
+    - _Requirements: 19.1, 19.2_
+
+  - [ ] 35.2 Create response times section
+    - Average response time per service
+    - P95 and P99 percentiles
+    - Performance trends chart
+    - _Requirements: 19.3_
+
+  - [ ] 35.3 Create failure tracking section
+    - Failure rate per service
+    - Total failures
+    - Error types
+    - _Requirements: 19.4_
+
+  - [ ] 35.4 Create cost analysis section
+    - Cost per API call
+    - Total API costs
+    - Cost trends chart
+    - _Requirements: 19.5_
+
+  - [ ] 35.5 Create usage trends chart
+    - API usage over time
+    - Service comparison chart
+    - _Requirements: 19.6_
+
+- [ ] 36. Create BulkOperationsPage
+  - [ ] 36.1 Create user selection section
+    - Search and filter users
+    - Multi-select checkbox
+    - Selected count indicator
+    - _Requirements: 20.5_
+
+  - [ ] 36.2 Create bulk actions section
+    - Suspend users action
+    - Grant subscriptions action
+    - Send notifications action
+    - Adjust points action
+    - Export data action
+    - _Requirements: 20.1, 20.2, 20.3, 20.4_
+
+  - [ ] 36.3 Create confirmation dialog
+    - Show affected user count
+    - Require reason input
+    - Preview changes
+    - _Requirements: 20.5_
+
+  - [ ] 36.4 Create progress tracking section
+    - Progress bar during execution
+    - Success/failure count
+    - Error details
+    - _Requirements: 20.6, 20.7_
+
+  - [ ] 36.5 Create operation history section
+    - Recent bulk operations
+    - Admin who performed
+    - Results summary
+    - _Requirements: 20.8_
+
+- [ ] 37. Create FeatureFlagsPage
+  - [ ] 37.1 Create feature flags list
+    - All feature flags table
+    - Enable/disable toggle
+    - Affected user count
+    - Description
+    - _Requirements: 21.1, 21.2_
+
+  - [ ] 37.2 Create user segments section
+    - Create test segments form
+    - Define criteria
+    - View segment size
+    - _Requirements: 21.3_
+
+  - [ ] 37.3 Create adoption metrics section
+    - Feature adoption rates
+    - Active users per feature
+    - Usage trends chart
+    - _Requirements: 21.4_
+
+  - [ ] 37.4 Create gradual rollout section
+    - Percentage slider (10%, 25%, 50%, 100%)
+    - Affected user preview
+    - Rollout schedule
+    - _Requirements: 21.5_
+
+- [ ] 38. Create ContentManagementPage
+  - [ ] 38.1 Create featured recipes section
+    - Select recipes to feature
+    - Reorder featured list
+    - Set feature duration
+    - _Requirements: 22.1_
+
+  - [ ] 38.2 Create promotional banners section
+    - Create/edit banners form
+    - Set display dates
+    - Active/inactive toggle
+    - Preview banner
+    - _Requirements: 22.2_
+
+  - [ ] 38.3 Create announcements section
+    - Create app announcements form
+    - Priority levels
+    - Publish/unpublish toggle
+    - _Requirements: 22.3_
+
+  - [ ] 38.4 Create legal content section
+    - Edit terms of service
+    - Edit privacy policy
+    - Version history
+    - _Requirements: 22.4, 22.5_
+
+  - [ ] 38.5 Create FAQ management section
+    - Add/edit FAQ items
+    - Organize by category
+    - Reorder questions
+    - _Requirements: 22.6_
+
+  - [ ] 38.6 Create content preview section
+    - Preview before publishing
+    - Mobile/desktop view toggle
+    - _Requirements: 22.7_
+
+- [ ] 39. Update navigation and routing
+  - Add new pages to sidebar navigation
+  - Organize into logical sections (Content & Moderation, Community & Engagement, Analytics, Tools)
+  - Update routing configuration
+  - Add icons for new menu items
+  - Implement active state highlighting
+  - _Requirements: All new requirements_
+
+## Phase 9: Testing & Deployment
+
+- [ ] 40. Write backend tests for new features
+  - [ ] 40.1 Test content moderation endpoints
+    - Test recipe listing with filters
+    - Test recipe hiding and deletion
+    - Test flagging and approval
+    - Test report handling
+    - _Requirements: 11.1-11.9_
+
+  - [ ] 40.2 Test points management endpoints
+    - Test points adjustment
+    - Test leaderboard retrieval
+    - Test custom action creation
+    - Test bulk points award
+    - _Requirements: 12.1-12.9_
+
+  - [ ] 40.3 Test community activity endpoints
+    - Test activity feed retrieval
+    - Test active users tracking
+    - Test achievement statistics
+    - Test engagement metrics
+    - _Requirements: 13.1-13.7_
+
+  - [ ] 40.4 Test notifications endpoints
+    - Test broadcast notifications
+    - Test targeted notifications
+    - Test user segmentation
+    - Test notification analytics
+    - _Requirements: 14.1-14.8_
+
+  - [ ] 40.5 Test analytics endpoints
+    - Test recipe analytics
+    - Test shopping analytics
+    - Test dietary analytics
+    - Test API usage tracking
+    - _Requirements: 15.1-19.7_
+
+  - [ ] 40.6 Test bulk operations endpoints
+    - Test bulk user operations
+    - Test bulk subscription grants
+    - Test bulk notifications
+    - Test bulk points adjustments
+    - _Requirements: 20.1-20.8_
+
+  - [ ] 40.7 Test feature flags endpoints
+    - Test flag enable/disable
+    - Test user segmentation
+    - Test adoption tracking
+    - Test gradual rollout
+    - _Requirements: 21.1-21.6_
+
+  - [ ] 40.8 Test content management endpoints
+    - Test featured recipes management
+    - Test banner creation and updates
+    - Test announcements
+    - Test legal content updates
+    - _Requirements: 22.1-22.8_
+
+- [ ] 41. Write backend tests (original features)
   - [ ] 27.1 Test admin authentication
     - Test signup with approved email
     - Test signup with unapproved email
@@ -660,29 +1205,67 @@
     - Test deleting user
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 27.4 Test subscription management endpoints
+  - [ ] 41.4 Test subscription management endpoints
     - Test granting subscription
     - Test cancelling subscription
     - Test extending subscription
     - Test processing refund
     - _Requirements: 2.5_
 
-  - [ ] 27.5 Test analytics endpoints
+  - [ ] 41.5 Test analytics endpoints
     - Test overview metrics calculation
     - Test growth data aggregation
     - Test revenue trends
     - Test feature usage stats
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 28. Write frontend tests
-  - [ ] 28.1 Test authentication components
+- [ ] 42. Write frontend tests for new features
+  - [ ] 42.1 Test content moderation components
+    - Test recipe table and filters
+    - Test moderation actions
+    - Test report handling
+    - _Requirements: 11.1-11.9_
+
+  - [ ] 42.2 Test points management components
+    - Test leaderboard display
+    - Test points adjustment forms
+    - Test bulk award functionality
+    - _Requirements: 12.1-12.9_
+
+  - [ ] 42.3 Test community and notifications pages
+    - Test activity feed
+    - Test notification creation
+    - Test user segmentation
+    - _Requirements: 13.1-14.8_
+
+  - [ ] 42.4 Test analytics pages
+    - Test recipe analytics display
+    - Test shopping analytics
+    - Test dietary analytics
+    - Test API usage display
+    - _Requirements: 15.1-19.7_
+
+  - [ ] 42.5 Test bulk operations and feature flags
+    - Test bulk operation forms
+    - Test progress tracking
+    - Test feature flag toggles
+    - _Requirements: 20.1-21.6_
+
+  - [ ] 42.6 Test content management
+    - Test featured recipes management
+    - Test banner creation
+    - Test content editing
+    - _Requirements: 22.1-22.8_
+
+- [ ] 43. Write frontend tests (original features)
+  - [ ] 43.1 Test authentication components
     - Test LoginPage form submission
     - Test SignupPage validation
     - Test EmailVerificationPage token handling
     - Test password reset flow
     - _Requirements: 1.7_
 
-  - [ ] 28.2 Test dashboard pages
+  - [ ] 43.2 Test dashboard pages
     - Test OverviewPage data display
     - Test UsersPage table and filters
     - Test SubscriptionsPage management
@@ -690,20 +1273,21 @@
     - Test ErrorsPage display
     - _Requirements: 2.1, 3.1, 4.1, 5.1_
 
-  - [ ] 28.3 Test admin management (super admin)
+  - [ ] 43.3 Test admin management (super admin)
     - Test approved emails management
     - Test admin removal
     - Test super admin email change
     - _Requirements: 1.11, 1.12, 1.13_
 
-- [ ] 29. Deploy admin dashboard
-  - [ ] 29.1 Prepare backend for deployment
+- [ ] 44. Deploy admin dashboard
+  - [ ] 44.1 Prepare backend for deployment
     - Run database migrations for admin tables
+    - Run migrations for new features (content moderation, points, notifications, etc.)
     - Set environment variables (JWT_SECRET, ADMIN_JWT_SECRET)
     - Test all admin endpoints
-    - _Requirements: 1.2_
+    - _Requirements: 1.2, 11.1-22.8_
 
-  - [ ] 29.2 Build and deploy frontend
+  - [ ] 44.2 Build and deploy frontend
     - Build React app for production
     - Deploy to Vercel/Netlify
     - Configure environment variables (API_URL)
@@ -711,7 +1295,7 @@
     - Test deployed application
     - _Requirements: 8.1, 8.2_
 
-  - [ ] 29.3 Security hardening
+  - [ ] 44.3 Security hardening
     - Enable HTTPS
     - Configure CORS properly
     - Set up rate limiting
@@ -719,11 +1303,13 @@
     - Test security measures
     - _Requirements: 10.6, 10.7_
 
-- [ ] 30. Documentation and handoff
-  - Create admin dashboard user guide
-  - Document API endpoints
-  - Document database schema
+- [ ] 45. Documentation and handoff
+  - Create comprehensive admin dashboard user guide
+  - Document all API endpoints (original + new features)
+  - Document complete database schema
   - Create troubleshooting guide
   - Document deployment process
   - Create video walkthrough for super admin features
+  - Document new features (content moderation, points, notifications, etc.)
+  - Create quick reference guide for common tasks
   - _Requirements: All_

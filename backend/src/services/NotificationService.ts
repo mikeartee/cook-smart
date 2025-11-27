@@ -145,7 +145,18 @@ class NotificationService {
     }
 
     const embed = this.formatFeedbackEmbed(feedback);
-    await this.sendToWebhook(this.feedbackWebhook, embed, 'feedback');
+    
+    // If screenshot is provided, send as file attachment
+    if (feedback.screenshot) {
+      await this.sendToWebhookWithFile(
+        this.feedbackWebhook,
+        embed,
+        feedback.screenshot,
+        'feedback',
+      );
+    } else {
+      await this.sendToWebhook(this.feedbackWebhook, embed, 'feedback');
+    }
   }
 
   /**
@@ -307,18 +318,27 @@ class NotificationService {
       inline: false,
     });
 
+    // Add note if screenshot is attached
+    if (feedback.screenshot) {
+      fields.push({
+        name: '📎 Attachment',
+        value: 'Screenshot attached below',
+        inline: false,
+      });
+    }
+
+    const embed: any = {
+      title: '💬 NEW FEEDBACK',
+      color: 3447003, // Blue
+      fields,
+      footer: {
+        text: 'Cook Smart Feedback',
+      },
+      timestamp: feedback.timestamp.toISOString(),
+    };
+
     return {
-      embeds: [
-        {
-          title: '💬 NEW FEEDBACK',
-          color: 3447003, // Blue
-          fields,
-          footer: {
-            text: 'Cook Smart Feedback',
-          },
-          timestamp: feedback.timestamp.toISOString(),
-        },
-      ],
+      embeds: [embed],
     };
   }
 
@@ -563,6 +583,73 @@ class NotificationService {
 
     console.error(
       `❌ Failed to send ${type} notification after ${retries} attempts`,
+    );
+
+    // Log failed notification
+    await this.logNotification(type, payload, false, 'Failed after 3 retries');
+  }
+
+  /**
+   * Send embed to Discord webhook with file attachment
+   */
+  private async sendToWebhookWithFile(
+    webhookUrl: string,
+    payload: any,
+    base64Image: string,
+    type: string,
+    retries = 3,
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        // Extract base64 data and convert to buffer
+        const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+
+        // Create form data
+        const FormData = require('form-data');
+        const form = new FormData();
+
+        // Add the JSON payload
+        form.append('payload_json', JSON.stringify(payload));
+
+        // Add the image file
+        form.append('file', imageBuffer, {
+          filename: 'screenshot.jpg',
+          contentType: 'image/jpeg',
+        });
+
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          body: form,
+          headers: form.getHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Discord webhook failed: ${response.status} ${response.statusText}`,
+          );
+        }
+
+        console.log(`✅ ${type} notification with file sent to Discord`);
+
+        // Log successful notification
+        await this.logNotification(type, payload, true);
+        return;
+      } catch (error) {
+        console.error(
+          `❌ Failed to send ${type} notification with file (attempt ${attempt}/${retries}):`,
+          error,
+        );
+
+        if (attempt < retries) {
+          const delay = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    console.error(
+      `❌ Failed to send ${type} notification with file after ${retries} attempts`,
     );
 
     // Log failed notification

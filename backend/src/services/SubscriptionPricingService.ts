@@ -42,7 +42,7 @@ export class SubscriptionPricingService {
    * @param _userId - Optional user ID for personalized plans (reserved for future use)
    */
   static async getAvailablePlans(
-    _userId?: number,
+    _userId?: number | string,
   ): Promise<SubscriptionPlan[]> {
     const isBeta = await PhaseManagementService.isBetaPhase();
 
@@ -252,7 +252,7 @@ export class SubscriptionPricingService {
    * @param referralCode - Optional referral code for discount
    */
   static async createSubscription(
-    userId: number,
+    userId: number | string,
     planType: 'yearly' | 'monthly' | 'weekly',
     referralCode?: string,
   ): Promise<SubscriptionResult> {
@@ -308,7 +308,7 @@ export class SubscriptionPricingService {
       } else {
         customer = await stripe.customers.create({
           email: userEmail,
-          metadata: {userId: userId.toString()},
+          metadata: {userId: typeof userId === 'string' ? userId : userId.toString()},
         });
       }
 
@@ -389,7 +389,7 @@ export class SubscriptionPricingService {
    */
   private static async validateReferralCode(
     referralCode: string,
-    userId: number,
+    userId: number | string,
   ): Promise<boolean> {
     try {
       // Check if referral code exists and is active
@@ -428,7 +428,7 @@ export class SubscriptionPricingService {
    */
   private static async storeSubscription(
     stripeSubscriptionId: string,
-    userId: number,
+    userId: number | string,
     planType: string,
     promotionalPriceUsed: boolean,
     referralCodeUsed: string | undefined,
@@ -481,7 +481,7 @@ export class SubscriptionPricingService {
    */
   private static async creditReferrer(
     referralCode: string,
-    newUserId: number,
+    newUserId: number | string,
   ): Promise<void> {
     try {
       // Get referrer user ID
@@ -523,7 +523,7 @@ export class SubscriptionPricingService {
    * Get user's current subscription
    * @param userId - User ID
    */
-  static async getUserSubscription(userId: number): Promise<any> {
+  static async getUserSubscription(userId: number | string): Promise<any> {
     try {
       const query = `
         SELECT 

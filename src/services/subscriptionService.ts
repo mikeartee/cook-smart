@@ -100,6 +100,48 @@ class SubscriptionService {
   }
 
   /**
+   * Create a Stripe Checkout Session (web-based payment)
+   */
+  async createCheckoutSession(
+    planType: 'yearly' | 'monthly' | 'weekly',
+    referralCode?: string,
+  ): Promise<string> {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+
+      if (!token) {
+        throw new Error('User must be logged in to subscribe');
+      }
+
+      const response = await fetch(
+        `${API_URL}/subscriptions/create-checkout-session`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            planType,
+            referralCode,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create checkout session');
+      }
+
+      return data.checkoutUrl;
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get current phase (beta or post-beta)
    */
   async getPhase(): Promise<PhaseInfo> {

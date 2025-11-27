@@ -142,6 +142,8 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const { id } = req.params;
     const { quantity, unit } = req.body;
     
+    console.log('📝 Updating ingredient:', { userId: req.user?.id, ingredientId: id, quantity, unit });
+    
     if (!req.user?.id) {
       res.status(401).json({ error: 'User not authenticated' });
       return;
@@ -155,21 +157,46 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       return;
     }
     
-    // For now, just return success with updated data
-    // In a real implementation, this would update the database
-    const updatedIngredient = {
-      id: parseInt(id),
-      quantity: quantity || 1,
-      unit: unit || 'unit',
-      updated_at: new Date().toISOString()
-    };
+    // Update the ingredient in the database
+    const updateData: any = {};
+    if (quantity !== undefined) updateData.quantity = parseFloat(quantity);
+    if (unit !== undefined) updateData.unit = unit;
+    
+    // First, get the ingredient to find its ingredient_id
+    const userIngredients = await IngredientModel.getUserIngredients(req.user.id);
+    const ingredient = userIngredients.find((ing: any) => ing.id.toString() === id);
+    
+    if (!ingredient) {
+      res.status(404).json({
+        error: 'Ingredient not found',
+        message: 'Ingredient not found in your inventory'
+      });
+      return;
+    }
+    
+    // Update using the ingredient_id
+    const updatedIngredient = await IngredientModel.updateUserIngredient(
+      req.user.id,
+      ingredient.ingredient_id,
+      updateData
+    );
+    
+    if (!updatedIngredient) {
+      res.status(404).json({
+        error: 'Update failed',
+        message: 'Unable to update ingredient'
+      });
+      return;
+    }
+    
+    console.log('✅ Ingredient updated successfully:', updatedIngredient);
     
     res.json({
       message: 'Ingredient updated successfully',
       ingredient: updatedIngredient
     });
   } catch (error) {
-    console.error('Update ingredient error:', error);
+    console.error('❌ Update ingredient error:', error);
     res.status(500).json({
       error: 'Failed to update ingredient',
       message: 'Unable to update ingredient'

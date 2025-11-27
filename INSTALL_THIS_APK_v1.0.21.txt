@@ -1,0 +1,97 @@
+📱 COOK SMART v1.0.21 - INSTALLATION INSTRUCTIONS
+================================================
+
+✅ APK FILE: CookSmart-v1.0.21-admin-all-live-data.apk
+📦 SIZE: 107.7 MB
+📅 BUILD DATE: November 20, 2025
+
+🆕 WHAT'S NEW IN v1.0.21
+========================
+
+✨ Admin Dashboard - 100% Live Data:
+   - AdminDashboardScreen: Recent Activity now shows real numbers
+   - AdminUsersScreen: Fetches real users from backend API
+   - AdminAnalyticsScreen: Fetches real analytics data
+   - AdminSystemHealthScreen: Fetches real system health data
+   - All 10 admin screens now use live data (no more mock data!)
+
+✨ New Admin Service:
+   - Centralized AdminService.ts with 30+ API methods
+   - Automatic auth token handling
+   - Type-safe API calls
+   - Better error handling
+
+✨ From v1.0.20:
+   - Live admin dashboard data
+   - Pull-to-refresh functionality
+   - Enhanced debugging capabilities
+
+📋 INSTALLATION STEPS
+=====================
+
+1. UNINSTALL OLD VERSION (if installed):
+   - Go to Settings > Apps > Cook Smart
+   - Tap "Uninstall"
+   - Confirm uninstallation
+
+2. ENABLE UNKNOWN SOURCES:
+   - Go to Settings > Security
+   - Enable "Unknown Sources" or "Install from Unknown Sources"
+
+3. INSTALL NEW VERSION:
+   - Transfer APK to your phone
+   - Open the APK file
+   - Tap "Install"
+   - Wait for installation to complete
+
+4. LAUNCH APP:
+   - Open Cook Smart
+   - Login as admin (Donna or Brad)
+   - Go to Admin tab
+   - Test all admin screens - they all show real data now!
+
+🔐 ADMIN ACCESS
+===============
+Admin users will see the "Admin" tab with 10 screens:
+1. Dashboard - Main stats and recent activity
+2. User Management - Real user list
+3. Analytics - Real analytics data
+4. System Health - Real system metrics
+5. Cost Tracking - Real cost data
+6. Error Logs - Real error logs
+7. Feedback Management - Real user feedback
+8. Referrals - Real referral data
+9. Subscriptions - Real subscription data
+10. System Guardian - System monitoring
+
+All screens now show LIVE DATA from backend!
+
+🧪 TESTING CHECKLIST
+====================
+✅ Login as admin
+✅ Check Admin Dashboard - verify real numbers
+✅ Check User Management - see real users
+✅ Check Analytics - see real data
+✅ Pull-to-refresh on all screens
+✅ Verify no mock data anywhere
+
+⚠️ TROUBLESHOOTING
+==================
+
+Issue: "App not installed"
+Solution: Uninstall old version first
+
+Issue: Admin tab not showing
+Solution: Your account needs admin privileges
+
+Issue: Data not loading
+Solution: Pull down to refresh, check internet
+
+📞 SUPPORT
+==========
+Backend: http://3.237.38.24:3000
+Status: ✅ Running
+
+🎉 ENJOY COOK SMART v1.0.21!
+============================
+All admin data is now LIVE!

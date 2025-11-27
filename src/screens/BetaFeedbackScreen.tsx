@@ -107,10 +107,35 @@ export const BetaFeedbackScreen: React.FC = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.title}>🚧 BETA Feedback</Text>
         <Text style={styles.subtitle}>Help us improve Cook Smart</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📧 Need Direct Support?</Text>
+        <View style={styles.supportCard}>
+          <Text style={styles.supportText}>
+            For urgent issues or direct assistance, reach our support team:
+          </Text>
+          <TouchableOpacity
+            style={styles.emailButton}
+            onPress={() =>
+              Linking.openURL(
+                'mailto:services.cooksmart@gmail.com?subject=Cook Smart Support',
+              )
+            }>
+            <Text style={styles.emailButtonText}>
+              📧 services.cooksmart@gmail.com
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.supportNote}>
+            We typically respond within 24-48 hours during BETA.
+          </Text>
+        </View>
       </View>
 
       <View style={styles.betaInfo}>
@@ -177,30 +202,6 @@ export const BetaFeedbackScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Need Direct Support?</Text>
-        <View style={styles.supportCard}>
-          <Text style={styles.supportText}>
-            For urgent issues or direct assistance, you can reach our support
-            team:
-          </Text>
-          <TouchableOpacity
-            style={styles.emailButton}
-            onPress={() =>
-              Linking.openURL(
-                'mailto:services.cooksmart@gmail.com?subject=Cook Smart Support',
-              )
-            }>
-            <Text style={styles.emailButtonText}>
-              📧 services.cooksmart@gmail.com
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.supportNote}>
-            We typically respond within 24-48 hours during BETA.
-          </Text>
-        </View>
-      </View>
-
       <FeedbackModal
         visible={showFeedbackModal}
         onClose={() => setShowFeedbackModal(false)}
@@ -214,6 +215,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   header: {
     padding: 20,

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface TermsOfServiceScreenProps {
@@ -15,8 +16,9 @@ interface TermsOfServiceScreenProps {
 export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
   navigation,
 }) => {
+  console.log('🟢 TermsOfServiceScreen rendered');
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -181,7 +183,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
 
         <View style={styles.bottomPadding} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -245,5 +247,3 @@ const styles = StyleSheet.create({
     height: 40,
   },
 });
-
-export default TermsOfServiceScreen;
