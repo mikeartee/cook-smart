@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {Holiday} from '../utils/holidays';
-import {recipeService} from '../services/recipeService';
+import recipeService from '../services/recipeService';
 
 interface HolidayRecipeSectionProps {
   holiday: Holiday;

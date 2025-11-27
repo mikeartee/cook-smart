@@ -35,7 +35,7 @@ export default function CommunityFeedScreen({navigation}: any) {
     setRefreshing(false);
   };
 
-  const renderActivity = ({item}: any) => {
+  const renderActivity = ({item}: {item: any}) => {
     let icon = 'restaurant';
     let text = '';
 
@@ -82,7 +82,7 @@ export default function CommunityFeedScreen({navigation}: any) {
       <FlatList
         data={feed}
         renderItem={renderActivity}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item: any) => item.id.toString()}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

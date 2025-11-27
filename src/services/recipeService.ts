@@ -139,6 +139,16 @@ class RecipeService {
     const savedRecipes = await this.getSavedRecipes();
     return savedRecipes.some(r => r.recipe.id === recipeId);
   }
+
+  // Get recipe by ID (for trending/seasonal)
+  async getRecipeById(recipeId: string): Promise<RecipeDetails | null> {
+    try {
+      return await this.getRecipeDetails(parseInt(recipeId));
+    } catch (error) {
+      console.error('Error getting recipe:', error);
+      return null;
+    }
+  }
 }
 
 export default new RecipeService();

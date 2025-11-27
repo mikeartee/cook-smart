@@ -30,7 +30,7 @@ export default function MyRecipesScreen({navigation}: any) {
     }
   };
 
-  const renderRecipe = ({item}: any) => {
+  const renderRecipe = ({item}: {item: any}) => {
     const primaryPhoto = item.photos?.find((p: any) => p.is_primary)?.url;
 
     return (
@@ -110,7 +110,7 @@ export default function MyRecipesScreen({navigation}: any) {
         <FlatList
           data={recipes}
           renderItem={renderRecipe}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item: any) => item.id.toString()}
           contentContainerStyle={styles.list}
         />
       )}

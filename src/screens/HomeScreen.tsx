@@ -53,9 +53,7 @@ const HomeScreen: React.FC = () => {
       icon: 'trending-up',
       color: '#F59E0B',
       onPress: () =>
-        navigation.navigate('Recipes' as never, {
-          screen: 'TrendingRecipes',
-        }),
+        (navigation as any).navigate('Recipes', {screen: 'TrendingRecipes'}),
     },
     {
       id: 'seasonal',
@@ -64,9 +62,7 @@ const HomeScreen: React.FC = () => {
       icon: 'wb-sunny',
       color: '#EC4899',
       onPress: () =>
-        navigation.navigate('Recipes' as never, {
-          screen: 'SeasonalRecipes',
-        }),
+        (navigation as any).navigate('Recipes', {screen: 'SeasonalRecipes'}),
     },
     {
       id: 'community',
@@ -75,9 +71,7 @@ const HomeScreen: React.FC = () => {
       icon: 'people',
       color: '#8B5CF6',
       onPress: () =>
-        navigation.navigate('Recipes' as never, {
-          screen: 'CommunityFeed',
-        }),
+        (navigation as any).navigate('Recipes', {screen: 'CommunityFeed'}),
     },
     {
       id: 'feedback',
@@ -123,7 +117,7 @@ const HomeScreen: React.FC = () => {
 
   const handleHolidayPress = () => {
     if (upcomingHoliday) {
-      navigation.navigate('Recipes' as never, {
+      (navigation as any).navigate('Recipes', {
         screen: 'RecipeSearch',
         params: {initialSearch: upcomingHoliday.searchTerms[0]},
       });
@@ -131,7 +125,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleHolidayRecipePress = (recipeId: string) => {
-    navigation.navigate('Recipes' as never, {
+    (navigation as any).navigate('Recipes', {
       screen: 'RecipeDetail',
       params: {recipeId},
     });

@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_URL} from '../config/api';
+import {API_BASE_URL} from '../config/api';
+
+const API_URL = `${API_BASE_URL}/api/v1`;
 
 class SocialService {
   private async getAuthHeader() {

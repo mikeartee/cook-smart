@@ -46,7 +46,7 @@ export default function RecipeComments({recipeId}: {recipeId: string}) {
     setLoading(false);
   };
 
-  const renderComment = ({item}: any) => (
+  const renderComment = ({item}: {item: any}) => (
     <View style={styles.commentCard}>
       <View style={styles.commentHeader}>
         <Icon name="account-circle" size={32} color="#10B981" />
@@ -84,7 +84,7 @@ export default function RecipeComments({recipeId}: {recipeId: string}) {
       <FlatList
         data={comments}
         renderItem={renderComment}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item: any) => item.id.toString()}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
         }

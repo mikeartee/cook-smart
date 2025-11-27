@@ -30,7 +30,10 @@ export default function TrendingRecipesScreen({navigation}: any) {
         for (const item of response.trending) {
           const recipeData = await recipeService.getRecipeById(item.recipe_id);
           if (recipeData) {
-            setRecipes(prev => ({...prev, [item.recipe_id]: recipeData}));
+            setRecipes((prev: any) => ({
+              ...prev,
+              [item.recipe_id]: recipeData,
+            }));
           }
         }
       }
@@ -45,7 +48,7 @@ export default function TrendingRecipesScreen({navigation}: any) {
     setRefreshing(false);
   };
 
-  const renderTrending = ({item}: any) => {
+  const renderTrending = ({item}: {item: any}) => {
     const recipe = recipes[item.recipe_id];
     if (!recipe) return null;
 
@@ -88,7 +91,7 @@ export default function TrendingRecipesScreen({navigation}: any) {
       <FlatList
         data={trending}
         renderItem={renderTrending}
-        keyExtractor={item => item.recipe_id}
+        keyExtractor={(item: any) => item.recipe_id}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

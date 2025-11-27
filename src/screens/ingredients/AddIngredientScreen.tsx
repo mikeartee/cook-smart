@@ -159,9 +159,8 @@ export const AddIngredientScreen: React.FC = () => {
     }
 
     try {
-      let photoUrl = '';
       if (photo) {
-        photoUrl = await uploadPhoto(photo, 'ingredient');
+        await uploadPhoto(photo, 'ingredient');
       }
 
       await addIngredient({
@@ -169,7 +168,6 @@ export const AddIngredientScreen: React.FC = () => {
         category: customCategory,
         quantity: parseFloat(quantity) || 1,
         unit: unit.trim() || 'unit',
-        photo_url: photoUrl,
       });
 
       // Close modal first

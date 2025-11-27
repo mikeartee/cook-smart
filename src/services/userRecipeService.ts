@@ -110,70 +110,7 @@ export const getUserRecipes = async () => {
 };
 
 export const userRecipeService = {
-  async createRecipe(data: CreateRecipeData): Promise<UserRecipeWithDetails> {
-    return createUserRecipe(data);
-  },
-
-  async getUserRecipes(): Promise<UserRecipe[]> {
-    const token = await getAuthToken();
-    const response = await axios.get(`${API_ENDPOINTS.userRecipes.base}`, {
-      headers: {Authorization: `Bearer ${token}`},
-    });
-    return response.data.recipes;
-  },
-
-  async getRecipeById(recipeId: number): Promise<UserRecipeWithDetails> {
-    const token = await getAuthToken();
-    const response = await axios.get(
-      `${API_ENDPOINTS.userRecipes.byId(recipeId)}`,
-      {
-        headers: {Authorization: `Bearer ${token}`},
-      },
-    );
-    return response.data.recipe;
-  },
-
-  async updateRecipe(
-    recipeId: number,
-    updates: Partial<UserRecipe>,
-  ): Promise<UserRecipe> {
-    const token = await getAuthToken();
-    const response = await axios.put(
-      `${API_ENDPOINTS.userRecipes.byId(recipeId)}`,
-      updates,
-      {
-        headers: {Authorization: `Bearer ${token}`},
-      },
-    );
-    return response.data.recipe;
-  },
-
-  async deleteRecipe(recipeId: number): Promise<void> {
-    const token = await getAuthToken();
-    await axios.delete(`${API_ENDPOINTS.userRecipes.byId(recipeId)}`, {
-      headers: {Authorization: `Bearer ${token}`},
-    });
-  },
-
-  async getPublicRecipes(
-    limit: number = 20,
-    offset: number = 0,
-  ): Promise<UserRecipe[]> {
-    const response = await axios.get(
-      `${API_ENDPOINTS.userRecipes.public}?limit=${limit}&offset=${offset}`,
-    );
-    return response.data.recipes;
-  },
-
-  async toggleFavorite(recipeId: number): Promise<boolean> {
-    const token = await getAuthToken();
-    const response = await axios.post(
-      `${API_ENDPOINTS.userRecipes.favorite(recipeId)}`,
-      {},
-      {
-        headers: {Authorization: `Bearer ${token}`},
-      },
-    );
-    return response.data.isFavorited;
-  },
+  createRecipe: createUserRecipe,
+  getUserRecipes,
+  uploadPhoto,
 };

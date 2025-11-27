@@ -72,7 +72,7 @@ const ProfileScreenNew: React.FC = () => {
       icon: 'menu-book',
       color: '#FF6B6B',
       onPress: () =>
-        navigation.navigate('Recipes' as never, {screen: 'MyRecipes'}),
+        (navigation as any).navigate('Recipes', {screen: 'MyRecipes'}),
     },
     {
       id: 'mealplanning',
@@ -81,7 +81,7 @@ const ProfileScreenNew: React.FC = () => {
       icon: 'calendar-today',
       color: '#8B5CF6',
       onPress: () =>
-        navigation.navigate('SavedRecipes' as never, {screen: 'MealPlanning'}),
+        (navigation as any).navigate('SavedRecipes', {screen: 'MealPlanning'}),
     },
     {
       id: 'collections',
@@ -90,7 +90,7 @@ const ProfileScreenNew: React.FC = () => {
       icon: 'collections-bookmark',
       color: '#F59E0B',
       onPress: () =>
-        navigation.navigate('SavedRecipes' as never, {screen: 'Collections'}),
+        (navigation as any).navigate('SavedRecipes', {screen: 'Collections'}),
     },
     {
       id: 'dietary',
