@@ -11,7 +11,8 @@ router.post('/follow/:userId', authenticateToken, async (req, res) => {
     const followingId = req.params.userId as string;
 
     if (followerId === followingId) {
-      return res.status(400).json({error: 'Cannot follow yourself'});
+      res.status(400).json({error: 'Cannot follow yourself'});
+      return;
     }
 
     const result = await SocialService.followUser(followerId, followingId);
