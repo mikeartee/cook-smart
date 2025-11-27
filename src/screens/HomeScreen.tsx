@@ -11,11 +11,15 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
 import {FeedbackModal} from '../components/FeedbackModal';
 import feedbackService from '../services/feedbackService';
+import {getUpcomingHoliday} from '../utils/holidays';
+import HolidayBanner from '../components/HolidayBanner';
+import HolidayRecipeSection from '../components/HolidayRecipeSection';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const {user} = useAuth();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const upcomingHoliday = getUpcomingHoliday();
 
   const handleSubmitFeedback = async (feedback: {
     message: string;
@@ -90,6 +94,22 @@ const HomeScreen: React.FC = () => {
         parent.navigate('SpecialUserWelcome' as never);
       }
     },
+  };
+
+  const handleHolidayPress = () => {
+    if (upcomingHoliday) {
+      navigation.navigate('Recipes' as never, {
+        screen: 'RecipeSearch',
+        params: {initialSearch: upcomingHoliday.searchTerms[0]},
+      });
+    }
+  };
+
+  const handleHolidayRecipePress = (recipeId: string) => {
+    navigation.navigate('Recipes' as never, {
+      screen: 'RecipeDetail',
+      params: {recipeId},
+    });
   };
 
   return (
@@ -170,6 +190,19 @@ const HomeScreen: React.FC = () => {
           )}
         </View>
       </View>
+
+      {/* Holiday Banner */}
+      {upcomingHoliday && (
+        <HolidayBanner holiday={upcomingHoliday} onPress={handleHolidayPress} />
+      )}
+
+      {/* Holiday Recipe Section */}
+      {upcomingHoliday && (
+        <HolidayRecipeSection
+          holiday={upcomingHoliday}
+          onRecipePress={handleHolidayRecipePress}
+        />
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Coming Soon</Text>
