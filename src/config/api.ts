@@ -3,15 +3,9 @@
  * Manages API URLs for different environments
  */
 
-// Determine if we're in development mode
-// IMPORTANT: Always use production URL in release builds
-const isDevelopment = __DEV__;
-
-// API Base URLs - hardcoded for reliability
-// Release builds ALWAYS use production to avoid connection issues
-export const API_BASE_URL = isDevelopment
-  ? 'http://192.168.12.196:3000' // Local development only
-  : 'https://api.cooksmartapp.com'; // Production HTTPS domain (used in all release builds)
+// ALWAYS USE PRODUCTION - NO LOCAL DEVELOPMENT
+// We work on live side only
+export const API_BASE_URL = 'https://api.cooksmartapp.com';
 
 // API Endpoints
 export const API_ENDPOINTS = {

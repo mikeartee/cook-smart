@@ -63,7 +63,9 @@ const RecipesStack = () => (
 
 // Saved Recipes Stack Navigator
 const SavedRecipesStack = () => (
-  <Stack.Navigator screenOptions={{headerShown: false}}>
+  <Stack.Navigator
+    screenOptions={{headerShown: false}}
+    initialRouteName="SavedRecipesList">
     <Stack.Screen name="SavedRecipesList" component={SavedRecipesScreen} />
     <Stack.Screen name="MealPlanning" component={MealPlanningScreen} />
     <Stack.Screen name="Collections" component={RecipeCollectionsScreen} />

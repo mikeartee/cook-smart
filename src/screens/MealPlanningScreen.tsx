@@ -4,13 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {getMealPlans} from '../services/recipeEnhancementService';
 
-export default function MealPlanningScreen({navigation}: any) {
+export default function MealPlanningScreen() {
+  const navigation = useNavigation();
   const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate] = useState(new Date());
@@ -81,8 +83,11 @@ export default function MealPlanningScreen({navigation}: any) {
         <Text style={styles.title}>Meal Planning</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.calendarGrid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled={true}>
+        <View style={styles.calendarGrid} pointerEvents="box-none">
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.mealTypeCell}>
@@ -98,7 +103,10 @@ export default function MealPlanningScreen({navigation}: any) {
 
           {/* Meal Rows */}
           {mealTypes.map(mealType => (
-            <View key={mealType} style={styles.mealRow}>
+            <View
+              key={mealType}
+              style={styles.mealRow}
+              pointerEvents="box-none">
               <View style={styles.mealTypeCell}>
                 <Icon
                   name={
@@ -118,15 +126,21 @@ export default function MealPlanningScreen({navigation}: any) {
               {days.map((day, index) => {
                 const meal = getMealForDate(day, mealType);
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={index}
-                    style={[styles.mealCell, meal && styles.mealCellFilled]}
-                    onPress={() =>
-                      navigation.navigate('RecipeSearch', {
-                        date: day.toISOString().split('T')[0],
+                    style={({pressed}) => [
+                      styles.mealCell,
+                      meal && styles.mealCellFilled,
+                      pressed && styles.mealCellPressed,
+                    ]}
+                    onPress={() => {
+                      const dateStr = day.toISOString().split('T')[0];
+                      navigation.navigate('SavedRecipesList', {
+                        selectMode: true,
+                        date: dateStr,
                         mealType,
-                      })
-                    }>
+                      });
+                    }}>
                     {meal ? (
                       <Text style={styles.mealText} numberOfLines={2}>
                         {meal.recipe_id}
@@ -134,7 +148,7 @@ export default function MealPlanningScreen({navigation}: any) {
                     ) : (
                       <Icon name="add" size={24} color="#D1D5DB" />
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -238,6 +252,10 @@ const styles = StyleSheet.create({
   mealCellFilled: {
     backgroundColor: '#D1FAE5',
     borderColor: '#10B981',
+  },
+  mealCellPressed: {
+    backgroundColor: '#F3F4F6',
+    opacity: 0.7,
   },
   mealText: {
     fontSize: 12,

@@ -116,8 +116,6 @@ export class RecipeEnhancementService {
     const result = await pool.query(
       `INSERT INTO meal_plans (user_id, recipe_id, recipe_type, planned_date, meal_type, notes)
        VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (user_id, planned_date, meal_type)
-       DO UPDATE SET recipe_id = $2, recipe_type = $3, notes = $6
        RETURNING *`,
       [userId, recipeId, recipeType, plannedDate, mealType, notes],
     );

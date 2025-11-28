@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,30 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useRecipes } from '../../contexts/RecipeContext';
-import { SavedRecipe } from '../../services/recipeService';
+import {useRecipes} from '../../contexts/RecipeContext';
+import {SavedRecipe} from '../../services/recipeService';
+import {addMealPlan} from '../../services/recipeEnhancementService';
 
 interface SavedRecipesScreenProps {
   navigation: any;
 }
 
-export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigation }) => {
-  const { savedRecipes, fetchSavedRecipes, deleteSavedRecipe, isLoading: _isLoading } = useRecipes();
+export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const {
+    savedRecipes,
+    fetchSavedRecipes,
+    deleteSavedRecipe,
+    isLoading: _isLoading,
+  } = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedRecipes, setSelectedRecipes] = useState<number[]>([]);
+
+  const selectMode = (route as any)?.params?.selectMode || false;
+  const mealDate = (route as any)?.params?.date;
+  const mealType = (route as any)?.params?.mealType;
 
   useEffect(() => {
     loadSavedRecipes();
@@ -40,24 +54,20 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigati
   };
 
   const handleDelete = (recipeId: number, title: string) => {
-    Alert.alert(
-      'Remove Recipe',
-      `Remove "${title}" from saved recipes?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteSavedRecipe(recipeId);
-            } catch (_err) {
-              Alert.alert('Error', 'Failed to remove recipe');
-            }
-          },
+    Alert.alert('Remove Recipe', `Remove "${title}" from saved recipes?`, [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteSavedRecipe(recipeId);
+          } catch (_err) {
+            Alert.alert('Error', 'Failed to remove recipe');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const formatDate = (dateString: string) => {
@@ -73,45 +83,71 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigati
     return date.toLocaleDateString();
   };
 
-  const renderRecipeCard = ({ item }: { item: SavedRecipe }) => (
-    <TouchableOpacity
-      style={styles.recipeCard}
-      onPress={() => navigation.navigate('Recipes', {
+  const handleRecipePress = (recipeId: number) => {
+    if (selectMode) {
+      if (selectedRecipes.includes(recipeId)) {
+        setSelectedRecipes(selectedRecipes.filter(id => id !== recipeId));
+      } else {
+        setSelectedRecipes([...selectedRecipes, recipeId]);
+      }
+    } else {
+      navigation.navigate('Recipes', {
         screen: 'RecipeDetail',
-        params: { recipeId: item.recipe.id }
-      })}
-      activeOpacity={0.7}
-    >
-      <Image source={{ uri: item.recipe.image }} style={styles.recipeImage} />
-      
-      <View style={styles.recipeInfo}>
-        <Text style={styles.recipeTitle} numberOfLines={2}>
-          {item.recipe.title}
-        </Text>
+        params: {recipeId},
+      });
+    }
+  };
 
-        <View style={styles.statsRow}>
-          <View style={styles.stat}>
-            <Icon name="schedule" size={16} color="#6B7280" />
-            <Text style={styles.statText}>{item.recipe.readyInMinutes} min</Text>
+  const renderRecipeCard = ({item}: {item: SavedRecipe}) => {
+    const isSelected = selectedRecipes.includes(item.recipe.id);
+
+    return (
+      <TouchableOpacity
+        style={[styles.recipeCard, isSelected && styles.recipeCardSelected]}
+        onPress={() => handleRecipePress(item.recipe.id)}
+        activeOpacity={0.7}>
+        <Image source={{uri: item.recipe.image}} style={styles.recipeImage} />
+
+        {selectMode && isSelected && (
+          <View style={styles.selectedBadge}>
+            <Icon name="check-circle" size={32} color="#10B981" />
           </View>
-          <View style={styles.stat}>
-            <Icon name="restaurant" size={16} color="#6B7280" />
-            <Text style={styles.statText}>{item.recipe.servings} servings</Text>
+        )}
+
+        <View style={styles.recipeInfo}>
+          <Text style={styles.recipeTitle} numberOfLines={2}>
+            {item.recipe.title}
+          </Text>
+
+          <View style={styles.statsRow}>
+            <View style={styles.stat}>
+              <Icon name="schedule" size={16} color="#6B7280" />
+              <Text style={styles.statText}>
+                {item.recipe.readyInMinutes} min
+              </Text>
+            </View>
+            <View style={styles.stat}>
+              <Icon name="restaurant" size={16} color="#6B7280" />
+              <Text style={styles.statText}>
+                {item.recipe.servings} servings
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.savedDate}>
+              Saved {formatDate(item.savedAt)}
+            </Text>
+            <TouchableOpacity
+              onPress={() => handleDelete(item.recipe.id, item.recipe.title)}
+              style={styles.deleteButton}>
+              <Icon name="delete-outline" size={20} color="#EF4444" />
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.savedDate}>Saved {formatDate(item.savedAt)}</Text>
-          <TouchableOpacity
-            onPress={() => handleDelete(item.recipe.id, item.recipe.title)}
-            style={styles.deleteButton}
-          >
-            <Icon name="delete-outline" size={20} color="#EF4444" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -122,8 +158,7 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigati
       </Text>
       <TouchableOpacity
         style={styles.exploreButton}
-        onPress={() => navigation.navigate('Recipes')}
-      >
+        onPress={() => navigation.navigate('Recipes')}>
         <Icon name="search" size={20} color="#FFFFFF" />
         <Text style={styles.exploreButtonText}>Find Recipes</Text>
       </TouchableOpacity>
@@ -134,18 +169,65 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({ navigati
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>
-          {savedRecipes.length > 0
-            ? `${savedRecipes.length} saved recipe${savedRecipes.length !== 1 ? 's' : ''}`
-            : 'No saved recipes'}
-        </Text>
+        {selectMode ? (
+          <View style={styles.selectHeader}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon name="close" size={24} color="#374151" />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Select recipes for {mealType}</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                if (selectedRecipes.length > 0) {
+                  try {
+                    for (const recipeId of selectedRecipes) {
+                      await addMealPlan(
+                        recipeId.toString(),
+                        'api',
+                        mealDate,
+                        mealType,
+                      );
+                    }
+                    Alert.alert(
+                      'Success',
+                      `Added ${selectedRecipes.length} recipe(s) to ${mealType}`,
+                    );
+                    navigation.goBack();
+                  } catch (error: any) {
+                    console.error('Error adding to meal plan:', error);
+                    const errorMsg = error?.message || 'Unknown error';
+                    Alert.alert('Error', `Failed to add recipes: ${errorMsg}`);
+                  }
+                } else {
+                  Alert.alert(
+                    'No Selection',
+                    'Please select at least one recipe',
+                  );
+                }
+              }}
+              disabled={selectedRecipes.length === 0}>
+              <Text
+                style={[
+                  styles.doneText,
+                  selectedRecipes.length === 0 && styles.doneTextDisabled,
+                ]}>
+                Done ({selectedRecipes.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={styles.headerText}>
+            {savedRecipes.length > 0
+              ? `${savedRecipes.length} saved recipe${savedRecipes.length !== 1 ? 's' : ''}`
+              : 'No saved recipes'}
+          </Text>
+        )}
       </View>
 
       {/* Recipe List */}
       <FlatList
         data={savedRecipes}
         renderItem={renderRecipeCard}
-        keyExtractor={(item) => item.recipe.id.toString()}
+        keyExtractor={item => item.recipe.id.toString()}
         contentContainerStyle={[
           styles.listContent,
           savedRecipes.length === 0 && styles.listContentEmpty,
@@ -194,9 +276,34 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  recipeCardSelected: {
+    borderWidth: 3,
+    borderColor: '#10B981',
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+  },
+  selectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  doneText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#10B981',
+  },
+  doneTextDisabled: {
+    color: '#9CA3AF',
   },
   recipeImage: {
     width: '100%',
