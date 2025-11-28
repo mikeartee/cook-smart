@@ -130,6 +130,41 @@ router.post('/user/:userId/items', async (req, res) => {
   }
 });
 
+// Clear completed items (authenticated) - MUST come before /:itemId routes
+router.delete('/clear-completed', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id?.toString();
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
+    await ShoppingListModel.clearCompleted(userId);
+    return res.json({success: true, message: 'Completed items cleared'});
+  } catch (error) {
+    console.error('Clear completed error:', error);
+    return res.status(500).json({error: 'Failed to clear completed items'});
+  }
+});
+
+// Delete all shopping list items (authenticated) - MUST come before /:itemId routes
+router.delete('/all/items', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id?.toString();
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
+    // Delete all items for this user
+    await pool.query('DELETE FROM shopping_list_items WHERE user_id = $1', [
+      userId,
+    ]);
+    return res.json({success: true, message: 'All items removed'});
+  } catch (error) {
+    console.error('Delete all error:', error);
+    return res.status(500).json({error: 'Failed to remove all items'});
+  }
+});
+
 // Update shopping list item (authenticated)
 router.put('/:itemId', authenticateToken, async (req, res) => {
   try {
@@ -252,24 +287,6 @@ router.patch('/:itemId/toggle', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete all shopping list items (authenticated)
-router.delete('/all/items', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
-
-    // Delete all items for this user
-    await pool.query('DELETE FROM shopping_list_items WHERE user_id = $1', [
-      userId,
-    ]);
-    return res.json({success: true, message: 'All items removed'});
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to remove all items'});
-  }
-});
-
 // Delete shopping list item (authenticated)
 router.delete('/:itemId', authenticateToken, async (req, res) => {
   try {
@@ -350,21 +367,6 @@ router.post('/user/:userId/recipe/:recipeId', async (req, res) => {
   }
 });
 
-// Clear completed items (authenticated)
-router.delete('/clear-completed', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user?.id?.toString();
-    if (!userId) {
-      return res.status(401).json({error: 'Unauthorized'});
-    }
-
-    await ShoppingListModel.clearCompleted(userId);
-    return res.json({success: true, message: 'Completed items cleared'});
-  } catch (_error) {
-    return res.status(500).json({error: 'Failed to clear completed items'});
-  }
-});
-
 // Clear completed items (legacy)
 router.delete('/user/:userId/completed', async (req, res) => {
   try {
@@ -372,7 +374,8 @@ router.delete('/user/:userId/completed', async (req, res) => {
 
     await ShoppingListModel.clearCompleted(userId);
     res.json({success: true, message: 'Completed items cleared'});
-  } catch (_error) {
+  } catch (error) {
+    console.error('Clear completed (legacy) error:', error);
     res.status(500).json({error: 'Failed to clear completed items'});
   }
 });
