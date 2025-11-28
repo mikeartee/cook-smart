@@ -153,13 +153,6 @@ export class RecipeEnhancementService {
     return result.rows[0];
   }
 
-  static async deleteMealPlan(mealPlanId: number, userId: number) {
-    await pool.query(`DELETE FROM meal_plans WHERE id = $1 AND user_id = $2`, [
-      mealPlanId,
-      userId,
-    ]);
-  }
-
   // COOKING HISTORY
   static async markRecipeCooked(
     userId: number,
