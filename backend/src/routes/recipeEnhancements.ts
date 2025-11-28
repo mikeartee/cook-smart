@@ -184,7 +184,7 @@ router.delete(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id as string);
+      const userId = req.user!.id as string;
       const mealPlanId = parseInt(req.params.id);
       await RecipeEnhancementService.deleteMealPlan(mealPlanId, userId);
       res.json({success: true});
