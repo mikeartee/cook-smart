@@ -3,6 +3,7 @@ import {body, validationResult} from 'express-validator';
 import {IngredientModel} from '../models/Ingredient';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import {UserPointsModel} from '../models/UserPoints';
+import {AchievementService} from '../services/AchievementService';
 import mockIngredientsDB from '../config/mockIngredients';
 
 const router = Router();
@@ -138,6 +139,15 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       );
     } catch (pointsError) {
       console.warn('Failed to award points:', pointsError);
+    }
+
+    // Check for ingredient achievements
+    try {
+      await AchievementService.checkIngredientAchievements(
+        parseInt(req.user.id),
+      );
+    } catch (achievementError) {
+      console.warn('Failed to check achievements:', achievementError);
     }
 
     console.log('✅ Ingredient added:', addedIngredient);

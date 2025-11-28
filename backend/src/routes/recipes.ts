@@ -3,9 +3,11 @@ import {query, param} from 'express-validator';
 import {RecipeProviderService} from '../services/RecipeProviderService';
 import {APIUsageLogModel} from '../models/APIUsageLog';
 import {UserPointsModel} from '../models/UserPoints';
+import {AchievementService} from '../services/AchievementService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import spoonacularService from '../services/SpoonacularService';
 import themealdbService from '../services/TheMealDBService';
+import pool from '../config/database';
 
 // Initialize recipe provider service with Spoonacular (primary) and TheMealDB (fallback)
 // Spoonacular: Better US recipes, multi-ingredient search, 150 free requests/day
@@ -97,7 +99,8 @@ router.get(
 router.get(
   '/:id',
   [param('id').isNumeric()],
-  async (req: Request, res: Response) => {
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
     try {
       const {id} = req.params;
 
@@ -112,6 +115,27 @@ router.get(
       console.log(`Fetching recipe details for ID: ${id}`);
 
       const recipe = await recipeProviderService.getRecipeDetails(id);
+
+      // Track recipe view and check achievements
+      if (req.user?.id) {
+        try {
+          // Log recipe view
+          await pool.query(
+            'INSERT INTO recipe_views (user_id, recipe_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [req.user.id, id],
+          );
+
+          // Check recipe achievements
+          await AchievementService.checkRecipeAchievements(
+            parseInt(req.user.id),
+          );
+        } catch (achievementError) {
+          console.warn(
+            'Failed to check recipe achievements:',
+            achievementError,
+          );
+        }
+      }
 
       res.json({
         recipe,
