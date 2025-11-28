@@ -147,12 +147,28 @@ router.get('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
+router.delete(
+  '/meal-plans/:id',
+  authenticateToken,
+  async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id as string;
+      const mealPlanId = parseInt(req.params.id);
+      await RecipeEnhancementService.deleteMealPlan(mealPlanId, userId);
+      res.json({success: true});
+    } catch (error) {
+      console.error('Error deleting meal plan:', error);
+      res.status(500).json({error: 'Failed to delete meal plan'});
+    }
+  },
+);
+
 router.put(
   '/meal-plans/:id/complete',
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id as string);
+      const userId = req.user!.id as string;
       const mealPlanId = parseInt(req.params.id);
       await RecipeEnhancementService.markMealComplete(mealPlanId, userId);
       res.json({success: true});

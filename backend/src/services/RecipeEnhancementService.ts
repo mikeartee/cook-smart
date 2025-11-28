@@ -136,7 +136,15 @@ export class RecipeEnhancementService {
     return result.rows;
   }
 
-  static async markMealComplete(mealPlanId: number, userId: number) {
+  static async deleteMealPlan(mealPlanId: number, userId: string) {
+    const result = await pool.query(
+      `DELETE FROM meal_plans WHERE id = $1 AND user_id = $2 RETURNING *`,
+      [mealPlanId, userId],
+    );
+    return result.rows[0];
+  }
+
+  static async markMealComplete(mealPlanId: number, userId: string) {
     const result = await pool.query(
       `UPDATE meal_plans SET completed = true
        WHERE id = $1 AND user_id = $2 RETURNING *`,

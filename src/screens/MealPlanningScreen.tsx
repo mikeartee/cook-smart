@@ -7,10 +7,16 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
+  Modal,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {getMealPlans} from '../services/recipeEnhancementService';
+import {
+  getMealPlans,
+  deleteMealPlan,
+} from '../services/recipeEnhancementService';
 
 export default function MealPlanningScreen() {
   const navigation = useNavigation();
@@ -18,6 +24,8 @@ export default function MealPlanningScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate] = useState(new Date());
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMeals, setSelectedMeals] = useState<any[]>([]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -50,6 +58,18 @@ export default function MealPlanningScreen() {
     setRefreshing(false);
   };
 
+  const handleDeleteMeal = async (mealPlanId: number) => {
+    try {
+      await deleteMealPlan(mealPlanId);
+      await loadMealPlans();
+      if (selectedMeals.length <= 1) {
+        setModalVisible(false);
+      }
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to delete meal');
+    }
+  };
+
   const getNext7Days = () => {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -70,9 +90,17 @@ export default function MealPlanningScreen() {
 
   const getMealsForDate = (date: Date, mealType: string) => {
     const dateStr = date.toISOString().split('T')[0];
-    return mealPlans.filter(
-      plan => plan.planned_date === dateStr && plan.meal_type === mealType,
-    );
+    const filtered = mealPlans.filter(plan => {
+      // Normalize both dates for comparison - handle both string and Date formats
+      let planDate = plan.planned_date;
+      if (typeof planDate === 'string') {
+        planDate = planDate.split('T')[0];
+      } else if (planDate instanceof Date) {
+        planDate = planDate.toISOString().split('T')[0];
+      }
+      return planDate === dateStr && plan.meal_type === mealType;
+    });
+    return filtered;
   };
 
   const days = getNext7Days();
@@ -153,12 +181,19 @@ export default function MealPlanningScreen() {
                       pressed && styles.mealCellPressed,
                     ]}
                     onPress={() => {
-                      const dateStr = day.toISOString().split('T')[0];
-                      (navigation as any).navigate('SavedRecipesList', {
-                        selectMode: true,
-                        date: dateStr,
-                        mealType,
-                      });
+                      if (hasMeals) {
+                        // Show modal with existing meals
+                        setSelectedMeals(meals);
+                        setModalVisible(true);
+                      } else {
+                        // Navigate to add new meals
+                        const dateStr = day.toISOString().split('T')[0];
+                        (navigation as any).navigate('SavedRecipesList', {
+                          selectMode: true,
+                          date: dateStr,
+                          mealType,
+                        });
+                      }
                     }}>
                     {hasMeals ? (
                       <View style={styles.mealsContainer}>
@@ -183,6 +218,42 @@ export default function MealPlanningScreen() {
           Tap any cell to add a recipe to your meal plan
         </Text>
       </View>
+
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Planned Meals</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Icon name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalList}>
+              {selectedMeals.map(meal => (
+                <View key={meal.id} style={styles.mealItem}>
+                  <View style={styles.mealItemInfo}>
+                    <Text style={styles.mealItemTitle}>
+                      Recipe #{meal.recipe_id}
+                    </Text>
+                    <Text style={styles.mealItemDate}>
+                      {meal.planned_date?.split('T')[0]}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteMeal(meal.id)}
+                    style={styles.deleteButton}>
+                    <Icon name="delete" size={24} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -307,5 +378,58 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#047857',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalList: {
+    padding: 16,
+  },
+  mealItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  mealItemInfo: {
+    flex: 1,
+  },
+  mealItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  mealItemDate: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  deleteButton: {
+    padding: 8,
   },
 });

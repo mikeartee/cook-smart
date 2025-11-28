@@ -102,6 +102,22 @@ export const getMealPlans = async (startDate: string, endDate: string) => {
   return data.mealPlans;
 };
 
+export const deleteMealPlan = async (mealPlanId: number) => {
+  const token = await AsyncStorage.getItem('auth_token');
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/recipe-enhancements/meal-plans/${mealPlanId}`,
+    {
+      method: 'DELETE',
+      headers: getAuthHeader(token),
+    },
+  );
+
+  if (!response.ok) throw new Error('Failed to delete meal plan');
+  return response.json();
+};
+
 export const createCollection = async (name: string, icon?: string) => {
   const token = await AsyncStorage.getItem('auth_token');
   if (!token) throw new Error('Not authenticated');
