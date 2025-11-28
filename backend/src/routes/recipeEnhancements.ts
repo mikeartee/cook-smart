@@ -133,7 +133,7 @@ router.post('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
 
 router.get('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id as string);
+    const userId = req.user!.id as string;
     const {startDate, endDate} = req.query;
     const mealPlans = await RecipeEnhancementService.getMealPlans(
       userId,

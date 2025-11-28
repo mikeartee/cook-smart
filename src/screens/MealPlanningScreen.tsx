@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  RefreshControl,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {getMealPlans} from '../services/recipeEnhancementService';
 
@@ -15,11 +16,14 @@ export default function MealPlanningScreen() {
   const navigation = useNavigation();
   const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedDate] = useState(new Date());
 
-  useEffect(() => {
-    loadMealPlans();
-  }, [selectedDate]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMealPlans();
+    }, [selectedDate]),
+  );
 
   const loadMealPlans = async () => {
     try {
@@ -40,6 +44,12 @@ export default function MealPlanningScreen() {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMealPlans();
+    setRefreshing(false);
+  };
+
   const getNext7Days = () => {
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -58,9 +68,9 @@ export default function MealPlanningScreen() {
     return date.toLocaleDateString('en-US', {weekday: 'short'});
   };
 
-  const getMealForDate = (date: Date, mealType: string) => {
+  const getMealsForDate = (date: Date, mealType: string) => {
     const dateStr = date.toISOString().split('T')[0];
-    return mealPlans.find(
+    return mealPlans.filter(
       plan => plan.planned_date === dateStr && plan.meal_type === mealType,
     );
   };
@@ -86,7 +96,15 @@ export default function MealPlanningScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled={true}>
+        nestedScrollEnabled={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#10B981']}
+            tintColor="#10B981"
+          />
+        }>
         <View style={styles.calendarGrid} pointerEvents="box-none">
           {/* Header Row */}
           <View style={styles.headerRow}>
@@ -124,13 +142,14 @@ export default function MealPlanningScreen() {
                 </Text>
               </View>
               {days.map((day, index) => {
-                const meal = getMealForDate(day, mealType);
+                const meals = getMealsForDate(day, mealType);
+                const hasMeals = meals.length > 0;
                 return (
                   <Pressable
                     key={index}
                     style={({pressed}) => [
                       styles.mealCell,
-                      meal && styles.mealCellFilled,
+                      hasMeals && styles.mealCellFilled,
                       pressed && styles.mealCellPressed,
                     ]}
                     onPress={() => {
@@ -141,10 +160,12 @@ export default function MealPlanningScreen() {
                         mealType,
                       });
                     }}>
-                    {meal ? (
-                      <Text style={styles.mealText} numberOfLines={2}>
-                        {meal.recipe_id}
-                      </Text>
+                    {hasMeals ? (
+                      <View style={styles.mealsContainer}>
+                        <Text style={styles.mealCount}>
+                          {meals.length} recipe{meals.length > 1 ? 's' : ''}
+                        </Text>
+                      </View>
                     ) : (
                       <Icon name="add" size={24} color="#D1D5DB" />
                     )}
@@ -262,6 +283,16 @@ const styles = StyleSheet.create({
     color: '#047857',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  mealsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mealCount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#047857',
+    textAlign: 'center',
   },
   infoBox: {
     flexDirection: 'row',

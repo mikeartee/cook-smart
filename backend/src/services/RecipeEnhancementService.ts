@@ -123,7 +123,7 @@ export class RecipeEnhancementService {
   }
 
   static async getMealPlans(
-    userId: number,
+    userId: string,
     startDate: string,
     endDate: string,
   ) {
