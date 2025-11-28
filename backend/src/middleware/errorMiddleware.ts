@@ -248,13 +248,18 @@ export function notFoundHandler(
     '/.env',
     '/wp-admin',
     '/wp-login',
+    '/wp-content',
     '/admin',
     '/phpmyadmin',
     '/xmlrpc.php',
     '/.git',
   ];
 
-  const isBotTraffic = botPaths.some(path => req.path.includes(path));
+  // Check for PHP exploit attempts (all .php files are bot attacks - we don't use PHP)
+  const isPhpExploit = req.path.endsWith('.php');
+
+  const isBotTraffic =
+    isPhpExploit || botPaths.some(path => req.path.includes(path));
 
   if (isBotTraffic) {
     // Silently return 404 for bot traffic without logging
