@@ -18,6 +18,10 @@ import ProfileScreen from '../screens/ProfileScreenNew';
 import DietaryPreferencesScreen from '../screens/DietaryPreferencesScreen';
 import {PrivacySecurityScreen} from '../screens/PrivacySecurityScreen';
 import {ChangePasswordScreen} from '../screens/ChangePasswordScreen';
+import {DataPolicyScreen} from '../screens/DataPolicyScreen';
+import {TwoFactorScreen} from '../screens/TwoFactorScreen';
+import {PrivacyPolicyScreen} from '../screens/PrivacyPolicyScreen';
+import {TermsOfServiceScreen} from '../screens/TermsOfServiceScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import MyRecipesScreen from '../screens/MyRecipesScreen';
@@ -89,6 +93,10 @@ const AccountStack = () => (
     />
     <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+    <Stack.Screen name="DataPolicy" component={DataPolicyScreen} />
+    <Stack.Screen name="TwoFactor" component={TwoFactorScreen} />
+    <Stack.Screen name="PrivacyPolicyView" component={PrivacyPolicyScreen} />
+    <Stack.Screen name="TermsOfServiceView" component={TermsOfServiceScreen} />
     <Stack.Screen
       name="NotificationSettings"
       component={NotificationSettingsScreen}
