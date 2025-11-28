@@ -160,16 +160,34 @@ export class AdvancedRecipeService {
         return [];
       }
 
-      const response = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?tags=${seasonalTags}&number=${limit}&addRecipeInformation=true&apiKey=${apiKey}`,
+      console.log(
+        `Fetching seasonal recipes for ${season} with tags: ${seasonalTags}`,
       );
 
+      const url = `https://api.spoonacular.com/recipes/complexSearch?tags=${seasonalTags}&number=${limit}&sort=popularity&addRecipeInformation=true&apiKey=${apiKey}`;
+      console.log('API URL:', url.replace(apiKey, 'HIDDEN'));
+
+      const response = await fetch(url);
+
       if (!response.ok) {
-        console.error('Failed to fetch seasonal recipes from API');
+        const errorText = await response.text();
+        console.error(
+          'Failed to fetch seasonal recipes from API:',
+          response.status,
+          errorText,
+        );
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
+      console.log(
+        `Received ${data.results?.length || 0} seasonal recipes from Spoonacular`,
+      );
+
+      if (!data.results || data.results.length === 0) {
+        console.warn('No seasonal recipes found from API');
+        return [];
+      }
 
       // Transform API response to match our format
       return data.results.map((recipe: any) => ({
