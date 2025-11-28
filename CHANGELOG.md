@@ -35,6 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin parent navigation issues
 - Role-based access control
 
+## [1.0.29] - 2025-11-28
+
+### Added
+- Automatic seasonal recipe fetching from Spoonacular API
+- Seasonal recipes now display by default regardless of ingredients
+- Season-specific recipe tags (spring, summer, fall, winter)
+
+### Fixed
+- Seasonal tab no longer shows empty results
+- Added node-fetch import for API calls in backend
+
+### Changed
+- Seasonal recipes automatically fetch from Spoonacular when database is empty
+- Improved seasonal recipe display with images and cooking times
+
 ## [Unreleased]
 
 ### Added
