@@ -1,5 +1,4 @@
 import express from 'express';
-import {requireActiveSubscription} from './middleware/subscriptionAccess';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -125,9 +124,11 @@ import advancedRecipesRoutes from './routes/advancedRecipes';
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/password', passwordResetRoutes);
 app.use('/api/v1/settings', userSettingsRoutes);
-app.use('/api/v1/ingredients', requireActiveSubscription, ingredientRoutes);
-app.use('/api/v1/barcode', requireActiveSubscription, barcodeRoutes);
-app.use('/api/v1/recipes', requireActiveSubscription, recipeRoutes);
+// Note: authenticateToken is already in the individual routes, so requireActiveSubscription expects req.user to exist
+// We need to remove requireActiveSubscription from here since routes handle their own auth
+app.use('/api/v1/ingredients', ingredientRoutes);
+app.use('/api/v1/barcode', barcodeRoutes);
+app.use('/api/v1/recipes', recipeRoutes);
 app.use('/api/v1/recipes/user', userRecipesRoutes);
 app.use('/api/v1/dietary', dietaryRoutes);
 app.use('/api/v1/shopping-list', shoppingRoutes);

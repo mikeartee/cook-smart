@@ -46,6 +46,11 @@ class IngredientService {
   async getUserIngredients(): Promise<GetIngredientsResponse> {
     const token = await this.getAuthToken();
 
+    console.log(
+      '📤 Fetching ingredients with token:',
+      token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
+    );
+
     const response = await fetch(`${API_BASE_URL}/api/v1/ingredients`, {
       method: 'GET',
       headers: {
