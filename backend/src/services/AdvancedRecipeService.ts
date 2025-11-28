@@ -1,4 +1,5 @@
 import pool from '../config/database';
+import fetch from 'node-fetch';
 
 export class AdvancedRecipeService {
   // Nutrition
@@ -140,10 +141,62 @@ export class AdvancedRecipeService {
       'SELECT * FROM seasonal_recipes WHERE season = $1 ORDER BY priority DESC LIMIT $2',
       [season, limit],
     );
+
+    // If no seasonal recipes in database, fetch from external API
+    if (result.rows.length === 0) {
+      return this.fetchSeasonalRecipesFromAPI(season, limit);
+    }
+
     return result.rows;
   }
 
-  getCurrentSeason() {
+  private async fetchSeasonalRecipesFromAPI(season: string, limit: number) {
+    try {
+      const seasonalTags = this.getSeasonalTags(season);
+      const apiKey = process.env.SPOONACULAR_API_KEY;
+
+      if (!apiKey) {
+        console.warn('No Spoonacular API key found, returning empty array');
+        return [];
+      }
+
+      const response = await fetch(
+        `https://api.spoonacular.com/recipes/complexSearch?tags=${seasonalTags}&number=${limit}&addRecipeInformation=true&apiKey=${apiKey}`,
+      );
+
+      if (!response.ok) {
+        console.error('Failed to fetch seasonal recipes from API');
+        return [];
+      }
+
+      const data = await response.json();
+
+      // Transform API response to match our format
+      return data.results.map((recipe: any) => ({
+        recipe_id: recipe.id.toString(),
+        season: season,
+        priority: 0,
+        title: recipe.title,
+        image: recipe.image,
+        readyInMinutes: recipe.readyInMinutes,
+      }));
+    } catch (error) {
+      console.error('Error fetching seasonal recipes from API:', error);
+      return [];
+    }
+  }
+
+  private getSeasonalTags(season: string): string {
+    const seasonalIngredients: Record<string, string> = {
+      spring: 'asparagus,peas,strawberries,spring',
+      summer: 'tomatoes,corn,berries,summer,grilling',
+      fall: 'pumpkin,squash,apples,fall,autumn',
+      winter: 'root vegetables,winter,comfort food,soup',
+    };
+    return seasonalIngredients[season] || '';
+  }
+
+  getCurrentSeason(): string {
     const month = new Date().getMonth();
     if (month >= 2 && month <= 4) return 'spring';
     if (month >= 5 && month <= 7) return 'summer';

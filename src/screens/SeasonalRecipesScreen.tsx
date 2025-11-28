@@ -25,14 +25,28 @@ export default function SeasonalRecipesScreen({navigation}: any) {
       const response = await advancedRecipeService.getCurrentSeasonalRecipes();
       if (response.success) {
         setSeason(response.season);
-        // Load recipe details
-        const recipeDetails = await Promise.all(
-          response.recipes.map(async (item: any) => {
-            const recipe = await recipeService.getRecipeById(item.recipe_id);
-            return recipe;
-          }),
-        );
-        setRecipes(recipeDetails.filter(r => r));
+
+        // Check if recipes already have full details (from API)
+        if (response.recipes.length > 0 && response.recipes[0].title) {
+          // Recipes already have details from API
+          setRecipes(
+            response.recipes.map((item: any) => ({
+              id: item.recipe_id,
+              title: item.title,
+              image: item.image,
+              readyInMinutes: item.readyInMinutes,
+            })),
+          );
+        } else {
+          // Load recipe details from database
+          const recipeDetails = await Promise.all(
+            response.recipes.map(async (item: any) => {
+              const recipe = await recipeService.getRecipeById(item.recipe_id);
+              return recipe;
+            }),
+          );
+          setRecipes(recipeDetails.filter(r => r));
+        }
       }
     } catch (error) {
       console.error('Error loading seasonal recipes:', error);
