@@ -16,6 +16,7 @@ import {addMealPlan} from '../../services/recipeEnhancementService';
 
 interface SavedRecipesScreenProps {
   navigation: any;
+  route?: any;
 }
 
 export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({

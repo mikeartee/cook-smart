@@ -135,7 +135,7 @@ export default function MealPlanningScreen() {
                     ]}
                     onPress={() => {
                       const dateStr = day.toISOString().split('T')[0];
-                      navigation.navigate('SavedRecipesList', {
+                      (navigation as any).navigate('SavedRecipesList', {
                         selectMode: true,
                         date: dateStr,
                         mealType,
