@@ -11,6 +11,7 @@ export interface Ingredient {
   unit?: string;
   expiration_date?: string;
   added_at: string;
+  photo_url?: string;
 }
 
 export interface CreateIngredientDto {

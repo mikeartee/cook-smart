@@ -45,11 +45,9 @@ export default function HolidayRecipeSection({
   const loadRecipes = async () => {
     try {
       // Search for holiday recipes using first search term
-      const results = await recipeService.searchRecipes(
+      const results = await recipeService.searchByIngredients([
         holiday.searchTerms[0],
-        [],
-        4,
-      );
+      ]);
       setRecipes(results.slice(0, 4));
     } catch (error) {
       console.error('Failed to load holiday recipes:', error);
