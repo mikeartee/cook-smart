@@ -293,8 +293,9 @@ export default function MealPlanningScreen() {
                     style={styles.mealItem}
                     onPress={() => {
                       setModalVisible(false);
-                      (navigation as any).navigate('RecipeDetail', {
-                        recipeId: meal.recipe_id,
+                      (navigation as any).navigate('Recipes', {
+                        screen: 'RecipeDetail',
+                        params: {recipeId: meal.recipe_id},
                       });
                     }}
                     activeOpacity={0.7}>
