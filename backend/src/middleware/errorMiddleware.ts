@@ -262,7 +262,13 @@ export function notFoundHandler(
     isPhpExploit || botPaths.some(path => req.path.includes(path));
 
   if (isBotTraffic) {
-    // Silently return 404 for bot traffic without logging
+    // Track bot IPs for monitoring (could be used for future IP blocking)
+    const ip = req.ip?.replace(/^::ffff:/, '') || 'unknown';
+    if (ip !== 'unknown') {
+      console.log(`🤖 Bot blocked: ${ip} -> ${req.path}`);
+    }
+
+    // Silently return 404 for bot traffic without logging to Discord
     res.status(404).json({error: 'Not Found'});
     return;
   }

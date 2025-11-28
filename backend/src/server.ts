@@ -51,10 +51,10 @@ app.use(
   }),
 );
 
-// Rate limiting
+// Rate limiting - General API
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 50, // Reduced from 100 - limit each IP to 50 requests per 15min
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -62,6 +62,17 @@ const limiter = rateLimit({
     return req.ip?.replace(/^::ffff:/, '') || 'unknown';
   },
 });
+
+// Stricter rate limit for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Only 10 auth attempts per 15min
+  message: 'Too many authentication attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful requests
+});
+
 app.use(limiter);
 
 // Serve static files (favicon, etc.)
@@ -121,8 +132,8 @@ import recipeEnhancementsRoutes from './routes/recipeEnhancements';
 import socialRoutes from './routes/social';
 import advancedRecipesRoutes from './routes/advancedRecipes';
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/password', passwordResetRoutes);
+app.use('/api/v1/auth', authLimiter, authRoutes);
+app.use('/api/v1/password', authLimiter, passwordResetRoutes);
 app.use('/api/v1/settings', userSettingsRoutes);
 // Note: authenticateToken is already in the individual routes, so requireActiveSubscription expects req.user to exist
 // We need to remove requireActiveSubscription from here since routes handle their own auth
@@ -135,7 +146,7 @@ app.use('/api/v1/shopping-list', shoppingRoutes);
 app.use('/api/v1/points', pointsRoutes);
 app.use('/api/v1/referrals', referralRoutes);
 app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/admin/auth', adminAuthRoutes);
+app.use('/api/v1/admin/auth', authLimiter, adminAuthRoutes);
 app.use('/api/v1/admin/management', adminManagementRoutes);
 app.use('/api/v1/admin/users', adminUsersRoutes);
 app.use('/api/v1/admin/subscriptions', adminSubscriptionsRoutes);
