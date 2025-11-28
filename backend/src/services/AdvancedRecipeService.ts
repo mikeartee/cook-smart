@@ -137,17 +137,29 @@ export class AdvancedRecipeService {
   }
 
   async getSeasonalRecipes(season: string, limit = 20) {
-    const result = await pool.query(
-      'SELECT * FROM seasonal_recipes WHERE season = $1 ORDER BY priority DESC LIMIT $2',
-      [season, limit],
-    );
+    try {
+      const result = await pool.query(
+        'SELECT * FROM seasonal_recipes WHERE season = $1 ORDER BY priority DESC LIMIT $2',
+        [season, limit],
+      );
 
-    // If no seasonal recipes in database, fetch from external API
-    if (result.rows.length === 0) {
+      // If no seasonal recipes in database, fetch from external API
+      if (result.rows.length === 0) {
+        console.log(
+          'No seasonal recipes in database, fetching from Spoonacular API',
+        );
+        return this.fetchSeasonalRecipesFromAPI(season, limit);
+      }
+
+      return result.rows;
+    } catch (error) {
+      // If database is down, go straight to Spoonacular API
+      console.error(
+        'Database error when fetching seasonal recipes, falling back to API:',
+        error,
+      );
       return this.fetchSeasonalRecipesFromAPI(season, limit);
     }
-
-    return result.rows;
   }
 
   private async fetchSeasonalRecipesFromAPI(season: string, limit: number) {
@@ -190,7 +202,7 @@ export class AdvancedRecipeService {
       }
 
       // Transform API response to match our format
-      return data.results.map((recipe: any) => ({
+      const recipes = data.results.map((recipe: any) => ({
         recipe_id: recipe.id.toString(),
         season: season,
         priority: 0,
@@ -198,6 +210,22 @@ export class AdvancedRecipeService {
         image: recipe.image,
         readyInMinutes: recipe.readyInMinutes,
       }));
+
+      // Cache the results in the database to avoid future API calls
+      if (recipes.length > 0) {
+        console.log(`Caching ${recipes.length} seasonal recipes to database`);
+        try {
+          for (const recipe of recipes) {
+            await this.addSeasonalRecipe(recipe.recipe_id, season, 0);
+          }
+          console.log('✅ Seasonal recipes cached successfully');
+        } catch (cacheError) {
+          console.error('Failed to cache seasonal recipes:', cacheError);
+          // Continue anyway - we still have the recipes to return
+        }
+      }
+
+      return recipes;
     } catch (error) {
       console.error('Error fetching seasonal recipes from API:', error);
       return [];
@@ -215,10 +243,14 @@ export class AdvancedRecipeService {
   }
 
   getCurrentSeason(): string {
-    const month = new Date().getMonth();
+    const month = new Date().getMonth(); // 0-11 (Jan=0, Dec=11)
+    // Spring: March-May (2-4)
     if (month >= 2 && month <= 4) return 'spring';
+    // Summer: June-August (5-7)
     if (month >= 5 && month <= 7) return 'summer';
-    if (month >= 8 && month <= 10) return 'fall';
+    // Fall: September-October (8-9)
+    if (month >= 8 && month <= 9) return 'fall';
+    // Winter: November-February (10-11, 0-1)
     return 'winter';
   }
 }
