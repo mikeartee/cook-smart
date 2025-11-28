@@ -25,13 +25,13 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Check if an error is a session expiration error
+ * Note: We only treat it as session expiration if it's from the backend (401/403)
+ * Not from missing token in storage (which could be a timing issue)
  */
 export function isSessionExpiredError(error: Error | string): boolean {
   const errorMessage = typeof error === 'string' ? error : error.message;
   return (
     errorMessage.includes('Session expired') ||
-    errorMessage.includes('Authorization required') ||
-    errorMessage.includes('Please log in again') ||
     errorMessage.includes('Invalid token') ||
     errorMessage.includes('Token verification failed')
   );

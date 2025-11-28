@@ -24,7 +24,15 @@ export const authenticateToken = async (
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
+    console.log('🔐 Auth check:', {
+      path: req.path,
+      hasAuthHeader: !!authHeader,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+    });
+
     if (!token) {
+      console.log('❌ No token provided');
       res.status(401).json({
         error: 'Access token required',
         message: 'Please provide a valid authentication token',
@@ -34,14 +42,18 @@ export const authenticateToken = async (
 
     const secret = process.env.JWT_SECRET;
     if (!secret) {
+      console.log('❌ JWT_SECRET not configured');
       res.status(500).json({error: 'Server configuration error'});
       return;
     }
 
     const decoded = jwt.verify(token, secret) as {userId: string};
+    console.log('✅ Token decoded, userId:', decoded.userId);
+
     const user = await UserModel.findById(decoded.userId);
 
     if (!user) {
+      console.log('❌ User not found for userId:', decoded.userId);
       res.status(401).json({
         error: 'Invalid token',
         message: 'User not found',
@@ -49,9 +61,11 @@ export const authenticateToken = async (
       return;
     }
 
+    console.log('✅ User authenticated:', user.email);
     req.user = user;
     next();
-  } catch (_error) {
+  } catch (error) {
+    console.log('❌ Token verification error:', error);
     res.status(403).json({
       error: 'Invalid token',
       message: 'Token verification failed',
