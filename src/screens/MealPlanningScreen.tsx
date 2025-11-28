@@ -17,6 +17,7 @@ import {
   getMealPlans,
   deleteMealPlan,
 } from '../services/recipeEnhancementService';
+import recipeService from '../services/recipeService';
 
 export default function MealPlanningScreen() {
   const navigation = useNavigation();
@@ -26,6 +27,7 @@ export default function MealPlanningScreen() {
   const [selectedDate] = useState(new Date());
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMeals, setSelectedMeals] = useState<any[]>([]);
+  const [loadingRecipes, setLoadingRecipes] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -188,11 +190,49 @@ export default function MealPlanningScreen() {
                       hasMeals && styles.mealCellFilled,
                       pressed && styles.mealCellPressed,
                     ]}
-                    onPress={() => {
+                    onPress={async () => {
                       if (hasMeals) {
-                        // Show modal with existing meals
+                        // Show modal with existing meals and fetch recipe details
                         setSelectedMeals(meals);
                         setModalVisible(true);
+                        setLoadingRecipes(true);
+
+                        // Fetch recipe details for each meal
+                        const mealsWithDetails = await Promise.all(
+                          meals.map(async meal => {
+                            try {
+                              const recipe = await recipeService.getRecipeById(
+                                meal.recipe_id,
+                              );
+                              if (recipe) {
+                                return {
+                                  ...meal,
+                                  recipeName:
+                                    recipe.name ||
+                                    recipe.title ||
+                                    `Recipe #${meal.recipe_id}`,
+                                  recipeImage: recipe.image,
+                                };
+                              }
+                              return {
+                                ...meal,
+                                recipeName: `Recipe #${meal.recipe_id}`,
+                              };
+                            } catch (error) {
+                              console.error(
+                                'Failed to load recipe details:',
+                                error,
+                              );
+                              return {
+                                ...meal,
+                                recipeName: `Recipe #${meal.recipe_id}`,
+                              };
+                            }
+                          }),
+                        );
+
+                        setSelectedMeals(mealsWithDetails);
+                        setLoadingRecipes(false);
                       } else {
                         // Navigate to add new meals
                         const dateStr = day.toISOString().split('T')[0];
@@ -241,23 +281,42 @@ export default function MealPlanningScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalList}>
-              {selectedMeals.map(meal => (
-                <View key={meal.id} style={styles.mealItem}>
-                  <View style={styles.mealItemInfo}>
-                    <Text style={styles.mealItemTitle}>
-                      Recipe #{meal.recipe_id}
-                    </Text>
-                    <Text style={styles.mealItemDate}>
-                      {meal.planned_date?.split('T')[0]}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteMeal(meal.id)}
-                    style={styles.deleteButton}>
-                    <Icon name="delete" size={24} color="#EF4444" />
-                  </TouchableOpacity>
+              {loadingRecipes ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#10B981" />
+                  <Text style={styles.loadingText}>Loading recipes...</Text>
                 </View>
-              ))}
+              ) : (
+                selectedMeals.map(meal => (
+                  <TouchableOpacity
+                    key={meal.id}
+                    style={styles.mealItem}
+                    onPress={() => {
+                      setModalVisible(false);
+                      (navigation as any).navigate('RecipeDetail', {
+                        recipeId: meal.recipe_id,
+                      });
+                    }}
+                    activeOpacity={0.7}>
+                    <View style={styles.mealItemInfo}>
+                      <Text style={styles.mealItemTitle}>
+                        {meal.recipeName || `Recipe #${meal.recipe_id}`}
+                      </Text>
+                      <Text style={styles.mealItemDate}>
+                        {meal.planned_date?.split('T')[0]}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={e => {
+                        e.stopPropagation();
+                        handleDeleteMeal(meal.id);
+                      }}
+                      style={styles.deleteButton}>
+                      <Icon name="delete" size={24} color="#EF4444" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))
+              )}
             </ScrollView>
           </View>
         </View>
@@ -439,5 +498,15 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 8,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });

@@ -124,8 +124,10 @@ export const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({
         <Text style={styles.paragraph}>
           If you have questions about this Privacy Policy, please contact us at:
         </Text>
-        <Text style={styles.bulletPoint}>• Email: privacy@cooksmart.app</Text>
-        <Text style={styles.bulletPoint}>• Website: www.cooksmart.app</Text>
+        <Text style={styles.bulletPoint}>
+          • Email: services.cooksmart@gmail.com
+        </Text>
+        <Text style={styles.bulletPoint}>• Website: Coming Soon</Text>
 
         <View style={styles.bottomPadding} />
       </ScrollView>

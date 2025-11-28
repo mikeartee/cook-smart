@@ -109,9 +109,7 @@ export const DataPolicyScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <View style={styles.bulletPoint}>
               <Icon name="fiber-manual-record" size={8} color="#6B7280" />
-              <Text style={styles.bulletText}>
-                To provide customer support
-              </Text>
+              <Text style={styles.bulletText}>To provide customer support</Text>
             </View>
           </View>
 
@@ -158,15 +156,15 @@ export const DataPolicyScreen: React.FC<Props> = ({navigation}) => {
             <View style={styles.bulletPoint}>
               <Icon name="fiber-manual-record" size={8} color="#6B7280" />
               <Text style={styles.bulletText}>
-                <Text style={styles.bold}>Export:</Text> Download a copy of
-                your data
+                <Text style={styles.bold}>Export:</Text> Download a copy of your
+                data
               </Text>
             </View>
             <View style={styles.bulletPoint}>
               <Icon name="fiber-manual-record" size={8} color="#6B7280" />
               <Text style={styles.bulletText}>
-                <Text style={styles.bold}>Delete:</Text> Permanently delete
-                your account and data
+                <Text style={styles.bold}>Delete:</Text> Permanently delete your
+                account and data
               </Text>
             </View>
             <View style={styles.bulletPoint}>
@@ -192,9 +190,7 @@ export const DataPolicyScreen: React.FC<Props> = ({navigation}) => {
             </View>
             <View style={styles.bulletPoint}>
               <Icon name="fiber-manual-record" size={8} color="#6B7280" />
-              <Text style={styles.bulletText}>
-                Encrypted password storage
-              </Text>
+              <Text style={styles.bulletText}>Encrypted password storage</Text>
             </View>
             <View style={styles.bulletPoint}>
               <Icon name="fiber-manual-record" size={8} color="#6B7280" />
@@ -226,7 +222,7 @@ export const DataPolicyScreen: React.FC<Props> = ({navigation}) => {
               If you have questions about how we use your data, please contact
               us at:
             </Text>
-            <Text style={styles.contactText}>privacy@cooksmart.app</Text>
+            <Text style={styles.contactText}>services.cooksmart@gmail.com</Text>
           </View>
 
           <View style={styles.infoBox}>
@@ -334,4 +330,3 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 });
-

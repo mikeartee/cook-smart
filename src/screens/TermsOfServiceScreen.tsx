@@ -178,8 +178,10 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           If you have questions about these Terms of Service, please contact us
           at:
         </Text>
-        <Text style={styles.bulletPoint}>• Email: support@cooksmart.app</Text>
-        <Text style={styles.bulletPoint}>• Website: www.cooksmart.app</Text>
+        <Text style={styles.bulletPoint}>
+          • Email: services.cooksmart@gmail.com
+        </Text>
+        <Text style={styles.bulletPoint}>• Website: Coming Soon</Text>
 
         <View style={styles.bottomPadding} />
       </ScrollView>
