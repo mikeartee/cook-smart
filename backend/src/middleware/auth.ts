@@ -11,7 +11,8 @@ export const generateToken = (userId: string): string => {
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
   }
-  return jwt.sign({userId}, secret, {expiresIn: '7d'});
+  // 90 days for mobile app - users expect to stay logged in
+  return jwt.sign({userId}, secret, {expiresIn: '90d'});
 };
 
 export const authenticateToken = async (

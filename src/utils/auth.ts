@@ -22,3 +22,24 @@ export async function isAuthenticated(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Check if an error is a session expiration error
+ */
+export function isSessionExpiredError(error: Error | string): boolean {
+  const errorMessage = typeof error === 'string' ? error : error.message;
+  return (
+    errorMessage.includes('Session expired') ||
+    errorMessage.includes('Authorization required') ||
+    errorMessage.includes('Please log in again') ||
+    errorMessage.includes('Invalid token') ||
+    errorMessage.includes('Token verification failed')
+  );
+}
+
+/**
+ * Check if a response status indicates session expiration
+ */
+export function isSessionExpiredStatus(status: number): boolean {
+  return status === 401 || status === 403;
+}
