@@ -1,5 +1,18 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import recipeService, { Recipe, RecipeDetails, SavedRecipe } from '../services/recipeService';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+} from 'react';
+import {Alert} from 'react-native';
+import recipeService, {
+  Recipe,
+  RecipeDetails,
+  SavedRecipe,
+} from '../services/recipeService';
+import {useAuth} from './AuthContext';
+import {isSessionExpiredError} from '../utils/auth';
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -29,63 +42,92 @@ interface RecipeProviderProps {
   children: ReactNode;
 }
 
-export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
+export const RecipeProvider: React.FC<RecipeProviderProps> = ({children}) => {
+  const {logout} = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
 
-  const searchRecipes = useCallback(async (ingredients: string[]) => {
-    setIsLoading(true);
-    setError(null);
-    setProvider(null);
-    try {
-      const response: any = await recipeService.searchByIngredients(ingredients);
-      console.log('Recipe service response:', response);
-      
-      // Handle both array response and object with recipes property
-      if (!response) {
-        console.log('No response from recipe service');
-        setRecipes([]);
-        return;
-      }
-      
-      if (Array.isArray(response)) {
-        setRecipes(response);
-        setProvider(response[0]?.provider || null);
-      } else if (response.recipes) {
-        setRecipes(response.recipes || []);
-        setProvider(response.provider || null);
-      } else {
-        console.log('Unexpected response format:', response);
-        setRecipes([]);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to search recipes';
-      setError(errorMessage);
-      console.error('Search recipes error:', err);
-      // Don't throw, just set error state
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const handleSessionExpired = useCallback(async () => {
+    Alert.alert(
+      'Session Expired',
+      'Your session has expired. Please log in again.',
+      [
+        {
+          text: 'OK',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ],
+      {cancelable: false},
+    );
+  }, [logout]);
 
-  const getRecipeDetails = useCallback(async (recipeId: number): Promise<RecipeDetails> => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const details = await recipeService.getRecipeDetails(recipeId);
-      return details;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch recipe details';
-      setError(errorMessage);
-      console.error('Get recipe details error:', err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const searchRecipes = useCallback(
+    async (ingredients: string[]) => {
+      setIsLoading(true);
+      setError(null);
+      setProvider(null);
+      try {
+        const response: any =
+          await recipeService.searchByIngredients(ingredients);
+        console.log('Recipe service response:', response);
+
+        // Handle both array response and object with recipes property
+        if (!response) {
+          console.log('No response from recipe service');
+          setRecipes([]);
+          return;
+        }
+
+        if (Array.isArray(response)) {
+          setRecipes(response);
+          setProvider(response[0]?.provider || null);
+        } else if (response.recipes) {
+          setRecipes(response.recipes || []);
+          setProvider(response.provider || null);
+        } else {
+          console.log('Unexpected response format:', response);
+          setRecipes([]);
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to search recipes';
+        setError(errorMessage);
+        console.error('Search recipes error:', err);
+
+        if (isSessionExpiredError(errorMessage)) {
+          await handleSessionExpired();
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleSessionExpired],
+  );
+
+  const getRecipeDetails = useCallback(
+    async (recipeId: number): Promise<RecipeDetails> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const details = await recipeService.getRecipeDetails(recipeId);
+        return details;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch recipe details';
+        setError(errorMessage);
+        console.error('Get recipe details error:', err);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   const saveRecipe = useCallback(async (recipe: RecipeDetails) => {
     setIsLoading(true);
@@ -95,7 +137,8 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
       // Refresh saved recipes
       await fetchSavedRecipes();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save recipe';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to save recipe';
       setError(errorMessage);
       console.error('Save recipe error:', err);
       throw err;
@@ -112,7 +155,8 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
       // Update state immediately
       setSavedRecipes(prev => prev.filter(r => r.recipe.id !== recipeId));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete recipe';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to delete recipe';
       setError(errorMessage);
       console.error('Delete recipe error:', err);
       throw err;
@@ -128,7 +172,8 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
       const saved = await recipeService.getSavedRecipes();
       setSavedRecipes(saved);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch saved recipes';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to fetch saved recipes';
       setError(errorMessage);
       console.error('Fetch saved recipes error:', err);
     } finally {
@@ -136,14 +181,17 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const isRecipeSaved = useCallback(async (recipeId: number): Promise<boolean> => {
-    try {
-      return await recipeService.isRecipeSaved(recipeId);
-    } catch (err) {
-      console.error('Check recipe saved error:', err);
-      return false;
-    }
-  }, []);
+  const isRecipeSaved = useCallback(
+    async (recipeId: number): Promise<boolean> => {
+      try {
+        return await recipeService.isRecipeSaved(recipeId);
+      } catch (err) {
+        console.error('Check recipe saved error:', err);
+        return false;
+      }
+    },
+    [],
+  );
 
   const value: RecipeContextType = {
     recipes,
@@ -160,8 +208,6 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({ children }) => {
   };
 
   return (
-    <RecipeContext.Provider value={value}>
-      {children}
-    </RecipeContext.Provider>
+    <RecipeContext.Provider value={value}>{children}</RecipeContext.Provider>
   );
 };
