@@ -125,7 +125,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       req.user.id,
     );
     const addedIngredient = userIngredients.find(
-      ing => ing.ingredient_id === finalIngredientId,
+      ing => ing.ingredient_id?.toString() === finalIngredientId?.toString(),
     );
 
     // Award points for adding ingredient
