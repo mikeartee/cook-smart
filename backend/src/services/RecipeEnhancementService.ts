@@ -106,7 +106,7 @@ export class RecipeEnhancementService {
 
   // MEAL PLANNING
   static async addMealPlan(
-    userId: number,
+    userId: string,
     recipeId: string,
     recipeType: 'api' | 'user',
     plannedDate: string,

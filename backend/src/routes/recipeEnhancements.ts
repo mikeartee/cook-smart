@@ -114,7 +114,7 @@ router.get(
 // MEAL PLANNING
 router.post('/meal-plans', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id as string);
+    const userId = req.user!.id as string;
     const {recipeId, recipeType, plannedDate, mealType, notes} = req.body;
     const mealPlan = await RecipeEnhancementService.addMealPlan(
       userId,
