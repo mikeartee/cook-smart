@@ -38,7 +38,9 @@ export default function NotificationSettingsScreen() {
 
   const loadSettings = async () => {
     try {
+      setLoading(true);
       const isEnabled = await notificationService.areNotificationsEnabled();
+      console.log('📱 Notification status:', isEnabled);
       setEnabled(isEnabled);
 
       if (isEnabled) {
@@ -47,8 +49,8 @@ export default function NotificationSettingsScreen() {
           setPreferences(prefs);
         }
       }
-    } catch (_error) {
-      console.error('Failed to load notification settings:', _error);
+    } catch (error) {
+      console.error('Failed to load notification settings:', error);
     } finally {
       setLoading(false);
     }

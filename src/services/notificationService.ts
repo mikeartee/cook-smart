@@ -110,11 +110,30 @@ class NotificationService {
    * Check if notifications are enabled
    */
   async areNotificationsEnabled(): Promise<boolean> {
-    const authStatus = await messaging().hasPermission();
-    return (
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL
-    );
+    try {
+      const authStatus = await messaging().hasPermission();
+      const isEnabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      // If enabled, make sure we have a token registered
+      if (isEnabled) {
+        try {
+          const token = await messaging().getToken();
+          if (token) {
+            // Re-register token to ensure backend is up to date
+            await this.registerToken(token);
+          }
+        } catch (tokenError) {
+          console.warn('Failed to get/register token:', tokenError);
+        }
+      }
+
+      return isEnabled;
+    } catch (error) {
+      console.error('Failed to check notification status:', error);
+      return false;
+    }
   }
 }
 
