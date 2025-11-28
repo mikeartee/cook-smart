@@ -61,10 +61,18 @@ export default function MealPlanningScreen() {
   const handleDeleteMeal = async (mealPlanId: number) => {
     try {
       await deleteMealPlan(mealPlanId);
-      await loadMealPlans();
-      if (selectedMeals.length <= 1) {
+
+      // Update the modal list immediately
+      const updatedMeals = selectedMeals.filter(meal => meal.id !== mealPlanId);
+      setSelectedMeals(updatedMeals);
+
+      // Close modal if no more meals
+      if (updatedMeals.length === 0) {
         setModalVisible(false);
       }
+
+      // Reload meal plans in background
+      await loadMealPlans();
     } catch (_error) {
       Alert.alert('Error', 'Failed to delete meal');
     }
