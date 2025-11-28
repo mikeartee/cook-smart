@@ -58,17 +58,25 @@ export default function NotificationSettingsScreen() {
 
   const handleEnableNotifications = async () => {
     try {
+      console.log('🔔 Requesting notification permissions...');
       const token = await notificationService.registerForPushNotifications();
+      console.log('🔔 Token received:', token ? 'Yes' : 'No');
       if (token) {
         setEnabled(true);
         Alert.alert('Success', 'Notifications enabled!');
+        await loadSettings(); // Reload to confirm
       } else {
         Alert.alert(
           'Permission Denied',
           'Please enable notifications in your device settings to receive alerts.',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'Open Settings', onPress: () => Linking.openSettings()},
+          ],
         );
       }
-    } catch (_error) {
+    } catch (error) {
+      console.error('Enable notifications error:', error);
       Alert.alert('Error', 'Failed to enable notifications');
     }
   };

@@ -82,8 +82,8 @@ android {
         applicationId "com.cooksmartfresh"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 27
-        versionName "1.0.27"
+        versionCode 35
+        versionName "1.0.35"
     }
     
     // Add vector icons fonts

@@ -213,22 +213,31 @@ class ShoppingListService {
   async clearCompleted(): Promise<void> {
     try {
       const token = await getAuthToken();
+      const url = `${API_BASE_URL}/api/v1/shopping-list/clear-completed`;
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/shopping-list/clear-completed`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+      console.log('🗑️ Clearing completed items...');
+      console.log('URL:', url);
+      console.log('Token:', token ? 'Present' : 'Missing');
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      );
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        console.error('Clear completed failed:', data);
         throw new Error(data.error || 'Failed to clear completed items');
       }
+
+      const data = await response.json().catch(() => ({}));
+      console.log('Clear completed success:', data);
     } catch (error) {
       console.error('Error clearing completed items:', error);
       throw error;

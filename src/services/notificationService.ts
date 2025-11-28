@@ -16,25 +16,41 @@ class NotificationService {
    */
   async registerForPushNotifications(): Promise<string | null> {
     try {
+      console.log('🔔 Step 1: Requesting permission...');
+
       // Request permission
       const authStatus = await messaging().requestPermission();
+      console.log('🔔 Step 2: Auth status received:', authStatus);
+
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
+      console.log('🔔 Step 3: Enabled?', enabled);
+
       if (!enabled) {
+        console.log('🔔 Permission denied');
         return null;
       }
 
+      console.log('🔔 Step 4: Getting FCM token...');
       // Get FCM token
       const token = await messaging().getToken();
+      console.log('🔔 Step 5: Token received:', token ? 'YES' : 'NO');
+
+      if (!token) {
+        console.log('🔔 Failed to get token');
+        return null;
+      }
 
       // Register token with backend
+      console.log('🔔 Step 6: Registering with backend...');
       await this.registerToken(token);
+      console.log('🔔 Step 7: Complete!');
 
       return token;
     } catch (error) {
-      console.error('Failed to register for push notifications:', error);
+      console.error('🔔 ERROR:', error);
       return null;
     }
   }
@@ -111,24 +127,34 @@ class NotificationService {
    */
   async areNotificationsEnabled(): Promise<boolean> {
     try {
+      console.log('🔍 Checking notification permissions...');
+
+      // Try to get a token - if we can get one, notifications are enabled
+      try {
+        const token = await messaging().getToken();
+        console.log(
+          '🔑 FCM Token check:',
+          token ? 'GOT TOKEN - ENABLED' : 'NO TOKEN - DISABLED',
+        );
+
+        if (token) {
+          // We have a token, so notifications ARE enabled
+          await this.registerToken(token);
+          return true;
+        }
+      } catch (tokenError) {
+        console.log('❌ Cannot get token:', tokenError);
+      }
+
+      // If we couldn't get a token, check permission status
       const authStatus = await messaging().hasPermission();
+      console.log('📱 Firebase auth status:', authStatus);
+
       const isEnabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-      // If enabled, make sure we have a token registered
-      if (isEnabled) {
-        try {
-          const token = await messaging().getToken();
-          if (token) {
-            // Re-register token to ensure backend is up to date
-            await this.registerToken(token);
-          }
-        } catch (tokenError) {
-          console.warn('Failed to get/register token:', tokenError);
-        }
-      }
-
+      console.log('✅ Final result - Notifications enabled:', isEnabled);
       return isEnabled;
     } catch (error) {
       console.error('Failed to check notification status:', error);
