@@ -3,20 +3,16 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Modal,
   TextInput,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {SearchBar} from '../../components/common/SearchBar';
 import {useIngredients} from '../../contexts/IngredientContext';
 import PhotoPicker from '../../components/PhotoPicker';
 import {uploadPhoto} from '../../services/userRecipeService';
-import {Ingredient} from '../../services/ingredientService';
 import {BarcodeScannerModal} from '../../components/barcode/BarcodeScannerModal';
 import {ManualBarcodeEntryModal} from '../../components/barcode/ManualBarcodeEntryModal';
 import {ScannedProduct} from '../../services/productLookupService';
@@ -24,11 +20,8 @@ import {barcodeService} from '../../services/barcodeService';
 
 export const AddIngredientScreen: React.FC = () => {
   const navigation = useNavigation();
-  const {searchIngredients, addIngredient} = useIngredients();
+  const {addIngredient} = useIngredients();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
 
   // Barcode scanner state
@@ -50,28 +43,6 @@ export const AddIngredientScreen: React.FC = () => {
   useEffect(() => {
     checkCameraAvailability();
   }, []);
-
-  // Debounced search
-  useEffect(() => {
-    if (searchQuery.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const results = await searchIngredients(searchQuery);
-        setSearchResults(results);
-      } catch (error) {
-        console.error('Search error:', error);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, searchIngredients]);
 
   // Pre-populate form when product is scanned
   useEffect(() => {
@@ -128,28 +99,6 @@ export const AddIngredientScreen: React.FC = () => {
 
   const handleManualEntry = () => {
     setShowManualEntryModal(true);
-  };
-
-  const handleSelectIngredient = async (ingredient: Ingredient) => {
-    try {
-      await addIngredient({
-        ingredientId: ingredient.id,
-        quantity: 1,
-        unit: 'unit',
-      });
-
-      Alert.alert('Success', 'Ingredient added to your inventory', [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Navigate back to ingredients list
-            navigation.navigate('IngredientInventory' as never);
-          },
-        },
-      ]);
-    } catch (_error) {
-      Alert.alert('Error', 'Failed to add ingredient');
-    }
   };
 
   const handleAddCustom = async () => {
@@ -209,20 +158,6 @@ export const AddIngredientScreen: React.FC = () => {
     'Other',
   ];
 
-  const renderSearchResult = ({item}: {item: Ingredient}) => (
-    <TouchableOpacity
-      style={styles.resultItem}
-      onPress={() => handleSelectIngredient(item)}>
-      <View style={styles.resultContent}>
-        <Text style={styles.resultName}>
-          {item.ingredient_name || item.name}
-        </Text>
-        <Text style={styles.resultCategory}>{item.category}</Text>
-      </View>
-      <Icon name="add-circle" size={24} color="#10B981" />
-    </TouchableOpacity>
-  );
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -241,43 +176,13 @@ export const AddIngredientScreen: React.FC = () => {
         <Text style={styles.scanButtonText}>Scan Barcode</Text>
       </TouchableOpacity>
 
-      <View style={styles.searchContainer}>
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search ingredients..."
-        />
+      <View style={styles.centerContainer}>
+        <Icon name="kitchen" size={64} color="#10B981" />
+        <Text style={styles.emptyTitle}>Add Ingredients</Text>
+        <Text style={styles.emptySubtext}>
+          Scan a barcode or add a custom ingredient below
+        </Text>
       </View>
-
-      {isSearching ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Searching...</Text>
-        </View>
-      ) : searchQuery.trim().length < 2 ? (
-        <View style={styles.centerContainer}>
-          <Icon name="search" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>Search for Ingredients</Text>
-          <Text style={styles.emptySubtext}>
-            Type at least 2 characters to search
-          </Text>
-        </View>
-      ) : searchResults.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Icon name="search-off" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No Results Found</Text>
-          <Text style={styles.emptySubtext}>
-            Try a different search term or add a custom ingredient
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={searchResults}
-          renderItem={renderSearchResult}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
 
       <TouchableOpacity
         style={styles.customButton}
@@ -433,10 +338,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  searchContainer: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -460,33 +361,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     lineHeight: 20,
-  },
-  listContent: {
-    padding: 16,
-  },
-  resultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  resultContent: {
-    flex: 1,
-  },
-  resultName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
-  },
-  resultCategory: {
-    fontSize: 12,
-    color: '#6B7280',
-    textTransform: 'capitalize',
   },
   customButton: {
     flexDirection: 'row',
