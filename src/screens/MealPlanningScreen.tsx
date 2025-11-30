@@ -208,9 +208,7 @@ export default function MealPlanningScreen() {
                                 return {
                                   ...meal,
                                   recipeName:
-                                    recipe.name ||
-                                    recipe.title ||
-                                    `Recipe #${meal.recipe_id}`,
+                                    recipe.title || `Recipe #${meal.recipe_id}`,
                                   recipeImage: recipe.image,
                                 };
                               }
