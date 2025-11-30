@@ -36,7 +36,7 @@ export class StripeWebhookController {
     }
 
     // Process event asynchronously
-    this.processWebhookEvent(event).catch(error => {
+    StripeWebhookController.processWebhookEvent(event).catch(error => {
       console.error('Error processing webhook event:', error);
     });
 
