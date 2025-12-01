@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { SkipToContent } from '@/components/skip-to-content';
-import { Footer } from '@/components/footer';
+import { ConditionalFooter } from '@/components/conditional-footer';
 import { CookieConsent } from '@/components/cookie-consent';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SkipToContent />
         <main id="main-content">{children}</main>
-        <Footer />
+        <ConditionalFooter />
         <CookieConsent />
       </body>
     </html>
