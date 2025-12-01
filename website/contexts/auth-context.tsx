@@ -94,16 +94,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     try {
       setIsLoading(true);
       const response = await authApi.login(email, password);
+
+      // Check if user has admin access
+      const userData = response.user as any;
+      if (!userData.is_admin && !userData.is_co_founder && !userData.is_creator) {
+        throw new Error('You do not have admin access');
+      }
+
       apiClient.setAuthToken(response.token);
-      
-      // In a real app, decode token or fetch user info
+
       setUser({
-        id: '1',
-        email,
-        name: 'Admin User',
+        id: userData.id,
+        email: userData.email,
+        name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Admin User',
         role: 'admin',
       });
-      
+
       setLastActivity(Date.now());
     } catch (error) {
       console.error('Login failed:', error);

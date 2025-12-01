@@ -17,11 +17,11 @@ class ApiClient {
 
     // Request interceptor to add auth token
     this.client.interceptors.request.use(
-      (config) => {
+      (requestConfig) => {
         if (this.authToken) {
-          config.headers.Authorization = `Bearer ${this.authToken}`;
+          requestConfig.headers.Authorization = `Bearer ${this.authToken}`;
         }
-        return config;
+        return requestConfig;
       },
       (error) => Promise.reject(error)
     );
@@ -103,64 +103,63 @@ export default apiClient;
 // Export specific API methods for different domains
 export const authApi = {
   login: (email: string, password: string) =>
-    apiClient.post<{ token: string; user: unknown }>('/auth/login', { email, password }),
-  
-  logout: () => apiClient.post('/auth/logout'),
-  
-  refreshToken: () => apiClient.post<{ token: string }>('/auth/refresh'),
+    apiClient.post<{ token: string; user: unknown }>('/api/v1/auth/login', { email, password }),
+
+  logout: () => apiClient.post('/api/v1/auth/logout'),
+
+  refreshToken: () => apiClient.post<{ token: string }>('/api/v1/auth/refresh'),
 };
 
 export const recipesApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string; filter?: string }) =>
     apiClient.get<{ recipes: unknown[]; total: number }>('/recipes', { params }),
-  
+
   getById: (id: string) => apiClient.get<unknown>(`/recipes/${id}`),
-  
+
   getFeatured: () => apiClient.get<unknown[]>('/recipes/featured'),
-  
+
   update: (id: string, data: unknown) => apiClient.patch<unknown>(`/admin/recipes/${id}`, data),
-  
+
   delete: (id: string) => apiClient.delete(`/admin/recipes/${id}`),
-  
+
   feature: (id: string, featured: boolean) =>
     apiClient.patch(`/admin/recipes/${id}/feature`, { featured }),
-  
+
   bulkUpdate: (ids: string[], data: unknown) =>
     apiClient.post('/admin/recipes/bulk-update', { ids, data }),
-  
-  bulkDelete: (ids: string[]) =>
-    apiClient.post('/admin/recipes/bulk-delete', { ids }),
+
+  bulkDelete: (ids: string[]) => apiClient.post('/admin/recipes/bulk-delete', { ids }),
 };
 
 export const blogApi = {
   getAll: (params?: { page?: number; limit?: number; category?: string; search?: string }) =>
     apiClient.get<{ posts: unknown[]; total: number }>('/blog', { params }),
-  
+
   getById: (id: string) => apiClient.get<unknown>(`/blog/${id}`),
-  
+
   getCategories: () => apiClient.get<string[]>('/blog/categories'),
 };
 
 export const usersApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
     apiClient.get<{ users: unknown[]; total: number }>('/admin/users', { params }),
-  
+
   getById: (id: string) => apiClient.get<unknown>(`/admin/users/${id}`),
-  
+
   update: (id: string, data: unknown) => apiClient.patch<unknown>(`/admin/users/${id}`, data),
-  
+
   deactivate: (id: string) => apiClient.post(`/admin/users/${id}/deactivate`),
 };
 
 export const moderationApi = {
   getQueue: (params?: { page?: number; limit?: number; type?: string; priority?: string }) =>
     apiClient.get<{ items: unknown[]; total: number }>('/admin/moderation', { params }),
-  
+
   getDetail: (id: string) => apiClient.get<unknown>(`/admin/moderation/${id}`),
-  
+
   approve: (id: string, data?: { notes?: string; notifyCreator?: boolean }) =>
     apiClient.post(`/admin/moderation/${id}/approve`, data),
-  
+
   remove: (id: string, data: { reason: string; notes?: string; notifyCreator?: boolean }) =>
     apiClient.post(`/admin/moderation/${id}/remove`, data),
 };
@@ -168,10 +167,10 @@ export const moderationApi = {
 export const analyticsApi = {
   getOverview: (params?: { startDate?: string; endDate?: string }) =>
     apiClient.get<unknown>('/admin/analytics/overview', { params }),
-  
+
   getMetric: (metric: string, params?: { startDate?: string; endDate?: string }) =>
     apiClient.get<unknown>(`/admin/analytics/${metric}`, { params }),
-  
+
   export: (format: 'csv' | 'pdf', params?: { startDate?: string; endDate?: string }) =>
     apiClient.get<Blob>('/admin/analytics/export', {
       params: { ...params, format },
@@ -182,7 +181,7 @@ export const analyticsApi = {
 export const newsletterApi = {
   subscribe: (email: string, preferences?: unknown) =>
     apiClient.post('/newsletter/subscribe', { email, preferences }),
-  
+
   unsubscribe: (email: string) => apiClient.post('/newsletter/unsubscribe', { email }),
 };
 
