@@ -1,30 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { Apple, Play, Smartphone } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 
 export function HeroSection() {
-  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'desktop'>('desktop');
-
-  useEffect(() => {
-    // Detect device type
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(userAgent)) {
-      setDeviceType('ios');
-    } else if (/android/.test(userAgent)) {
-      setDeviceType('android');
-    }
-  }, []);
-
-  const handleDownload = (platform: 'ios' | 'android') => {
-    const urls = {
-      ios: process.env.NEXT_PUBLIC_IOS_STORE_URL || 'https://apps.apple.com',
-      android: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || 'https://play.google.com/store/apps',
-    };
-    window.open(urls[platform], '_blank');
-  };
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 to-background py-20 md:py-32">
       <div className="container mx-auto px-4">
@@ -100,34 +79,26 @@ export function HeroSection() {
 
             {/* Download Buttons */}
             <div className="flex flex-col gap-4 sm:flex-row">
-              {deviceType === 'ios' ? (
-                <Button size="lg" className="gap-2" onClick={() => handleDownload('ios')}>
-                  <Apple className="h-5 w-5" />
-                  Download for iPhone
-                </Button>
-              ) : deviceType === 'android' ? (
-                <Button size="lg" className="gap-2" onClick={() => handleDownload('android')}>
-                  <Play className="h-5 w-5" />
-                  Get it on Google Play
-                </Button>
-              ) : (
-                <>
-                  <Button size="lg" className="gap-2" onClick={() => handleDownload('ios')}>
-                    <Apple className="h-5 w-5" />
-                    App Store
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => handleDownload('android')}
-                  >
-                    <Play className="h-5 w-5" />
-                    Google Play
-                  </Button>
-                </>
-              )}
+              <Button
+                size="lg"
+                className="gap-2"
+                onClick={() => (window.location.href = '/contact')}
+              >
+                <Smartphone className="h-5 w-5" />
+                Join Beta Program
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2"
+                onClick={() => (window.location.href = '/faq')}
+              >
+                Learn More
+              </Button>
             </div>
+            <p className="text-sm text-muted-foreground">
+              🎯 Currently in BETA testing. Download links sent to approved beta testers via email.
+            </p>
 
             {/* Social Proof */}
             <div className="flex items-center gap-8 pt-4">
