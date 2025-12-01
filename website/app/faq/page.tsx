@@ -27,9 +27,9 @@ const FAQ_DATA: FAQItem[] = [
     id: '2',
     question: 'Is Cook Smart free to use?',
     answer:
-      'Cook Smart offers both free and premium plans. The free plan includes basic recipe browsing, meal planning, and shopping lists. Premium features include advanced meal planning, nutritional tracking, and exclusive recipes.',
+      'Cook Smart is currently in BETA and FREE for all beta testers! After beta, we offer flexible premium plans: Weekly ($2.99), Monthly ($6.99), or Yearly ($34.99 - save $40!). Beta testers and referrals get special pricing of $24.99/year for the first year.',
     category: 'Pricing',
-    lastUpdated: new Date('2024-01-10'),
+    lastUpdated: new Date('2025-11-30'),
   },
   {
     id: '3',
@@ -57,11 +57,11 @@ const FAQ_DATA: FAQItem[] = [
   },
   {
     id: '6',
-    question: 'How do I cancel my premium subscription?',
+    question: 'How do I cancel my subscription?',
     answer:
-      'You can cancel your subscription anytime through your device settings. For iOS, go to Settings > Your Name > Subscriptions. For Android, open Google Play Store > Menu > Subscriptions. Your premium features will remain active until the end of your billing period.',
+      'You can cancel your subscription anytime through your device settings. For iOS, go to Settings > Your Name > Subscriptions. For Android, open Google Play Store > Menu > Subscriptions. Your premium features will remain active until the end of your billing period. All plans include a 7-day free trial.',
     category: 'Pricing',
-    lastUpdated: new Date('2024-01-08'),
+    lastUpdated: new Date('2025-11-30'),
   },
   {
     id: '7',
@@ -102,8 +102,7 @@ export default function FAQPage(): React.ReactElement {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.question.toLowerCase().includes(query) ||
-          item.answer.toLowerCase().includes(query)
+          item.question.toLowerCase().includes(query) || item.answer.toLowerCase().includes(query)
       );
     }
 
