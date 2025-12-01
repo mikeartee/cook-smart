@@ -20,9 +20,7 @@ export function HeroSection() {
   const handleDownload = (platform: 'ios' | 'android') => {
     const urls = {
       ios: process.env.NEXT_PUBLIC_IOS_STORE_URL || 'https://apps.apple.com',
-      android:
-        process.env.NEXT_PUBLIC_ANDROID_STORE_URL ||
-        'https://play.google.com/store/apps',
+      android: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || 'https://play.google.com/store/apps',
     };
     window.open(urls[platform], '_blank');
   };
@@ -33,8 +31,10 @@ export function HeroSection() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Left Column - Content */}
           <div className="space-y-8">
-            <div className="inline-block rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-              🎉 Now in Beta - Join Early Testers
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500/20 to-blue-500/20 px-4 py-2 text-sm font-semibold border-2 border-green-500/30">
+              <span className="text-xl">🎉</span>
+              <span className="text-green-700 dark:text-green-400">FREE BETA</span>
+              <span className="text-muted-foreground">- Join Early Testers!</span>
             </div>
 
             <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
@@ -44,9 +44,16 @@ export function HeroSection() {
             </h1>
 
             <p className="text-lg text-muted-foreground md:text-xl">
-              Plan your meals, discover delicious recipes, and master your kitchen with
-              Cook Smart. Your personal cooking companion for healthier, happier meals.
+              Plan your meals, discover delicious recipes, and master your kitchen with Cook Smart.
+              Your personal cooking companion for healthier, happier meals.
             </p>
+
+            <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                <strong>🎁 Limited Time:</strong> Get full access FREE during our BETA phase! Help
+                us improve and enjoy premium features at no cost.
+              </p>
+            </div>
 
             {/* Key Benefits */}
             <div className="grid gap-4 sm:grid-cols-2">
@@ -56,9 +63,7 @@ export function HeroSection() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Smart Meal Planning</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Plan your week in minutes
-                  </p>
+                  <p className="text-sm text-muted-foreground">Plan your week in minutes</p>
                 </div>
               </div>
 
@@ -68,9 +73,7 @@ export function HeroSection() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Recipe Discovery</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Thousands of tested recipes
-                  </p>
+                  <p className="text-sm text-muted-foreground">Thousands of tested recipes</p>
                 </div>
               </div>
 
@@ -80,9 +83,7 @@ export function HeroSection() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Auto Shopping Lists</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Never forget an ingredient
-                  </p>
+                  <p className="text-sm text-muted-foreground">Never forget an ingredient</p>
                 </div>
               </div>
 
@@ -92,9 +93,7 @@ export function HeroSection() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Nutrition Tracking</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Stay on top of your goals
-                  </p>
+                  <p className="text-sm text-muted-foreground">Stay on top of your goals</p>
                 </div>
               </div>
             </div>
@@ -102,30 +101,18 @@ export function HeroSection() {
             {/* Download Buttons */}
             <div className="flex flex-col gap-4 sm:flex-row">
               {deviceType === 'ios' ? (
-                <Button
-                  size="lg"
-                  className="gap-2"
-                  onClick={() => handleDownload('ios')}
-                >
+                <Button size="lg" className="gap-2" onClick={() => handleDownload('ios')}>
                   <Apple className="h-5 w-5" />
                   Download for iPhone
                 </Button>
               ) : deviceType === 'android' ? (
-                <Button
-                  size="lg"
-                  className="gap-2"
-                  onClick={() => handleDownload('android')}
-                >
+                <Button size="lg" className="gap-2" onClick={() => handleDownload('android')}>
                   <Play className="h-5 w-5" />
                   Get it on Google Play
                 </Button>
               ) : (
                 <>
-                  <Button
-                    size="lg"
-                    className="gap-2"
-                    onClick={() => handleDownload('ios')}
-                  >
+                  <Button size="lg" className="gap-2" onClick={() => handleDownload('ios')}>
                     <Apple className="h-5 w-5" />
                     App Store
                   </Button>
