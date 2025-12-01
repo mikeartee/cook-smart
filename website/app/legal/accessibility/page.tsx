@@ -145,7 +145,7 @@ export default function AccessibilityStatementPage(): React.ReactElement {
             We welcome your feedback on the accessibility of Cook Smart. Please let us know if you encounter accessibility barriers:
           </p>
           <ul className="list-disc pl-6 mb-4">
-            <li><strong>Email:</strong> <a href="mailto:accessibility@cooksmartapp.com" className="text-blue-600 hover:underline">accessibility@cooksmartapp.com</a></li>
+            <li><strong>Email:</strong> <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a></li>
             <li><strong>Contact Form:</strong> <a href="/contact" className="text-blue-600 hover:underline">Submit Accessibility Feedback</a></li>
             <li><strong>Phone:</strong> Available upon request</li>
           </ul>

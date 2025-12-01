@@ -44,10 +44,10 @@ export default function DataRequestPage(): React.ReactElement {
           agentRelationship: '',
         });
       } else {
-        setError('Failed to submit request. Please try again or contact privacy@cooksmartapp.com');
+        setError('Failed to submit request. Please try again or contact services.cooksmart@gmail.com');
       }
     } catch (err) {
-      setError('Failed to submit request. Please contact privacy@cooksmartapp.com directly.');
+      setError('Failed to submit request. Please contact services.cooksmart@gmail.com directly.');
     } finally {
       setIsSubmitting(false);
     }
@@ -312,8 +312,8 @@ export default function DataRequestPage(): React.ReactElement {
         </ol>
         <p className="mt-4 text-sm">
           <strong>Need help?</strong> Contact our privacy team at{' '}
-          <a href="mailto:privacy@cooksmartapp.com" className="text-blue-600 hover:underline">
-            privacy@cooksmartapp.com
+          <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">
+            services.cooksmart@gmail.com
           </a>
         </p>
       </div>

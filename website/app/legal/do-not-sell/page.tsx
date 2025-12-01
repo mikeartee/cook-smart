@@ -105,7 +105,7 @@ export default function DoNotSellPage(): React.ReactElement {
           <address className="not-italic mt-4">
             <strong>Privacy Team</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:privacy@cooksmartapp.com" className="text-blue-600 hover:underline">privacy@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             Data Request Form: <Link href="/legal/data-request" className="text-blue-600 hover:underline">Submit Request</Link>
           </address>
         </section>

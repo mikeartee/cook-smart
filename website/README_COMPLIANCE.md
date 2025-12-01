@@ -187,22 +187,22 @@ npm run build
 
 ### Legal & Compliance
 
-- **Privacy Officer:** privacy@cooksmartapp.com
-- **Legal Team:** legal@cooksmartapp.com
-- **Compliance:** compliance@cooksmartapp.com
-- **DMCA Agent:** dmca@cooksmartapp.com
+- **Privacy Officer:** services.cooksmart@gmail.com
+- **Legal Team:** services.cooksmart@gmail.com
+- **Compliance:** services.cooksmart@gmail.com
+- **DMCA Agent:** services.cooksmart@gmail.com
 
 ### Security
 
-- **Security Team:** security@cooksmartapp.com
-- **Vulnerability Reports:** security@cooksmartapp.com
+- **Security Team:** services.cooksmart@gmail.com
+- **Vulnerability Reports:** services.cooksmart@gmail.com
 
 ### User Support
 
-- **General Support:** support@cooksmartapp.com
-- **Parents:** parents@cooksmartapp.com
-- **Accessibility:** accessibility@cooksmartapp.com
-- **Community:** community@cooksmartapp.com
+- **General Support:** services.cooksmart@gmail.com
+- **Parents:** services.cooksmart@gmail.com
+- **Accessibility:** services.cooksmart@gmail.com
+- **Community:** services.cooksmart@gmail.com
 
 ---
 

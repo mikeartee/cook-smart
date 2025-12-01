@@ -37,8 +37,8 @@ export default function SecurityDisclosurePage(): React.ReactElement {
           <ul className="list-disc pl-6 mb-4">
             <li>
               <strong>Email:</strong>{' '}
-              <a href="mailto:security@cooksmartapp.com" className="text-blue-600 hover:underline">
-                security@cooksmartapp.com
+              <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">
+                services.cooksmart@gmail.com
               </a>
             </li>
             <li>
@@ -207,7 +207,7 @@ export default function SecurityDisclosurePage(): React.ReactElement {
           <address className="not-italic">
             <strong>Security Team</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:security@cooksmartapp.com" className="text-blue-600 hover:underline">security@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             PGP Key: <a href="/security-pgp-key.txt" className="text-blue-600 hover:underline">Download</a> (optional)<br />
             Security.txt: <a href="/.well-known/security.txt" className="text-blue-600 hover:underline">View</a>
           </address>
@@ -235,7 +235,7 @@ export default function SecurityDisclosurePage(): React.ReactElement {
           We appreciate the security research community's efforts in helping us keep Cook Smart secure. Your responsible disclosure helps protect our users.
         </p>
         <a
-          href="mailto:security@cooksmartapp.com"
+          href="mailto:services.cooksmart@gmail.com"
           className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Report a Vulnerability

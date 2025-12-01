@@ -334,10 +334,10 @@ vercel env add RESEND_API_KEY
 
 ## 📞 Support Contacts
 
-**Technical Issues**: dev@cooksmartapp.com
-**Legal Questions**: legal@cooksmartapp.com
-**Privacy Concerns**: privacy@cooksmartapp.com
-**Accessibility Issues**: accessibility@cooksmartapp.com
+**Technical Issues**: services.cooksmart@gmail.com
+**Legal Questions**: services.cooksmart@gmail.com
+**Privacy Concerns**: services.cooksmart@gmail.com
+**Accessibility Issues**: services.cooksmart@gmail.com
 
 ---
 

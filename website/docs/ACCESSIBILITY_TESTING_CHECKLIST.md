@@ -462,7 +462,7 @@ Use this format:
 ## Contact
 
 **Accessibility Team**
-- Email: accessibility@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Report Issues: https://cooksmartapp.com/legal/accessibility
 
 ---

@@ -16,9 +16,9 @@ const COMPANY_INFO = {
   state: 'CA',
   zip: '94102',
   country: 'United States',
-  email: 'hello@cooksmartapp.com',
-  supportEmail: 'support@cooksmartapp.com',
-  unsubscribeEmail: 'unsubscribe@cooksmartapp.com',
+  email: 'services.cooksmart@gmail.com',
+  supportEmail: 'services.cooksmart@gmail.com',
+  unsubscribeEmail: 'services.cooksmart@gmail.com',
   website: 'https://cooksmartapp.com',
 };
 
@@ -280,7 +280,7 @@ For security, this is a transactional email and cannot be unsubscribed from.
           
           <p style="font-size: 16px; line-height: 1.6;">
             If you have questions, reply to this email or contact us at 
-            <a href="mailto:privacy@cooksmartapp.com" style="color: #4F46E5;">privacy@cooksmartapp.com</a>
+            <a href="mailto:services.cooksmart@gmail.com" style="color: #4F46E5;">services.cooksmart@gmail.com</a>
           </p>
           
           <p style="font-size: 14px; line-height: 1.6; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
@@ -308,7 +308,7 @@ What Happens Next?
 - Send you a confirmation email
 - Provide the requested data or confirmation of action
 
-If you have questions, reply to this email or contact us at privacy@cooksmartapp.com
+If you have questions, reply to this email or contact us at services.cooksmart@gmail.com
 
 This is a transactional email regarding your data rights and cannot be unsubscribed from.
 

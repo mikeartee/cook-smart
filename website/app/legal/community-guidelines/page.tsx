@@ -169,7 +169,7 @@ export default function CommunityGuidelinesPage(): React.ReactElement {
             If you believe a moderation decision was made in error:
           </p>
           <ul className="list-disc pl-6 mb-4">
-            <li>Contact us at <a href="mailto:support@cooksmartapp.com" className="text-blue-600 hover:underline">support@cooksmartapp.com</a></li>
+            <li>Contact us at <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a></li>
             <li>Provide details about the content and decision</li>
             <li>We'll review and respond within 7 business days</li>
           </ul>
@@ -184,7 +184,7 @@ export default function CommunityGuidelinesPage(): React.ReactElement {
           </p>
           <ul className="list-disc pl-6 mb-4">
             <li>Use the "Report" button on the content</li>
-            <li>Email <a href="mailto:report@cooksmartapp.com" className="text-blue-600 hover:underline">report@cooksmartapp.com</a></li>
+            <li>Email <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a></li>
             <li>Provide specific details about the violation</li>
             <li>Include links or screenshots if possible</li>
           </ul>
@@ -233,8 +233,8 @@ export default function CommunityGuidelinesPage(): React.ReactElement {
           <address className="not-italic">
             <strong>Community Team</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:community@cooksmartapp.com" className="text-blue-600 hover:underline">community@cooksmartapp.com</a><br />
-            Support: <a href="mailto:support@cooksmartapp.com" className="text-blue-600 hover:underline">support@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
+            Support: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             Contact Form: <a href="/contact" className="text-blue-600 hover:underline">Submit Inquiry</a>
           </address>
         </section>

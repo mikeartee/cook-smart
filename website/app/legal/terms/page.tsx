@@ -157,7 +157,7 @@ export default function TermsOfServicePage(): React.ReactElement {
           </p>
           <address className="not-italic">
             <strong>Cook Smart</strong><br />
-            Email: <a href="mailto:legal@cooksmartapp.com" className="text-blue-600 hover:underline">legal@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             Website: <a href="/contact" className="text-blue-600 hover:underline">Contact Form</a>
           </address>
         </section>

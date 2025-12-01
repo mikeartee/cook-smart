@@ -47,7 +47,7 @@ export default function CopyrightPolicyPage(): React.ReactElement {
           <address className="not-italic bg-gray-100 p-6 rounded-lg my-4">
             <strong>Copyright Agent</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:dmca@cooksmartapp.com" className="text-blue-600 hover:underline">dmca@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             Subject Line: "DMCA Takedown Notice"
           </address>
           <p className="text-sm text-gray-600">
@@ -123,8 +123,8 @@ export default function CopyrightPolicyPage(): React.ReactElement {
           <h2 className="text-2xl font-semibold mb-4">9. Trademark Policy</h2>
           <p>
             Cook Smart and our logo are trademarks. Unauthorized use of our trademarks is prohibited. If you believe your trademark is being used without authorization, please contact us at{' '}
-            <a href="mailto:legal@cooksmartapp.com" className="text-blue-600 hover:underline">
-              legal@cooksmartapp.com
+            <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">
+              services.cooksmart@gmail.com
             </a>
             .
           </p>
@@ -138,8 +138,8 @@ export default function CopyrightPolicyPage(): React.ReactElement {
           <address className="not-italic">
             <strong>Copyright Agent</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:dmca@cooksmartapp.com" className="text-blue-600 hover:underline">dmca@cooksmartapp.com</a><br />
-            Legal: <a href="mailto:legal@cooksmartapp.com" className="text-blue-600 hover:underline">legal@cooksmartapp.com</a>
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
+            Legal: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a>
           </address>
         </section>
       </div>

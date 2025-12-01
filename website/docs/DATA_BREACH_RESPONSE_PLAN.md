@@ -73,7 +73,7 @@ Any information relating to an identified or identifiable individual, including:
 
 **Privacy Officer**
 - Role: Data protection compliance
-- Contact: privacy@cooksmartapp.com
+- Contact: services.cooksmart@gmail.com
 
 ### Extended Team
 
@@ -108,7 +108,7 @@ Any information relating to an identified or identifiable individual, including:
 **Any employee who discovers or suspects a breach must:**
 
 1. **Immediately report to:**
-   - Email: security@cooksmartapp.com
+   - Email: services.cooksmart@gmail.com
    - Phone: [Emergency Security Hotline]
    - Slack: #security-incidents (if available)
 
@@ -320,7 +320,7 @@ Additional Protection:
 We sincerely apologize for this incident and any inconvenience it may cause.
 
 For Questions:
-- Email: security@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Phone: [Support Number]
 - FAQ: cooksmartapp.com/security-incident
 
@@ -383,7 +383,7 @@ Brief Description:
 Action Required:
 - Do not discuss externally
 - Preserve all logs and evidence
-- Report any related observations to security@cooksmartapp.com
+- Report any related observations to services.cooksmart@gmail.com
 
 Next Update: [Time]
 ```
@@ -424,7 +424,7 @@ Next Update: [Time]
   
   <h3>Questions?</h3>
   <p>
-    Email: <a href="mailto:security@cooksmartapp.com">security@cooksmartapp.com</a><br>
+    Email: <a href="mailto:services.cooksmart@gmail.com">services.cooksmart@gmail.com</a><br>
     Phone: [Support Number]<br>
     FAQ: <a href="/security-incident-faq">View Detailed FAQ</a>
   </p>
@@ -438,7 +438,7 @@ We've taken immediate action to secure our systems and are notifying affected
 users. Your security is our priority. 
 
 Learn more: [link to website notice]
-Questions: security@cooksmartapp.com
+Questions: services.cooksmart@gmail.com
 ```
 
 ---
@@ -644,6 +644,6 @@ Lessons Learned:
 ---
 
 **Emergency Contact:**
-- Email: security@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Phone: [24/7 Security Hotline]
 - Slack: #security-incidents

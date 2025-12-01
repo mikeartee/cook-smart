@@ -300,12 +300,12 @@ interface UnsubscribeResponse {
 // Ensure these settings in Resend:
 const emailConfig = {
   fromName: 'Cook Smart',
-  fromEmail: 'hello@cooksmartapp.com',
-  replyTo: 'support@cooksmartapp.com',
+  fromEmail: 'services.cooksmart@gmail.com',
+  replyTo: 'services.cooksmart@gmail.com',
   
   // Required headers
   headers: {
-    'List-Unsubscribe': '<mailto:unsubscribe@cooksmartapp.com>, <https://cooksmartapp.com/unsubscribe?token={{token}}>',
+    'List-Unsubscribe': '<mailto:services.cooksmart@gmail.com>, <https://cooksmartapp.com/unsubscribe?token={{token}}>',
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   },
   
@@ -405,12 +405,12 @@ const emailConfig = {
 ## Contact Information
 
 **For Email Compliance Questions:**
-- Email: compliance@cooksmartapp.com
-- Privacy Officer: privacy@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
+- Privacy Officer: services.cooksmart@gmail.com
 
 **For Unsubscribe Issues:**
-- Email: unsubscribe@cooksmartapp.com
-- Support: support@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
+- Support: services.cooksmart@gmail.com
 
 ---
 

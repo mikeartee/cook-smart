@@ -12,7 +12,7 @@ export default function SettingsPage(): React.ReactElement {
   const [settings, setSettings] = useState({
     siteName: 'Cook Smart',
     siteDescription: 'Your Personal Cooking Assistant',
-    supportEmail: 'support@cooksmartapp.com',
+    supportEmail: 'services.cooksmart@gmail.com',
     maxRecipesPerUser: '100',
     enableUserRegistration: true,
     enableRecipeSubmission: true,

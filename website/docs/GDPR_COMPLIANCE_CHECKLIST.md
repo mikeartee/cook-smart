@@ -305,7 +305,7 @@
 - [x] Independent position
 - [x] Expert knowledge
 
-**Contact:** privacy@cooksmartapp.com
+**Contact:** services.cooksmart@gmail.com
 
 ---
 
@@ -462,7 +462,7 @@
 ## Contact Information
 
 **Data Protection Officer**
-- Email: privacy@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Phone: [To be added]
 
 **Supervisory Authority**

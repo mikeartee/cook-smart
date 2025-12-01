@@ -217,4 +217,4 @@ Proprietary - Cook Smart
 
 ## Support
 
-For support, email support@cooksmartapp.com
+For support, email services.cooksmart@gmail.com

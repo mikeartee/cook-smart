@@ -532,23 +532,23 @@ Transparent privacy practices, user-friendly controls, and strong commitment to 
 ## Contact Information
 
 ### Privacy & Data Protection
-- Email: privacy@cooksmartapp.com
-- Data Protection Officer: privacy@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
+- Data Protection Officer: services.cooksmart@gmail.com
 
 ### Security
-- Email: security@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Emergency: [24/7 Security Hotline]
 
 ### Accessibility
-- Email: accessibility@cooksmartapp.com
-- Support: support@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
+- Support: services.cooksmart@gmail.com
 
 ### Legal
-- Email: legal@cooksmartapp.com
-- DMCA Agent: dmca@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
+- DMCA Agent: services.cooksmart@gmail.com
 
 ### General Support
-- Email: support@cooksmartapp.com
+- Email: services.cooksmart@gmail.com
 - Contact Form: https://cooksmartapp.com/contact
 
 ---

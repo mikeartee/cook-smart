@@ -363,16 +363,16 @@ NEXT_PUBLIC_IOS_STORE_URL=your_url
 
 ### For Legal Compliance
 
-- **Privacy Officer:** privacy@cooksmartapp.com
-- **Legal Team:** legal@cooksmartapp.com
-- **Security Team:** security@cooksmartapp.com
-- **Accessibility:** accessibility@cooksmartapp.com
-- **DMCA Agent:** dmca@cooksmartapp.com
+- **Privacy Officer:** services.cooksmart@gmail.com
+- **Legal Team:** services.cooksmart@gmail.com
+- **Security Team:** services.cooksmart@gmail.com
+- **Accessibility:** services.cooksmart@gmail.com
+- **DMCA Agent:** services.cooksmart@gmail.com
 
 ### For Support
 
-- **General Support:** support@cooksmartapp.com
-- **Community Issues:** community@cooksmartapp.com
+- **General Support:** services.cooksmart@gmail.com
+- **Community Issues:** services.cooksmart@gmail.com
 - **Contact Form:** https://cooksmartapp.com/contact
 
 ---

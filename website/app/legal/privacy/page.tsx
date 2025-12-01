@@ -222,7 +222,7 @@ export default function PrivacyPolicyPage(): React.ReactElement {
             To exercise any of these rights, contact us at:
           </p>
           <ul className="list-disc pl-6 mb-4">
-            <li>Email: <a href="mailto:privacy@cooksmartapp.com" className="text-blue-600 hover:underline">privacy@cooksmartapp.com</a></li>
+            <li>Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a></li>
             <li>Account Settings: Manage preferences in your account</li>
             <li>Contact Form: <a href="/contact" className="text-blue-600 hover:underline">Submit a request</a></li>
           </ul>
@@ -265,7 +265,7 @@ export default function PrivacyPolicyPage(): React.ReactElement {
           <address className="not-italic">
             <strong>Data Protection Officer</strong><br />
             Cook Smart<br />
-            Email: <a href="mailto:privacy@cooksmartapp.com" className="text-blue-600 hover:underline">privacy@cooksmartapp.com</a><br />
+            Email: <a href="mailto:services.cooksmart@gmail.com" className="text-blue-600 hover:underline">services.cooksmart@gmail.com</a><br />
             Contact Form: <a href="/contact" className="text-blue-600 hover:underline">Submit Inquiry</a>
           </address>
         </section>
