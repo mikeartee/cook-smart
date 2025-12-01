@@ -60,10 +60,10 @@ export function Header() {
         {/* Desktop CTA */}
         <div className="hidden items-center space-x-4 md:flex">
           <Button variant="outline" asChild>
-            <Link href="/demo">Try Demo</Link>
+            <Link href="/faq">Learn More</Link>
           </Button>
           <Button asChild>
-            <Link href="#download">Download App</Link>
+            <Link href="/contact">Join Beta</Link>
           </Button>
         </div>
 
@@ -74,11 +74,7 @@ export function Header() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
@@ -98,13 +94,13 @@ export function Header() {
             ))}
             <div className="space-y-2 pt-4">
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/demo" onClick={() => setMobileMenuOpen(false)}>
-                  Try Demo
+                <Link href="/faq" onClick={() => setMobileMenuOpen(false)}>
+                  Learn More
                 </Link>
               </Button>
               <Button className="w-full" asChild>
-                <Link href="#download" onClick={() => setMobileMenuOpen(false)}>
-                  Download App
+                <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
+                  Join Beta
                 </Link>
               </Button>
             </div>
