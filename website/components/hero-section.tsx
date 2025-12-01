@@ -132,16 +132,16 @@ export function HeroSection() {
             {/* Social Proof */}
             <div className="flex items-center gap-8 pt-4">
               <div>
-                <div className="text-2xl font-bold">10K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
+                <div className="text-2xl font-bold">100+</div>
+                <div className="text-sm text-muted-foreground">Beta Testers</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">50K+</div>
+                <div className="text-2xl font-bold">1,000+</div>
                 <div className="text-sm text-muted-foreground">Recipes</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">4.8★</div>
-                <div className="text-sm text-muted-foreground">App Rating</div>
+                <div className="text-2xl font-bold">🎉 BETA</div>
+                <div className="text-sm text-muted-foreground">Join Now</div>
               </div>
             </div>
           </div>
