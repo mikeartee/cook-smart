@@ -17,11 +17,11 @@ interface FAQItem {
 const FAQ_DATA: FAQItem[] = [
   {
     id: '1',
-    question: 'How do I download the Cook Smart app?',
+    question: 'How do I join the Cook Smart BETA?',
     answer:
-      'You can download Cook Smart from the Google Play Store for Android devices or the App Store for iOS devices. Simply search for "Cook Smart" or use the download links on our homepage.',
+      "Cook Smart is currently in BETA testing. To join, contact us through our website contact form or email services.cooksmart@gmail.com. Once approved, you'll receive download instructions via email with access to the app through Firebase App Distribution.",
     category: 'Getting Started',
-    lastUpdated: new Date('2024-01-15'),
+    lastUpdated: new Date('2025-11-30'),
   },
   {
     id: '2',
