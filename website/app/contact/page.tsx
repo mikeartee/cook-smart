@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -207,49 +207,14 @@ export default function ContactPage(): React.ReactElement {
                   <h3 className="mb-1 font-semibold">Email</h3>
                   <p className="text-sm text-muted-foreground">
                     <a
-                      href="mailto:support@cooksmartapp.com"
+                      href="mailto:services.cooksmart@gmail.com"
                       className="hover:text-primary hover:underline"
                     >
-                      support@cooksmartapp.com
+                      services.cooksmart@gmail.com
                     </a>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    We typically respond within 24 hours
-                  </p>
-                </div>
-              </div>
-
-              {/* Phone */}
-              <div className="flex gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Phone className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="mb-1 font-semibold">Phone</h3>
-                  <p className="text-sm text-muted-foreground">
-                    <a href="tel:+1234567890" className="hover:text-primary hover:underline">
-                      +1 (234) 567-890
-                    </a>
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Monday - Friday, 9am - 5pm EST
-                  </p>
-                </div>
-              </div>
-
-              {/* Address */}
-              <div className="flex gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <MapPin className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="mb-1 font-semibold">Office</h3>
-                  <p className="text-sm text-muted-foreground">
-                    123 Culinary Street
-                    <br />
-                    Food City, FC 12345
-                    <br />
-                    United States
+                    We typically respond within 24-48 hours
                   </p>
                 </div>
               </div>
