@@ -57,10 +57,10 @@ export default function AboutPage(): React.ReactElement {
                   <ChefHat className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xl font-semibold">Thousands of Recipes</h3>
+                  <h3 className="mb-2 text-xl font-semibold">Growing Recipe Collection</h3>
                   <p className="text-muted-foreground">
-                    Access a vast collection of recipes from professional chefs and home cooks,
-                    with new additions every week.
+                    Access over 1,000 recipes and growing! We're constantly adding new recipes based
+                    on beta tester feedback.
                   </p>
                 </div>
               </div>
@@ -70,33 +70,36 @@ export default function AboutPage(): React.ReactElement {
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xl font-semibold">Community-Driven</h3>
+                  <h3 className="mb-2 text-xl font-semibold">Beta Community</h3>
                   <p className="text-muted-foreground">
-                    Join a vibrant community of food enthusiasts. Share your recipes, get
-                    inspiration, and connect with fellow cooks.
+                    Join 100+ beta testers helping shape Cook Smart. Your feedback directly
+                    influences features and improvements.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg bg-primary p-8 text-center text-primary-foreground">
-            <h2 className="mb-4 text-3xl font-bold">Join Our Community</h2>
-            <p className="mb-6 text-lg opacity-90">
-              Download Cook Smart today and start your journey to becoming a more confident cook.
+          <div className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center text-white">
+            <h2 className="mb-4 text-3xl font-bold">Join Our BETA Program</h2>
+            <p className="mb-2 text-lg opacity-90">
+              Be part of shaping the future of Cook Smart! Join our beta testing program today.
+            </p>
+            <p className="mb-6 text-sm opacity-80">
+              🎉 100% FREE during BETA • Early access to new features • Direct input on development
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <a
-                href={process.env.NEXT_PUBLIC_ANDROID_STORE_URL || '#'}
-                className="rounded-lg bg-background px-6 py-3 font-medium text-foreground hover:bg-background/90"
+                href="/contact"
+                className="rounded-lg bg-white px-6 py-3 font-semibold text-blue-600 hover:bg-gray-100 transition-colors"
               >
-                Download for Android
+                Apply for Beta Access
               </a>
               <a
-                href={process.env.NEXT_PUBLIC_IOS_STORE_URL || '#'}
-                className="rounded-lg bg-background px-6 py-3 font-medium text-foreground hover:bg-background/90"
+                href="/faq"
+                className="rounded-lg border-2 border-white px-6 py-3 font-semibold text-white hover:bg-white/10 transition-colors"
               >
-                Download for iOS
+                Learn More
               </a>
             </div>
           </div>

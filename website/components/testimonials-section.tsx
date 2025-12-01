@@ -20,47 +20,47 @@ export function TestimonialsSection() {
   const testimonials: Testimonial[] = [
     {
       id: 1,
-      name: 'Sarah Johnson',
-      role: 'Busy Mom of 3',
+      name: 'Sarah J.',
+      role: 'Beta Tester',
       image: '👩‍🍳',
       quote:
-        "Cook Smart has transformed how I feed my family. Meal planning used to take hours, now it's done in minutes. My kids actually eat vegetables now!",
+        "Excited to be part of the Cook Smart beta! The meal planning feature is already making my life easier. Can't wait to see what's next!",
       rating: 5,
     },
     {
       id: 2,
-      name: 'Michael Chen',
-      role: 'Fitness Enthusiast',
+      name: 'Michael C.',
+      role: 'Beta Tester',
       image: '💪',
       quote:
-        'The nutrition tracking is incredible. I hit my macros every day without thinking about it. Lost 15 pounds in 2 months while eating delicious food!',
+        'Love being an early tester! The recipe collection is growing fast and the team actually listens to feedback. This app has real potential!',
       rating: 5,
     },
     {
       id: 3,
-      name: 'Emily Rodriguez',
-      role: 'College Student',
+      name: 'Emily R.',
+      role: 'Beta Tester',
       image: '👩‍🎓',
       quote:
-        "As a broke college student, this app is a lifesaver. The budget-friendly recipes and shopping lists help me eat healthy without breaking the bank.",
+        "So glad I joined the beta! It's free right now and I get to help shape a cooking app that actually works for students. The developers are super responsive!",
       rating: 5,
     },
     {
       id: 4,
-      name: 'David Thompson',
-      role: 'Working Professional',
+      name: 'David T.',
+      role: 'Beta Tester',
       image: '👨‍💼',
       quote:
-        'I used to order takeout every night. Now I cook 5 nights a week and save over $400/month. The quick recipes are perfect for my busy schedule.',
+        'Being part of the beta is awesome! I get early access to features and my suggestions actually get implemented. This is going to be huge when it launches!',
       rating: 5,
     },
     {
       id: 5,
-      name: 'Lisa Park',
-      role: 'Home Chef',
+      name: 'Lisa P.',
+      role: 'Beta Tester',
       image: '👩‍🍳',
       quote:
-        'The recipe discovery feature is amazing! I\'ve tried cuisines I never would have attempted. My dinner parties are now legendary among friends.',
+        "Thrilled to be testing Cook Smart! The interface is intuitive and the recipe collection keeps growing. Plus it's completely free during beta - no brainer!",
       rating: 5,
     },
   ];
@@ -99,10 +99,10 @@ export function TestimonialsSection() {
         {/* Section Header */}
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold md:text-4xl lg:text-5xl">
-            Loved by <span className="text-primary">Thousands</span>
+            Loved by <span className="text-primary">Beta Testers</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            See what our users are saying about their Cook Smart experience
+            See what our early adopters are saying about their Cook Smart BETA experience
           </p>
         </div>
 
@@ -179,22 +179,22 @@ export function TestimonialsSection() {
           </div>
         </div>
 
-        {/* Trust Badges */}
+        {/* Beta Program Highlights */}
         <div className="mt-16 grid gap-8 md:grid-cols-3">
           <div className="text-center">
-            <div className="mb-2 text-4xl">🏆</div>
-            <div className="font-semibold">App of the Day</div>
-            <div className="text-sm text-muted-foreground">Featured by Apple</div>
+            <div className="mb-2 text-4xl">🎉</div>
+            <div className="font-semibold">100% FREE</div>
+            <div className="text-sm text-muted-foreground">During BETA testing</div>
           </div>
           <div className="text-center">
-            <div className="mb-2 text-4xl">⭐</div>
-            <div className="font-semibold">4.8 Star Rating</div>
-            <div className="text-sm text-muted-foreground">Over 5,000 reviews</div>
+            <div className="mb-2 text-4xl">👥</div>
+            <div className="font-semibold">100+ Beta Testers</div>
+            <div className="text-sm text-muted-foreground">Join our growing community</div>
           </div>
           <div className="text-center">
-            <div className="mb-2 text-4xl">🎖️</div>
-            <div className="font-semibold">Editor's Choice</div>
-            <div className="text-sm text-muted-foreground">Google Play Store</div>
+            <div className="mb-2 text-4xl">🚀</div>
+            <div className="font-semibold">Early Access</div>
+            <div className="text-sm text-muted-foreground">Shape the future of Cook Smart</div>
           </div>
         </div>
       </div>

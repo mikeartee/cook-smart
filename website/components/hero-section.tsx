@@ -123,15 +123,12 @@ export function HeroSection() {
               {/* Phone Frame Mockup */}
               <div className="relative rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 p-8 shadow-2xl">
                 <div className="aspect-[9/19] overflow-hidden rounded-2xl bg-white shadow-xl">
-                  {/* Placeholder for app screenshot */}
-                  <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center">
-                    <Smartphone className="mb-4 h-16 w-16 text-primary" />
-                    <p className="text-sm font-medium text-muted-foreground">
-                      App Screenshot
-                      <br />
-                      Coming Soon
-                    </p>
-                  </div>
+                  {/* Actual App Screenshot */}
+                  <img
+                    src="/images/app-screenshot-home.png"
+                    alt="Cook Smart App - Home Screen showing Quick Actions including My Ingredients, Find Recipes, Trending, Seasonal, Community, and Send Feedback"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
 

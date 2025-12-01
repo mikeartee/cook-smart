@@ -103,13 +103,11 @@ export function FeaturesSection() {
                   <h4 className="font-semibold">Meal Planning</h4>
                 </div>
                 <div className="aspect-[9/16] overflow-hidden rounded-xl bg-white shadow-xl">
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-50 to-white p-4">
-                    <p className="text-center text-sm text-muted-foreground">
-                      Screenshot
-                      <br />
-                      Coming Soon
-                    </p>
-                  </div>
+                  <img
+                    src="/images/meal-planning.png"
+                    alt="Cook Smart Meal Planning Screen"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
 
@@ -122,13 +120,11 @@ export function FeaturesSection() {
                   <h4 className="font-semibold">Recipe Browser</h4>
                 </div>
                 <div className="aspect-[9/16] overflow-hidden rounded-xl bg-white shadow-xl">
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-orange-50 to-white p-4">
-                    <p className="text-center text-sm text-muted-foreground">
-                      Screenshot
-                      <br />
-                      Coming Soon
-                    </p>
-                  </div>
+                  <img
+                    src="/images/recipe-browser.png"
+                    alt="Cook Smart Recipe Browser Screen"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
 
@@ -141,13 +137,11 @@ export function FeaturesSection() {
                   <h4 className="font-semibold">Shopping List</h4>
                 </div>
                 <div className="aspect-[9/16] overflow-hidden rounded-xl bg-white shadow-xl">
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-green-50 to-white p-4">
-                    <p className="text-center text-sm text-muted-foreground">
-                      Screenshot
-                      <br />
-                      Coming Soon
-                    </p>
-                  </div>
+                  <img
+                    src="/images/shopping-list.png"
+                    alt="Cook Smart Shopping List Screen"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
             </div>
