@@ -64,8 +64,8 @@ export function FeaturesSection() {
             <span className="text-primary"> Cook Smart</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Powerful features designed to make meal planning, cooking, and eating healthy
-            easier than ever before.
+            Powerful features designed to make meal planning, cooking, and eating healthy easier
+            than ever before.
           </p>
         </div>
 
@@ -158,20 +158,20 @@ export function FeaturesSection() {
         <div className="mt-20 rounded-2xl bg-primary/5 p-8 md:p-12">
           <div className="grid gap-8 md:grid-cols-4">
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">10K+</div>
-              <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="mb-2 text-4xl font-bold text-primary">100+</div>
+              <div className="text-sm text-muted-foreground">Beta Testers</div>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">50K+</div>
+              <div className="mb-2 text-4xl font-bold text-primary">1,000+</div>
               <div className="text-sm text-muted-foreground">Recipes Available</div>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">1M+</div>
-              <div className="text-sm text-muted-foreground">Meals Planned</div>
+              <div className="mb-2 text-4xl font-bold text-primary">FREE</div>
+              <div className="text-sm text-muted-foreground">During BETA</div>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">4.8★</div>
-              <div className="text-sm text-muted-foreground">Average Rating</div>
+              <div className="mb-2 text-4xl font-bold text-primary">🎉</div>
+              <div className="text-sm text-muted-foreground">Join Now</div>
             </div>
           </div>
         </div>
