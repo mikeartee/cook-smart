@@ -1,0 +1,18 @@
+# Cook Smart - Robots.txt
+# https://cooksmartapp.com/robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cooksmartapp.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+
+# Allow legal pages (important for compliance)
+Allow: /legal/
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

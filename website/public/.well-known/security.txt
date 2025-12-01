@@ -1,0 +1,17 @@
+Contact: mailto:security@cooksmartapp.com
+Expires: 2026-11-30T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://cooksmartapp.com/.well-known/security.txt
+Policy: https://cooksmartapp.com/legal/terms
+Acknowledgments: https://cooksmartapp.com/security-acknowledgments
+
+# Security Contact Information
+# Report security vulnerabilities to: security@cooksmartapp.com
+# 
+# Please include:
+# - Description of the vulnerability
+# - Steps to reproduce
+# - Potential impact
+# - Your contact information (optional)
+#
+# We aim to respond within 48 hours and resolve critical issues within 7 days.

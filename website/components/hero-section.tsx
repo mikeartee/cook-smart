@@ -1,0 +1,202 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Button } from './ui/button';
+import { Apple, Play, Smartphone } from 'lucide-react';
+
+export function HeroSection() {
+  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'desktop'>('desktop');
+
+  useEffect(() => {
+    // Detect device type
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      setDeviceType('ios');
+    } else if (/android/.test(userAgent)) {
+      setDeviceType('android');
+    }
+  }, []);
+
+  const handleDownload = (platform: 'ios' | 'android') => {
+    const urls = {
+      ios: process.env.NEXT_PUBLIC_IOS_STORE_URL || 'https://apps.apple.com',
+      android:
+        process.env.NEXT_PUBLIC_ANDROID_STORE_URL ||
+        'https://play.google.com/store/apps',
+    };
+    window.open(urls[platform], '_blank');
+  };
+
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 to-background py-20 md:py-32">
+      <div className="container mx-auto px-4">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          {/* Left Column - Content */}
+          <div className="space-y-8">
+            <div className="inline-block rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              🎉 Now in Beta - Join Early Testers
+            </div>
+
+            <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
+              Cook Smarter,
+              <br />
+              <span className="text-primary">Eat Better</span>
+            </h1>
+
+            <p className="text-lg text-muted-foreground md:text-xl">
+              Plan your meals, discover delicious recipes, and master your kitchen with
+              Cook Smart. Your personal cooking companion for healthier, happier meals.
+            </p>
+
+            {/* Key Benefits */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex items-start space-x-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">🍳</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Smart Meal Planning</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Plan your week in minutes
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">📱</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Recipe Discovery</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Thousands of tested recipes
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">🛒</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Auto Shopping Lists</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Never forget an ingredient
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">💪</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Nutrition Tracking</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Stay on top of your goals
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Download Buttons */}
+            <div className="flex flex-col gap-4 sm:flex-row">
+              {deviceType === 'ios' ? (
+                <Button
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => handleDownload('ios')}
+                >
+                  <Apple className="h-5 w-5" />
+                  Download for iPhone
+                </Button>
+              ) : deviceType === 'android' ? (
+                <Button
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => handleDownload('android')}
+                >
+                  <Play className="h-5 w-5" />
+                  Get it on Google Play
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="lg"
+                    className="gap-2"
+                    onClick={() => handleDownload('ios')}
+                  >
+                    <Apple className="h-5 w-5" />
+                    App Store
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => handleDownload('android')}
+                  >
+                    <Play className="h-5 w-5" />
+                    Google Play
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Social Proof */}
+            <div className="flex items-center gap-8 pt-4">
+              <div>
+                <div className="text-2xl font-bold">10K+</div>
+                <div className="text-sm text-muted-foreground">Active Users</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">50K+</div>
+                <div className="text-sm text-muted-foreground">Recipes</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">4.8★</div>
+                <div className="text-sm text-muted-foreground">App Rating</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - App Preview */}
+          <div className="relative">
+            <div className="relative mx-auto max-w-md">
+              {/* Phone Frame Mockup */}
+              <div className="relative rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 p-8 shadow-2xl">
+                <div className="aspect-[9/19] overflow-hidden rounded-2xl bg-white shadow-xl">
+                  {/* Placeholder for app screenshot */}
+                  <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 p-8 text-center">
+                    <Smartphone className="mb-4 h-16 w-16 text-primary" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      App Screenshot
+                      <br />
+                      Coming Soon
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Elements */}
+              <div className="absolute -right-4 top-1/4 rounded-lg bg-white p-4 shadow-lg">
+                <div className="text-2xl">🥗</div>
+              </div>
+              <div className="absolute -left-4 top-1/2 rounded-lg bg-white p-4 shadow-lg">
+                <div className="text-2xl">🍕</div>
+              </div>
+              <div className="absolute -right-4 bottom-1/4 rounded-lg bg-white p-4 shadow-lg">
+                <div className="text-2xl">🍜</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Background Decoration */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-1/4 top-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -right-1/4 bottom-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@api-url",
+    "RESEND_API_KEY": "@resend-api-key"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_API_URL": "@api-url",
+      "RESEND_API_KEY": "@resend-api-key"
+    }
+  }
+}
