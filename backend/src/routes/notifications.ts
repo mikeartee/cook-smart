@@ -7,7 +7,7 @@ const router = Router();
 // Register push notification token
 router.post('/register', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = req.user!.id;
     const {token, platform} = req.body;
 
     if (!token || !platform) {
@@ -27,7 +27,7 @@ router.post('/register', authenticateToken, async (req: AuthRequest, res) => {
 // Get notification preferences
 router.get('/preferences', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = req.user!.id;
     const preferences = await PushNotificationService.getPreferences(userId);
 
     res.json(preferences);
@@ -40,7 +40,7 @@ router.get('/preferences', authenticateToken, async (req: AuthRequest, res) => {
 // Update notification preferences
 router.put('/preferences', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id);
+    const userId = req.user!.id;
     const preferences = req.body;
 
     await PushNotificationService.updatePreferences(userId, preferences);

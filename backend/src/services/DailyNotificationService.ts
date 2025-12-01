@@ -33,9 +33,9 @@ export class DailyNotificationService {
           ui.user_id,
           COUNT(*) as expiring_count
         FROM user_ingredients ui
-        WHERE ui.expiry_date IS NOT NULL
-          AND ui.expiry_date <= CURRENT_DATE + INTERVAL '3 days'
-          AND ui.expiry_date >= CURRENT_DATE
+        WHERE ui.expiration_date IS NOT NULL
+          AND ui.expiration_date <= CURRENT_DATE + INTERVAL '3 days'
+          AND ui.expiration_date >= CURRENT_DATE
         GROUP BY ui.user_id
         HAVING COUNT(*) > 0
       `);

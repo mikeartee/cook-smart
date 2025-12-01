@@ -5,6 +5,7 @@ import {authenticateToken, AuthRequest} from '../middleware/auth';
 import {UserPointsModel} from '../models/UserPoints';
 import {AchievementService} from '../services/AchievementService';
 import mockIngredientsDB from '../config/mockIngredients';
+import {ExpirationCalculator} from '../utils/expirationCalculator';
 
 const router = Router();
 
@@ -59,6 +60,30 @@ router.get('/categories', async (req: Request, res: Response) => {
     });
   }
 });
+
+// Get default expiration days for a category
+router.get(
+  '/expiration-defaults/:category',
+  async (req: Request, res: Response) => {
+    try {
+      const {category} = req.params;
+      const days = ExpirationCalculator.getDefaultDays(category);
+      const expirationDate =
+        ExpirationCalculator.calculateExpirationDate(category);
+      res.json({
+        category,
+        defaultDays: days,
+        suggestedExpirationDate: expirationDate.toISOString().split('T')[0],
+      });
+    } catch (error) {
+      console.error('Get expiration defaults error:', error);
+      res.status(500).json({
+        error: 'Failed to fetch expiration defaults',
+        message: 'Unable to retrieve expiration information',
+      });
+    }
+  },
+);
 
 // Get ingredient by ID
 router.get('/:id', async (req: Request, res: Response) => {
@@ -116,9 +141,18 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       quantity: quantity || 1,
       unit: unit || 'piece',
     };
+
+    // Set expiration date: use provided date or calculate default based on category
     if (expirationDate) {
       ingredientData.expiration_date = new Date(expirationDate);
+    } else if (category) {
+      ingredientData.expiration_date =
+        ExpirationCalculator.calculateExpirationDate(category);
+      console.log(
+        `📅 Auto-calculated expiration for ${category}: ${ingredientData.expiration_date.toISOString().split('T')[0]}`,
+      );
     }
+
     await IngredientModel.addUserIngredient(req.user.id, ingredientData);
 
     // Fetch the full ingredient data with name and category

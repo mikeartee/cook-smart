@@ -19,6 +19,9 @@ import CookieConsent from './src/components/CookieConsent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {productLookupService} from './src/services/productLookupService';
+// Initialize Firebase
+import '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
 
 const Stack = createStackNavigator();
 
@@ -44,6 +47,34 @@ const AppContent = () => {
     productLookupService.clearExpiredCache().catch(error => {
       console.error('Failed to clear expired barcode cache:', error);
     });
+  }, []);
+
+  // Setup Firebase messaging
+  useEffect(() => {
+    // Request permission and get token on app start
+    const setupMessaging = async () => {
+      try {
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        if (enabled) {
+          console.log('✅ Firebase messaging authorized');
+        }
+      } catch (error) {
+        console.log('Firebase messaging setup error:', error);
+      }
+    };
+
+    setupMessaging();
+
+    // Handle foreground messages
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log('📬 Foreground notification:', remoteMessage);
+    });
+
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
