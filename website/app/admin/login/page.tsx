@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Input } from '@/components/ui/input';
@@ -8,22 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
 export default function AdminLoginPage(): React.ReactElement {
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, isLoading: authLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    console.log('[LOGIN] Auth state changed:', { isAuthenticated, authLoading });
-    if (isAuthenticated && !authLoading) {
-      console.log('[LOGIN] User is authenticated, redirecting to dashboard...');
-      // Use window.location for a hard redirect to avoid routing issues
-      window.location.href = '/admin/dashboard';
-    }
-  }, [isAuthenticated, authLoading]);
+  // Don't auto-redirect - let the form submission handle it
+  // This prevents redirect loops
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -45,13 +38,15 @@ export default function AdminLoginPage(): React.ReactElement {
     try {
       console.log('[LOGIN] Calling login function...');
       await login(email, password);
-      console.log('[LOGIN] Login function completed, redirecting...');
-      // Use window.location for a hard redirect
-      window.location.href = '/admin/dashboard';
+      console.log('[LOGIN] Login successful, navigating to dashboard...');
+
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        window.location.href = '/admin/dashboard';
+      }, 100);
     } catch (err: any) {
       console.error('[LOGIN] Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
-    } finally {
       setIsLoading(false);
     }
   };
