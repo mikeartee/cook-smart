@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 export default function AdminLoginPage(): React.ReactElement {
   const router = useRouter();
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,9 @@ export default function AdminLoginPage(): React.ReactElement {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log('[LOGIN] Auth state changed:', { isAuthenticated, authLoading });
     if (isAuthenticated && !authLoading) {
+      console.log('[LOGIN] Redirecting to dashboard...');
       router.push('/admin/dashboard');
     }
   }, [isAuthenticated, authLoading, router]);
@@ -42,9 +44,12 @@ export default function AdminLoginPage(): React.ReactElement {
     setIsLoading(true);
 
     try {
+      console.log('[LOGIN] Calling login function...');
       await login(email, password);
+      console.log('[LOGIN] Login function completed, redirecting...');
       router.push('/admin/dashboard');
     } catch (err: any) {
+      console.error('[LOGIN] Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
