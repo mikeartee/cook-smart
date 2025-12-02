@@ -140,13 +140,45 @@ Once IP is whitelisted, test with:
 - Complete nutrition database (vs limited free APIs)
 - **Estimated savings: $100-200/month at scale**
 
+## Recipe Caching System ✅
+
+### Features:
+- **Trending Recipes** - Tracks views, saves, shares to calculate trending score
+- **Seasonal Recipes** - Automatically fetches seasonal recipes based on current season
+- **Smart Caching** - Caches popular recipes for fast access
+- **User Tracking** - Tracks user interactions (views, saves, shares, ratings)
+- **Daily Maintenance** - Runs at 3 AM to refresh cache and update trending scores
+
+### New API Endpoints:
+- `GET /api/v1/recipes-cache/trending` - Get trending recipes
+- `GET /api/v1/recipes-cache/seasonal` - Get seasonal recipes
+- `GET /api/v1/recipes-cache/seasonal/current` - Get current season recipes
+- `POST /api/v1/recipes-cache/interaction` - Track user interaction
+- `GET /api/v1/recipes-cache/recipe/:id` - Get cached recipe
+- `POST /api/v1/recipes-cache/admin/refresh` - Admin: trigger cache refresh
+
+### How It Works:
+1. **Daily at 3 AM**: Fetches 50 seasonal recipes from FatSecret
+2. **Trending Calculation**: (views × 1) + (saves × 3) + (shares × 5) with time decay
+3. **Smart Caching**: Keeps popular recipes, removes old low-engagement ones
+4. **User Tracking**: Every view/save/share updates trending score
+
+### Seasonal Ingredients:
+- **Spring**: asparagus, peas, strawberries, artichokes, radishes
+- **Summer**: tomatoes, corn, zucchini, berries, peaches, watermelon
+- **Fall**: pumpkin, squash, apples, sweet potato, brussels sprouts
+- **Winter**: kale, cabbage, citrus, root vegetables, pomegranate
+
 ## Next Steps
 
 1. ✅ Whitelist EC2 IP address (34.203.8.150)
 2. ⏳ Wait for whitelist to take effect
-3. ✅ Test barcode scanning
-4. ✅ Test recipe search
-5. ✅ Monitor backend logs for FatSecret usage
+3. ✅ Run database migration for recipe cache tables
+4. ✅ Test barcode scanning
+5. ✅ Test recipe search
+6. ✅ Test trending recipes endpoint
+7. ✅ Test seasonal recipes endpoint
+8. ✅ Monitor backend logs for FatSecret usage
 
 ## Documentation
 
