@@ -168,6 +168,167 @@ class FatSecretService {
     }
   }
 
+  // ============================================
+  // RECIPE METHODS
+  // ============================================
+
+  async searchRecipes(query: string, maxResults: number = 20): Promise<any[]> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'recipes.search.v3',
+            search_expression: query,
+            max_results: maxResults,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      if (
+        response.data &&
+        response.data.recipes &&
+        response.data.recipes.recipe
+      ) {
+        return Array.isArray(response.data.recipes.recipe)
+          ? response.data.recipes.recipe
+          : [response.data.recipes.recipe];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('[FatSecret] Recipe search error:', error);
+      return [];
+    }
+  }
+
+  async getRecipeDetails(recipeId: string): Promise<any> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'recipe.get.v2',
+            recipe_id: recipeId,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      return response.data.recipe || null;
+    } catch (error) {
+      console.error('[FatSecret] Recipe details error:', error);
+      return null;
+    }
+  }
+
+  async searchRecipesAdvanced(options: {
+    query?: string;
+    maxResults?: number;
+    recipeTypes?: string;
+    mustIncludeIngredients?: string;
+    mustNotIncludeIngredients?: string;
+    maxCalories?: number;
+  }): Promise<any[]> {
+    try {
+      const token = await this.getAccessToken();
+
+      const params: any = {
+        method: 'recipes.search.v3',
+        max_results: options.maxResults || 20,
+        format: 'json',
+      };
+
+      if (options.query) params.search_expression = options.query;
+      if (options.recipeTypes) params.recipe_types = options.recipeTypes;
+      if (options.mustIncludeIngredients)
+        params.must_include_ingredient_names = options.mustIncludeIngredients;
+      if (options.mustNotIncludeIngredients)
+        params.must_not_include_ingredient_names =
+          options.mustNotIncludeIngredients;
+      if (options.maxCalories) params.max_calories = options.maxCalories;
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      if (
+        response.data &&
+        response.data.recipes &&
+        response.data.recipes.recipe
+      ) {
+        return Array.isArray(response.data.recipes.recipe)
+          ? response.data.recipes.recipe
+          : [response.data.recipes.recipe];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('[FatSecret] Advanced recipe search error:', error);
+      return [];
+    }
+  }
+
+  async autocompleteFood(query: string): Promise<any[]> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'foods.autocomplete',
+            expression: query,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 5000,
+        },
+      );
+
+      if (
+        response.data &&
+        response.data.suggestions &&
+        response.data.suggestions.suggestion
+      ) {
+        return Array.isArray(response.data.suggestions.suggestion)
+          ? response.data.suggestions.suggestion
+          : [response.data.suggestions.suggestion];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('[FatSecret] Autocomplete error:', error);
+      return [];
+    }
+  }
+
   formatNutritionPer100g(serving: any): any {
     // FatSecret provides nutrition per serving, convert to per 100g
     const servingSize = parseFloat(serving.metric_serving_amount) || 100;
