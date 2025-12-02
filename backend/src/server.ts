@@ -11,6 +11,7 @@ import HealthMonitor from './services/HealthMonitor';
 import SystemGuardian from './services/SystemGuardian';
 import {SubscriptionMonitor} from './services/SubscriptionMonitor';
 import {DailyNotificationService} from './services/DailyNotificationService';
+import RecipeCacheService from './services/RecipeCacheService';
 import pool from './config/database';
 import healthRoutes from './routes/health';
 
@@ -131,6 +132,7 @@ import userRecipesApiRoutes from './routes/userRecipes';
 import recipeEnhancementsRoutes from './routes/recipeEnhancements';
 import socialRoutes from './routes/social';
 import advancedRecipesRoutes from './routes/advancedRecipes';
+import trendingRecipesRoutes from './routes/trendingRecipes';
 
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/password', authLimiter, passwordResetRoutes);
@@ -170,6 +172,7 @@ app.use('/api/v1/user-recipes', userRecipesApiRoutes);
 app.use('/api/v1/recipe-enhancements', recipeEnhancementsRoutes);
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/advanced-recipes', advancedRecipesRoutes);
+app.use('/api/v1/recipes-cache', trendingRecipesRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({
@@ -206,6 +209,19 @@ app.listen(PORT, '0.0.0.0', () => {
   // Start daily notifications
   DailyNotificationService.startDailyChecks();
   console.log('🔔 Daily notifications activated');
+
+  // Start recipe cache maintenance (daily at 3 AM)
+  const runRecipeMaintenance = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour === 3) {
+      RecipeCacheService.runDailyMaintenance().catch(err =>
+        console.error('Recipe cache maintenance error:', err),
+      );
+    }
+  };
+  setInterval(runRecipeMaintenance, 60 * 60 * 1000); // Check every hour
+  console.log('🍳 Recipe cache maintenance scheduled');
 
   // Start System Guardian (automated monitoring and repair)
   if (process.env.NODE_ENV === 'production') {
