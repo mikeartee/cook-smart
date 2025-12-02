@@ -93,26 +93,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const login = useCallback(async (email: string, password: string): Promise<void> => {
     try {
       setIsLoading(true);
+      console.log('[AUTH] Starting login process...');
       const response = await authApi.login(email, password);
+      console.log('[AUTH] Login API response:', response);
 
       // Check if user has admin access
       const userData = response.user as any;
+      console.log('[AUTH] User data:', userData);
+      console.log('[AUTH] Admin check:', {
+        is_admin: userData.is_admin,
+        is_co_founder: userData.is_co_founder,
+        is_creator: userData.is_creator,
+        hasAccess: userData.is_admin || userData.is_co_founder || userData.is_creator,
+      });
+
       if (!userData.is_admin && !userData.is_co_founder && !userData.is_creator) {
+        console.error('[AUTH] User does not have admin access');
         throw new Error('You do not have admin access');
       }
 
+      console.log('[AUTH] Setting auth token...');
       apiClient.setAuthToken(response.token);
 
-      setUser({
+      const newUser = {
         id: userData.id,
         email: userData.email,
         name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Admin User',
         role: 'admin',
-      });
+      };
+      console.log('[AUTH] Setting user state:', newUser);
+      setUser(newUser);
 
       setLastActivity(Date.now());
+      console.log('[AUTH] Login complete!');
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('[AUTH] Login failed:', error);
       throw error;
     } finally {
       setIsLoading(false);
