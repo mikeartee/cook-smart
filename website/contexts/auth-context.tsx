@@ -67,20 +67,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     const loadAuth = async (): Promise<void> => {
       try {
         const token = apiClient.getAuthToken();
+        console.log('[AUTH] Loading auth state, token exists:', !!token);
+
         if (token) {
-          // Verify token is still valid by refreshing
-          const response = await authApi.refreshToken();
-          apiClient.setAuthToken(response.token);
-          // In a real app, you'd decode the token or fetch user info
+          // For now, just trust the token exists and set a basic user
+          // TODO: Implement proper token validation or /me endpoint
+          console.log('[AUTH] Token found, setting authenticated state');
           setUser({
             id: '1',
             email: 'admin@cooksmartapp.com',
             name: 'Admin User',
             role: 'admin',
           });
+        } else {
+          console.log('[AUTH] No token found, user not authenticated');
         }
       } catch (error) {
-        console.error('Failed to load auth:', error);
+        console.error('[AUTH] Failed to load auth:', error);
         apiClient.clearAuth();
       } finally {
         setIsLoading(false);
@@ -150,11 +153,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
 
   const refreshAuth = useCallback(async (): Promise<void> => {
     try {
-      const response = await authApi.refreshToken();
-      apiClient.setAuthToken(response.token);
+      // TODO: Implement token refresh endpoint in backend
+      console.log('[AUTH] Refresh auth called (not implemented yet)');
       setLastActivity(Date.now());
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('[AUTH] Token refresh failed:', error);
       await logout();
     }
   }, [logout]);
