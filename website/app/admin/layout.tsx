@@ -12,8 +12,9 @@ export default function AdminLayout({
 }): React.ReactElement {
   const pathname = usePathname();
   const isLoginPage = pathname === '/admin/login';
+  const isDebugPage = pathname === '/admin/debug-login';
 
-  if (isLoginPage) {
+  if (isLoginPage || isDebugPage) {
     return <AuthProvider>{children}</AuthProvider>;
   }
 
