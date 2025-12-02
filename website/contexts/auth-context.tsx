@@ -70,15 +70,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
         console.log('[AUTH] Loading auth state, token exists:', !!token);
 
         if (token) {
-          // For now, just trust the token exists and set a basic user
-          // TODO: Implement proper token validation or /me endpoint
-          console.log('[AUTH] Token found, setting authenticated state');
-          setUser({
-            id: '1',
-            email: 'admin@cooksmartapp.com',
-            name: 'Admin User',
-            role: 'admin',
-          });
+          console.log('[AUTH] Token found, attempting to validate...');
+
+          try {
+            // Try to fetch current user info using the /me endpoint
+            const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
+            console.log('[AUTH] User info fetched:', response.user);
+
+            setUser({
+              id: response.user.id,
+              email: response.user.email,
+              name:
+                `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
+                'Admin User',
+              role: 'admin',
+            });
+          } catch (error) {
+            console.error('[AUTH] Failed to validate token:', error);
+            // Token is invalid, clear it
+            apiClient.clearAuth();
+          }
         } else {
           console.log('[AUTH] No token found, user not authenticated');
         }
