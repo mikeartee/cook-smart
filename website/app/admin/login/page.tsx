@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
 export default function AdminLoginPage(): React.ReactElement {
-  const router = useRouter();
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -21,10 +19,11 @@ export default function AdminLoginPage(): React.ReactElement {
   useEffect(() => {
     console.log('[LOGIN] Auth state changed:', { isAuthenticated, authLoading });
     if (isAuthenticated && !authLoading) {
-      console.log('[LOGIN] Redirecting to dashboard...');
-      router.push('/admin/dashboard');
+      console.log('[LOGIN] User is authenticated, redirecting to dashboard...');
+      // Use window.location for a hard redirect to avoid routing issues
+      window.location.href = '/admin/dashboard';
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading]);
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -47,7 +46,8 @@ export default function AdminLoginPage(): React.ReactElement {
       console.log('[LOGIN] Calling login function...');
       await login(email, password);
       console.log('[LOGIN] Login function completed, redirecting...');
-      router.push('/admin/dashboard');
+      // Use window.location for a hard redirect
+      window.location.href = '/admin/dashboard';
     } catch (err: any) {
       console.error('[LOGIN] Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
