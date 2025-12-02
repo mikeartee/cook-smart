@@ -34,17 +34,17 @@ CREATE TABLE IF NOT EXISTS recipe_cache (
   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  last_fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  -- Indexes for fast queries
-  INDEX idx_recipe_source (source),
-  INDEX idx_recipe_meal_type (meal_type),
-  INDEX idx_recipe_season (season),
-  INDEX idx_recipe_trending (trending_score DESC),
-  INDEX idx_recipe_views (view_count DESC),
-  INDEX idx_recipe_featured (is_featured),
-  INDEX idx_recipe_seasonal (is_seasonal)
+  last_fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Indexes for fast queries
+CREATE INDEX IF NOT EXISTS idx_recipe_source ON recipe_cache(source);
+CREATE INDEX IF NOT EXISTS idx_recipe_meal_type ON recipe_cache(meal_type);
+CREATE INDEX IF NOT EXISTS idx_recipe_season ON recipe_cache(season);
+CREATE INDEX IF NOT EXISTS idx_recipe_trending ON recipe_cache(trending_score DESC);
+CREATE INDEX IF NOT EXISTS idx_recipe_views ON recipe_cache(view_count DESC);
+CREATE INDEX IF NOT EXISTS idx_recipe_featured ON recipe_cache(is_featured);
+CREATE INDEX IF NOT EXISTS idx_recipe_seasonal ON recipe_cache(is_seasonal);
 
 -- User Recipe Interactions
 CREATE TABLE IF NOT EXISTS user_recipe_interactions (
@@ -53,13 +53,13 @@ CREATE TABLE IF NOT EXISTS user_recipe_interactions (
   recipe_id VARCHAR(255) NOT NULL,
   interaction_type VARCHAR(50) NOT NULL, -- 'view', 'save', 'share', 'rate', 'cook'
   rating INTEGER, -- 1-5 stars
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  INDEX idx_user_interactions (user_id),
-  INDEX idx_recipe_interactions (recipe_id),
-  INDEX idx_interaction_type (interaction_type),
-  INDEX idx_interaction_date (created_at DESC)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_interactions ON user_recipe_interactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipe_interactions ON user_recipe_interactions(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_interaction_type ON user_recipe_interactions(interaction_type);
+CREATE INDEX IF NOT EXISTS idx_interaction_date ON user_recipe_interactions(created_at DESC);
 
 -- Seasonal Recipe Suggestions
 CREATE TABLE IF NOT EXISTS seasonal_recipe_queue (
@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS seasonal_recipe_queue (
   priority INTEGER DEFAULT 0,
   fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  UNIQUE(recipe_id, season),
-  INDEX idx_seasonal_queue (season, priority DESC)
+  UNIQUE(recipe_id, season)
 );
+
+CREATE INDEX IF NOT EXISTS idx_seasonal_queue ON seasonal_recipe_queue(season, priority DESC);
