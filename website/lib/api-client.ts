@@ -1,6 +1,13 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cooksmartapp.com';
+// Ensure we always use the API subdomain, not the main website domain
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cooksmartapp.com';
+
+// Fix common misconfiguration: if someone sets it to the main domain, correct it
+if (API_BASE_URL === 'https://cooksmartapp.com' || API_BASE_URL === 'http://cooksmartapp.com') {
+  console.warn('[API] Correcting API URL from main domain to API subdomain');
+  API_BASE_URL = 'https://api.cooksmartapp.com';
+}
 
 interface ApiClientConfig {
   baseURL: string;
