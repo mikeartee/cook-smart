@@ -1,4 +1,5 @@
 import axios from 'axios';
+import FatSecretService from './FatSecretService';
 
 interface BarcodeResult {
   found: boolean;
@@ -13,7 +14,7 @@ interface BarcodeResult {
       fat: number;
     };
     barcode: string;
-    source: 'openfoodfacts' | 'nutritionix' | 'usda' | 'manual';
+    source: 'fatsecret' | 'openfoodfacts' | 'nutritionix' | 'usda' | 'manual';
   };
   manualEntryRequired?: boolean;
 }
@@ -24,17 +25,28 @@ class BarcodeService {
 
   async lookupBarcode(barcode: string): Promise<BarcodeResult> {
     try {
-      // Step 1: Try Open Food Facts (FREE, international coverage)
+      // Step 1: Try FatSecret (Premier Free - best quality, comprehensive data)
+      if (FatSecretService.isConfigured()) {
+        const fatSecretResult = await this.tryFatSecret(barcode);
+        if (fatSecretResult.found) {
+          console.log('[Barcode] Found via FatSecret');
+          return fatSecretResult;
+        }
+      }
+
+      // Step 2: Try Open Food Facts (FREE, international coverage)
       const openFoodResult = await this.tryOpenFoodFacts(barcode);
       if (openFoodResult.found && this.isGoodQuality(openFoodResult)) {
+        console.log('[Barcode] Found via Open Food Facts');
         return openFoodResult;
       }
 
-      // Step 2: Try Nutritionix (500 free/month, then $0.002/request)
+      // Step 3: Try Nutritionix (500 free/month, then $0.002/request)
       if (this.nutritionixUsageCount < this.NUTRITIONIX_LIMIT) {
         const nutritionixResult = await this.tryNutritionix(barcode);
         if (nutritionixResult.found) {
           this.nutritionixUsageCount++;
+          console.log('[Barcode] Found via Nutritionix');
           return nutritionixResult;
         }
       }
@@ -48,11 +60,42 @@ class BarcodeService {
       }
 
       // Step 4: Manual entry required
-      return { found: false, manualEntryRequired: true };
-
+      return {found: false, manualEntryRequired: true};
     } catch (error) {
       console.error('Barcode lookup error:', error);
-      return { found: false, manualEntryRequired: true };
+      return {found: false, manualEntryRequired: true};
+    }
+  }
+
+  private async tryFatSecret(barcode: string): Promise<BarcodeResult> {
+    try {
+      const food = await FatSecretService.searchByBarcode(barcode);
+
+      if (food && food.servings && food.servings.serving) {
+        const serving = Array.isArray(food.servings.serving)
+          ? food.servings.serving[0]
+          : food.servings.serving;
+
+        const nutrition = FatSecretService.formatNutritionPer100g(serving);
+        const category = this.mapToCategory(food.food_type || '');
+
+        return {
+          found: true,
+          product: {
+            name: food.food_name,
+            brand: food.brand_name,
+            category,
+            nutrition_per_100g: nutrition,
+            barcode,
+            source: 'fatsecret',
+          },
+        };
+      }
+
+      return {found: false};
+    } catch (error) {
+      console.error('[FatSecret] Barcode lookup error:', error);
+      return {found: false};
     }
   }
 
@@ -60,32 +103,37 @@ class BarcodeService {
     try {
       const response = await axios.get(
         `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
-        { timeout: 5000 }
+        {timeout: 5000},
       );
 
       if (response.data.status === 1 && response.data.product) {
         const product = response.data.product;
-        
+
         // Get English category name, fallback to 'other' if mapping fails
-        const mappedCategory = this.mapToCategory(product.categories || product.categories_tags?.join(',') || '');
-        
+        const mappedCategory = this.mapToCategory(
+          product.categories || product.categories_tags?.join(',') || '',
+        );
+
         return {
           found: true,
           product: {
-            name: product.product_name || product.product_name_en || 'Unknown Product',
+            name:
+              product.product_name ||
+              product.product_name_en ||
+              'Unknown Product',
             brand: product.brands,
             category: mappedCategory,
             nutrition_per_100g: this.extractNutrition(product.nutriments),
             barcode,
-            source: 'openfoodfacts'
-          }
+            source: 'openfoodfacts',
+          },
         };
       }
 
-      return { found: false };
+      return {found: false};
     } catch (error) {
       console.error('Open Food Facts error:', error);
-      return { found: false };
+      return {found: false};
     }
   }
 
@@ -94,18 +142,18 @@ class BarcodeService {
       const response = await axios.get(
         `https://trackapi.nutritionix.com/v2/search/item`,
         {
-          params: { upc: barcode },
+          params: {upc: barcode},
           headers: {
             'x-app-id': process.env.NUTRITIONIX_APP_ID,
             'x-app-key': process.env.NUTRITIONIX_API_KEY,
           },
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       );
 
       if (response.data.foods && response.data.foods.length > 0) {
         const food = response.data.foods[0];
-        
+
         return {
           found: true,
           product: {
@@ -113,25 +161,40 @@ class BarcodeService {
             brand: food.brand_name,
             category: this.mapToCategory(food.tags?.food_group),
             nutrition_per_100g: {
-              calories: Math.round((food.nf_calories / food.serving_weight_grams) * 100),
-              protein: Math.round((food.nf_protein / food.serving_weight_grams) * 100 * 10) / 10,
-              carbs: Math.round((food.nf_total_carbohydrate / food.serving_weight_grams) * 100 * 10) / 10,
-              fat: Math.round((food.nf_total_fat / food.serving_weight_grams) * 100 * 10) / 10,
+              calories: Math.round(
+                (food.nf_calories / food.serving_weight_grams) * 100,
+              ),
+              protein:
+                Math.round(
+                  (food.nf_protein / food.serving_weight_grams) * 100 * 10,
+                ) / 10,
+              carbs:
+                Math.round(
+                  (food.nf_total_carbohydrate / food.serving_weight_grams) *
+                    100 *
+                    10,
+                ) / 10,
+              fat:
+                Math.round(
+                  (food.nf_total_fat / food.serving_weight_grams) * 100 * 10,
+                ) / 10,
             },
             barcode,
-            source: 'nutritionix'
-          }
+            source: 'nutritionix',
+          },
         };
       }
 
-      return { found: false };
+      return {found: false};
     } catch (error) {
       console.error('Nutritionix error:', error);
-      return { found: false };
+      return {found: false};
     }
   }
 
-  private async enhanceWithUSDA(openFoodResult: BarcodeResult): Promise<BarcodeResult> {
+  private async enhanceWithUSDA(
+    openFoodResult: BarcodeResult,
+  ): Promise<BarcodeResult> {
     try {
       if (!openFoodResult.product?.name) return openFoodResult;
 
@@ -142,10 +205,10 @@ class BarcodeService {
             query: openFoodResult.product.name,
             dataType: ['Branded', 'Survey (FNDDS)'],
             pageSize: 5,
-            api_key: process.env.USDA_API_KEY || 'DEMO_KEY'
+            api_key: process.env.USDA_API_KEY || 'DEMO_KEY',
           },
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       );
 
       if (response.data.foods && response.data.foods.length > 0) {
@@ -164,8 +227,8 @@ class BarcodeService {
           product: {
             ...openFoodResult.product,
             nutrition_per_100g: nutrition,
-            source: 'usda'
-          }
+            source: 'usda',
+          },
         };
       }
 
@@ -178,10 +241,13 @@ class BarcodeService {
 
   private isGoodQuality(result: BarcodeResult): boolean {
     if (!result.product) return false;
-    
-    const hasName = result.product.name && result.product.name !== 'Unknown Product';
-    const hasNutrition = result.product.nutrition_per_100g?.calories && result.product.nutrition_per_100g.calories > 0;
-    
+
+    const hasName =
+      result.product.name && result.product.name !== 'Unknown Product';
+    const hasNutrition =
+      result.product.nutrition_per_100g?.calories &&
+      result.product.nutrition_per_100g.calories > 0;
+
     return Boolean(hasName && hasNutrition);
   }
 
@@ -189,7 +255,8 @@ class BarcodeService {
     if (!nutriments) return undefined;
 
     return {
-      calories: nutriments['energy-kcal_100g'] || nutriments['energy_100g'] || 0,
+      calories:
+        nutriments['energy-kcal_100g'] || nutriments['energy_100g'] || 0,
       protein: nutriments['proteins_100g'] || 0,
       carbs: nutriments['carbohydrates_100g'] || 0,
       fat: nutriments['fat_100g'] || 0,
@@ -203,62 +270,95 @@ class BarcodeService {
 
   private mapToCategory(categories: string): string {
     if (!categories) return 'other';
-    
+
     const categoryStr = categories.toLowerCase();
-    
+
     // Proteins (English and Spanish)
-    if (categoryStr.includes('meat') || categoryStr.includes('poultry') || categoryStr.includes('fish') || 
-        categoryStr.includes('seafood') || categoryStr.includes('carne') || categoryStr.includes('pescado') ||
-        categoryStr.includes('protein')) {
+    if (
+      categoryStr.includes('meat') ||
+      categoryStr.includes('poultry') ||
+      categoryStr.includes('fish') ||
+      categoryStr.includes('seafood') ||
+      categoryStr.includes('carne') ||
+      categoryStr.includes('pescado') ||
+      categoryStr.includes('protein')
+    ) {
       return 'proteins';
     }
-    
+
     // Vegetables (English and Spanish)
-    if (categoryStr.includes('vegetable') || categoryStr.includes('produce') || categoryStr.includes('vegetal') ||
-        categoryStr.includes('verdura')) {
+    if (
+      categoryStr.includes('vegetable') ||
+      categoryStr.includes('produce') ||
+      categoryStr.includes('vegetal') ||
+      categoryStr.includes('verdura')
+    ) {
       return 'vegetables';
     }
-    
+
     // Fruits (English and Spanish)
     if (categoryStr.includes('fruit') || categoryStr.includes('fruta')) {
       return 'fruits';
     }
-    
+
     // Dairy (English and Spanish)
-    if (categoryStr.includes('dairy') || categoryStr.includes('milk') || categoryStr.includes('cheese') || 
-        categoryStr.includes('yogurt') || categoryStr.includes('lácteo') || categoryStr.includes('lacteo') ||
-        categoryStr.includes('leche') || categoryStr.includes('queso')) {
+    if (
+      categoryStr.includes('dairy') ||
+      categoryStr.includes('milk') ||
+      categoryStr.includes('cheese') ||
+      categoryStr.includes('yogurt') ||
+      categoryStr.includes('lácteo') ||
+      categoryStr.includes('lacteo') ||
+      categoryStr.includes('leche') ||
+      categoryStr.includes('queso')
+    ) {
       return 'dairy';
     }
-    
+
     // Grains (English and Spanish)
-    if (categoryStr.includes('grain') || categoryStr.includes('bread') || categoryStr.includes('cereal') || 
-        categoryStr.includes('pasta') || categoryStr.includes('grano') || categoryStr.includes('pan') ||
-        categoryStr.includes('arroz') || categoryStr.includes('rice')) {
+    if (
+      categoryStr.includes('grain') ||
+      categoryStr.includes('bread') ||
+      categoryStr.includes('cereal') ||
+      categoryStr.includes('pasta') ||
+      categoryStr.includes('grano') ||
+      categoryStr.includes('pan') ||
+      categoryStr.includes('arroz') ||
+      categoryStr.includes('rice')
+    ) {
       return 'grains';
     }
-    
+
     // Spices (English and Spanish)
-    if (categoryStr.includes('spice') || categoryStr.includes('herb') || categoryStr.includes('seasoning') ||
-        categoryStr.includes('especia') || categoryStr.includes('condimento')) {
+    if (
+      categoryStr.includes('spice') ||
+      categoryStr.includes('herb') ||
+      categoryStr.includes('seasoning') ||
+      categoryStr.includes('especia') ||
+      categoryStr.includes('condimento')
+    ) {
       return 'spices';
     }
-    
+
     // Plant-based foods (English and Spanish)
-    if (categoryStr.includes('plant-based') || categoryStr.includes('plant based') || 
-        categoryStr.includes('alimento') || categoryStr.includes('bebida')) {
+    if (
+      categoryStr.includes('plant-based') ||
+      categoryStr.includes('plant based') ||
+      categoryStr.includes('alimento') ||
+      categoryStr.includes('bebida')
+    ) {
       return 'vegetables'; // Default plant-based to vegetables
     }
-    
+
     return 'other';
   }
 
   // Usage tracking methods
-  getNutritionixUsage(): { used: number; limit: number; remaining: number } {
+  getNutritionixUsage(): {used: number; limit: number; remaining: number} {
     return {
       used: this.nutritionixUsageCount,
       limit: this.NUTRITIONIX_LIMIT,
-      remaining: this.NUTRITIONIX_LIMIT - this.nutritionixUsageCount
+      remaining: this.NUTRITIONIX_LIMIT - this.nutritionixUsageCount,
     };
   }
 

@@ -1,0 +1,190 @@
+import axios from 'axios';
+
+interface FatSecretConfig {
+  clientId: string;
+  clientSecret: string;
+}
+
+interface FatSecretFood {
+  food_id: string;
+  food_name: string;
+  brand_name?: string;
+  food_type: string;
+  food_url: string;
+  servings: {
+    serving: Array<{
+      serving_id: string;
+      serving_description: string;
+      metric_serving_amount?: string;
+      metric_serving_unit?: string;
+      calories: string;
+      protein: string;
+      carbohydrate: string;
+      fat: string;
+    }>;
+  };
+}
+
+class FatSecretService {
+  private config: FatSecretConfig;
+  private accessToken: string | null = null;
+  private tokenExpiry: number = 0;
+
+  constructor() {
+    this.config = {
+      clientId: process.env.FATSECRET_CLIENT_ID || '',
+      clientSecret: process.env.FATSECRET_CLIENT_SECRET || '',
+    };
+  }
+
+  private async getAccessToken(): Promise<string> {
+    // Return cached token if still valid
+    if (this.accessToken && Date.now() < this.tokenExpiry) {
+      return this.accessToken;
+    }
+
+    try {
+      const auth = Buffer.from(
+        `${this.config.clientId}:${this.config.clientSecret}`,
+      ).toString('base64');
+
+      const response = await axios.post(
+        'https://oauth.fatsecret.com/connect/token',
+        'grant_type=client_credentials&scope=premier',
+        {
+          headers: {
+            Authorization: `Basic ${auth}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: 10000,
+        },
+      );
+
+      this.accessToken = response.data.access_token;
+      // Set expiry to 5 minutes before actual expiry for safety
+      this.tokenExpiry = Date.now() + (response.data.expires_in - 300) * 1000;
+
+      return this.accessToken;
+    } catch (error) {
+      console.error('[FatSecret] Token error:', error);
+      throw new Error('Failed to get FatSecret access token');
+    }
+  }
+
+  async searchByBarcode(barcode: string): Promise<any> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'food.find_id_for_barcode',
+            barcode: barcode,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      if (response.data && response.data.food_id) {
+        // Get detailed food information
+        return await this.getFoodDetails(response.data.food_id.value);
+      }
+
+      return null;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        console.log(`[FatSecret] Barcode not found: ${barcode}`);
+        return null;
+      }
+      console.error('[FatSecret] Barcode search error:', error);
+      return null;
+    }
+  }
+
+  async getFoodDetails(foodId: string): Promise<FatSecretFood | null> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'food.get.v2',
+            food_id: foodId,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      return response.data.food || null;
+    } catch (error) {
+      console.error('[FatSecret] Food details error:', error);
+      return null;
+    }
+  }
+
+  async searchFoods(query: string, maxResults: number = 20): Promise<any[]> {
+    try {
+      const token = await this.getAccessToken();
+
+      const response = await axios.post(
+        'https://platform.fatsecret.com/rest/server.api',
+        null,
+        {
+          params: {
+            method: 'foods.search',
+            search_expression: query,
+            max_results: maxResults,
+            format: 'json',
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      if (response.data && response.data.foods && response.data.foods.food) {
+        return Array.isArray(response.data.foods.food)
+          ? response.data.foods.food
+          : [response.data.foods.food];
+      }
+
+      return [];
+    } catch (error) {
+      console.error('[FatSecret] Food search error:', error);
+      return [];
+    }
+  }
+
+  formatNutritionPer100g(serving: any): any {
+    // FatSecret provides nutrition per serving, convert to per 100g
+    const servingSize = parseFloat(serving.metric_serving_amount) || 100;
+    const multiplier = 100 / servingSize;
+
+    return {
+      calories: Math.round(parseFloat(serving.calories) * multiplier),
+      protein: Math.round(parseFloat(serving.protein) * multiplier * 10) / 10,
+      carbs:
+        Math.round(parseFloat(serving.carbohydrate) * multiplier * 10) / 10,
+      fat: Math.round(parseFloat(serving.fat) * multiplier * 10) / 10,
+    };
+  }
+
+  isConfigured(): boolean {
+    return Boolean(this.config.clientId && this.config.clientSecret);
+  }
+}
+
+export default new FatSecretService();
