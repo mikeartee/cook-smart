@@ -18,6 +18,13 @@ class ApiClient {
     // Request interceptor to add auth token
     this.client.interceptors.request.use(
       (requestConfig) => {
+        console.log('[API] Request:', {
+          method: requestConfig.method,
+          url: requestConfig.url,
+          baseURL: requestConfig.baseURL,
+          data: requestConfig.data,
+          hasAuthToken: !!this.authToken,
+        });
         if (this.authToken) {
           requestConfig.headers.Authorization = `Bearer ${this.authToken}`;
         }
@@ -28,8 +35,21 @@ class ApiClient {
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log('[API] Response:', {
+          url: response.config.url,
+          status: response.status,
+          data: response.data,
+        });
+        return response;
+      },
       async (error) => {
+        console.error('[API] Error:', {
+          url: error.config?.url,
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message,
+        });
         if (error.response?.status === 401) {
           // Token expired or invalid
           this.clearAuth();
@@ -102,8 +122,19 @@ export default apiClient;
 
 // Export specific API methods for different domains
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiClient.post<{ token: string; user: unknown }>('/api/v1/auth/login', { email, password }),
+  login: (email: string, password: string) => {
+    console.log('[AUTH] Login attempt:', {
+      email,
+      passwordLength: password.length,
+      apiUrl: API_BASE_URL,
+      endpoint: '/api/v1/auth/login',
+      fullUrl: `${API_BASE_URL}/api/v1/auth/login`,
+    });
+    return apiClient.post<{ token: string; user: unknown }>('/api/v1/auth/login', {
+      email,
+      password,
+    });
+  },
 
   logout: () => apiClient.post('/api/v1/auth/logout'),
 
