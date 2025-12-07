@@ -759,11 +759,13 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             )}
           </View>
 
-          {/* Provider Attribution */}
-          {recipe.provider && (
+          {/* Provider Attribution - FatSecret */}
+          {recipe.provider === 'fatsecret' && (
             <View style={styles.providerBadge}>
               <Icon name="info-outline" size={14} color="#8B5CF6" />
-              <Text style={styles.providerText}>Recipe from TheMealDB</Text>
+              <Text style={styles.providerText}>
+                Recipe powered by FatSecret Platform API
+              </Text>
             </View>
           )}
 

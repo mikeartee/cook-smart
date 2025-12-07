@@ -50,7 +50,7 @@ export interface RecipeDetails {
   cuisines: string[];
   dishTypes: string[];
   instructions: string;
-  ingredients: string[]; // TheMealDB format - array of ingredient strings
+  ingredients: string[]; // Array of ingredient strings
   provider?: string;
   // Comprehensive nutrition info
   calories?: number;
@@ -119,7 +119,7 @@ class RecipeService {
   }
 
   // Get recipe details
-  async getRecipeDetails(recipeId: number): Promise<RecipeDetails> {
+  async getRecipeDetails(recipeId: number | string): Promise<RecipeDetails> {
     try {
       console.log('[RecipeService] Getting recipe details:', recipeId);
       const token = await this.getAuthToken();
