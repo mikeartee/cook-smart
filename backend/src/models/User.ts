@@ -7,6 +7,7 @@ export interface User {
   password_hash: string;
   first_name?: string;
   last_name?: string;
+  is_admin: boolean;
   is_co_founder: boolean;
   is_special_user: boolean;
   is_creator: boolean;

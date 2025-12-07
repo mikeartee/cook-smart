@@ -133,6 +133,12 @@ import recipeEnhancementsRoutes from './routes/recipeEnhancements';
 import socialRoutes from './routes/social';
 import advancedRecipesRoutes from './routes/advancedRecipes';
 import trendingRecipesRoutes from './routes/trendingRecipes';
+import contactRoutes from './routes/contact';
+import recipeAnalysisRoutes from './routes/recipeAnalysis';
+import recipeModificationRoutes from './routes/recipeModification';
+import personalizedRecipesRoutes from './routes/personalizedRecipes';
+import substitutionFeedbackRoutes from './routes/substitutionFeedback';
+import safetyCheckRoutes from './routes/safetyCheck';
 
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/password', authLimiter, passwordResetRoutes);
@@ -173,6 +179,12 @@ app.use('/api/v1/recipe-enhancements', recipeEnhancementsRoutes);
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/advanced-recipes', advancedRecipesRoutes);
 app.use('/api/v1/recipes-cache', trendingRecipesRoutes);
+app.use('/api/v1/recipe-analysis', recipeAnalysisRoutes);
+app.use('/api/v1/recipe-modification', recipeModificationRoutes);
+app.use('/api/v1/personalized', personalizedRecipesRoutes);
+app.use('/api/v1/substitutions', substitutionFeedbackRoutes);
+app.use('/api/v1/safety-check', safetyCheckRoutes);
+app.use('/contact', contactRoutes);
 
 app.get('/api/v1/test', (req, res) => {
   res.json({

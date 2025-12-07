@@ -65,13 +65,14 @@ router.get('/seasonal/current', async (req, res) => {
 router.post(
   '/interaction',
   authenticateToken,
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       const {recipeId, interactionType, rating} = req.body;
       const userId = req.user?.id;
 
       if (!recipeId || !interactionType) {
-        return res.status(400).json({error: 'Missing required fields'});
+        res.status(400).json({error: 'Missing required fields'});
+        return;
       }
 
       await RecipeCacheService.trackInteraction(
@@ -90,13 +91,14 @@ router.post(
 );
 
 // Get recipe from cache
-router.get('/recipe/:id', async (req, res) => {
+router.get('/recipe/:id', async (req, res): Promise<void> => {
   try {
     const {id} = req.params;
     const recipe = await RecipeCacheService.getRecipeById(id);
 
     if (!recipe) {
-      return res.status(404).json({error: 'Recipe not found in cache'});
+      res.status(404).json({error: 'Recipe not found in cache'});
+      return;
     }
 
     res.json({success: true, recipe});
@@ -110,11 +112,12 @@ router.get('/recipe/:id', async (req, res) => {
 router.post(
   '/admin/refresh',
   authenticateToken,
-  async (req: AuthRequest, res) => {
+  async (req: AuthRequest, res): Promise<void> => {
     try {
       // Check if user is admin
       if (!req.user?.is_admin) {
-        return res.status(403).json({error: 'Admin access required'});
+        res.status(403).json({error: 'Admin access required'});
+        return;
       }
 
       // Run maintenance in background

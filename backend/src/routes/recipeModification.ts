@@ -1,0 +1,198 @@
+import express from 'express';
+import {authenticateToken, AuthRequest} from '../middleware/auth';
+import RecipeCacheService from '../services/RecipeCacheService';
+import {RecipeFilterService} from '../services/RecipeFilterService';
+import {IngredientSubstitutionService} from '../services/IngredientSubstitutionService';
+
+const router = express.Router();
+
+interface ModifiedIngredient {
+  original: {
+    name: string;
+    amount: number;
+    unit: string;
+  };
+  modified: {
+    name: string;
+    amount: number;
+    unit: string;
+  };
+  substitution?: {
+    ingredient: string;
+    ratio: string;
+    notes?: string;
+  };
+  hasSubstitution: boolean;
+}
+
+// Get recipe with substitutions applied
+router.get(
+  '/:id/modified',
+  authenticateToken,
+  async (req: AuthRequest, res): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      const recipeId = req.params.id;
+
+      if (!userId) {
+        res.status(401).json({error: 'User not authenticated'});
+        return;
+      }
+
+      // Get recipe
+      const recipe = await RecipeCacheService.getRecipeById(recipeId);
+      if (!recipe) {
+        res.status(404).json({error: 'Recipe not found'});
+        return;
+      }
+
+      // Analyze recipe for conflicts
+      const ingredients = Array.isArray(recipe.ingredients)
+        ? recipe.ingredients
+        : [];
+      const ingredientNames = ingredients.map((i: any) => i.name);
+
+      const analysis = await RecipeFilterService.analyzeRecipe(
+        userId,
+        ingredientNames,
+      );
+
+      // Get substitutions
+      const allConflicts = analysis.conflicts.flatMap(
+        c => c.conflictingIngredients,
+      );
+      const substitutions = IngredientSubstitutionService.getSubstitutions(
+        allConflicts,
+        analysis.conflicts[0]?.type || 'dietary',
+      );
+
+      // Apply substitutions to ingredients
+      const modifiedIngredients: ModifiedIngredient[] = ingredients.map(
+        (ing: any) => {
+          const sub = substitutions.find(s =>
+            ing.name.toLowerCase().includes(s.original.toLowerCase()),
+          );
+
+          if (sub && sub.substitutes.length > 0) {
+            const bestSub = sub.substitutes[0];
+            const ratio = parseRatio(bestSub.ratio);
+
+            return {
+              original: {
+                name: ing.name,
+                amount: ing.amount,
+                unit: ing.unit,
+              },
+              modified: {
+                name: bestSub.ingredient,
+                amount: Math.round(ing.amount * ratio * 100) / 100,
+                unit: ing.unit,
+              },
+              substitution: bestSub,
+              hasSubstitution: true,
+            };
+          }
+
+          return {
+            original: {
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            },
+            modified: {
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            },
+            hasSubstitution: false,
+          };
+        },
+      );
+
+      // Calculate difficulty increase
+      const difficulty = calculateDifficulty(substitutions);
+
+      // Generate modification notes
+      const notes = generateNotes(analysis.conflicts, substitutions);
+
+      res.json({
+        recipe: {
+          ...recipe,
+          ingredients: modifiedIngredients,
+        },
+        modifications: {
+          count: substitutions.length,
+          difficulty,
+          notes,
+          conflicts: analysis.conflicts,
+        },
+        original: {
+          ...recipe,
+          ingredients: ingredients,
+        },
+      });
+    } catch (error) {
+      console.error('[Recipe Modification] Error:', error);
+      res.status(500).json({error: 'Failed to modify recipe'});
+    }
+  },
+);
+
+// Helper function to parse ratio strings like "1:1", "3:4"
+function parseRatio(ratio: string): number {
+  const parts = ratio.split(':');
+  if (parts.length !== 2) return 1;
+
+  const numerator = parseFloat(parts[0]);
+  const denominator = parseFloat(parts[1]);
+
+  if (isNaN(numerator) || isNaN(denominator) || denominator === 0) return 1;
+
+  return numerator / denominator;
+}
+
+// Calculate difficulty increase based on number of substitutions
+function calculateDifficulty(
+  substitutions: any[],
+): 'none' | 'low' | 'medium' | 'high' {
+  if (substitutions.length === 0) return 'none';
+  if (substitutions.length <= 2) return 'low';
+  if (substitutions.length <= 4) return 'medium';
+  return 'high';
+}
+
+// Generate helpful notes about modifications
+function generateNotes(conflicts: any[], substitutions: any[]): string[] {
+  const notes: string[] = [];
+
+  // Add conflict summary
+  const allergyConflicts = conflicts.filter(c => c.type === 'allergy').length;
+  const dietaryConflicts = conflicts.filter(c => c.type === 'dietary').length;
+
+  if (allergyConflicts > 0) {
+    notes.push(
+      `⚠️ ${allergyConflicts} allergy conflict(s) resolved with substitutions`,
+    );
+  }
+  if (dietaryConflicts > 0) {
+    notes.push(`🥗 ${dietaryConflicts} dietary restriction(s) addressed`);
+  }
+
+  // Add substitution tips
+  substitutions.forEach(sub => {
+    const bestSub = sub.substitutes[0];
+    if (bestSub && bestSub.notes) {
+      notes.push(
+        `💡 ${sub.original} → ${bestSub.ingredient}: ${bestSub.notes}`,
+      );
+    }
+  });
+
+  if (notes.length === 0) {
+    notes.push('✅ This recipe is already compatible with your preferences');
+  }
+
+  return notes;
+}
+
+export default router;

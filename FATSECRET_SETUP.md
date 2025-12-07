@@ -1,6 +1,6 @@
 # FatSecret API Integration - Setup Guide
 
-## Status: ✅ Code Integrated - Awaiting API Credentials
+## Status: 🕐 Credentials Added - Awaiting IP Whitelist Propagation
 
 ### What's Been Done
 
@@ -8,6 +8,9 @@
 2. ✅ Updated `barcodeService.ts` - FatSecret is now the primary barcode lookup
 3. ✅ Added environment variables to `.env.example`
 4. ✅ Implemented fallback chain: FatSecret → Open Food Facts → Nutritionix → USDA
+5. ✅ Added credentials to production `.env`
+6. ✅ Whitelisted IPs in FatSecret portal (34.203.8.150, 172.59.200.202)
+7. 🕐 Waiting for IP whitelist to propagate (can take a few minutes)
 
 ### Integration Benefits
 

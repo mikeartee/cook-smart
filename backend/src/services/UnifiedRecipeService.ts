@@ -48,22 +48,37 @@ class UnifiedRecipeService {
     const maxResults = options?.maxResults || 20;
 
     try {
-      // Search FatSecret first (best nutrition data)
+      // PRIORITY 1: FatSecret (Premier Free - 17,000+ recipes, complete nutrition)
       if (FatSecretService.isConfigured()) {
+        console.log(`[UnifiedRecipe] Searching FatSecret for: "${query}"`);
         const fatSecretRecipes = await this.searchFatSecretRecipes(
           query,
           options,
         );
+        console.log(
+          `[UnifiedRecipe] FatSecret returned ${fatSecretRecipes.length} recipes`,
+        );
         results.push(...fatSecretRecipes);
       }
 
-      // If we need more results, search Spoonacular
-      if (results.length < maxResults) {
+      // PRIORITY 2: Only use Spoonacular if FatSecret returns < 5 results
+      // This ensures FatSecret is truly primary
+      if (results.length < 5) {
+        console.log(
+          `[UnifiedRecipe] FatSecret returned < 5 results, supplementing with Spoonacular`,
+        );
         const spoonacularRecipes = await this.searchSpoonacularRecipes(
           query,
           maxResults - results.length,
         );
+        console.log(
+          `[UnifiedRecipe] Spoonacular returned ${spoonacularRecipes.length} recipes`,
+        );
         results.push(...spoonacularRecipes);
+      } else {
+        console.log(
+          `[UnifiedRecipe] FatSecret provided sufficient results, skipping Spoonacular`,
+        );
       }
 
       return results.slice(0, maxResults);
@@ -83,25 +98,47 @@ class UnifiedRecipeService {
     const results: UnifiedRecipe[] = [];
 
     try {
-      // FatSecret: Search with must-include ingredients
+      // PRIORITY 1: FatSecret (best ingredient filtering and nutrition)
       if (FatSecretService.isConfigured()) {
+        console.log(
+          `[UnifiedRecipe] Searching FatSecret by ingredients: ${ingredients.join(', ')}`,
+        );
         const fatSecretRecipes = await FatSecretService.searchRecipesAdvanced({
           mustIncludeIngredients: ingredients.join(','),
-          maxResults: Math.ceil(maxResults / 2),
+          maxResults,
         });
+        console.log(
+          `[UnifiedRecipe] FatSecret returned ${fatSecretRecipes.length} recipes`,
+        );
 
         results.push(
           ...fatSecretRecipes.map(r => this.formatFatSecretRecipe(r)),
         );
       }
 
-      // Spoonacular: Search by ingredients
-      if (results.length < maxResults) {
+      // PRIORITY 2: Only use Spoonacular if FatSecret returns < 5 results
+      if (results.length < 5) {
+        console.log(
+          `[UnifiedRecipe] FatSecret returned < 5 results, supplementing with Spoonacular`,
+        );
         const spoonacularRecipes = await SpoonacularService.searchByIngredients(
           ingredients,
           maxResults - results.length,
         );
-        results.push(...spoonacularRecipes);
+        console.log(
+          `[UnifiedRecipe] Spoonacular returned ${spoonacularRecipes.length} recipes`,
+        );
+        // Convert Recipe[] to UnifiedRecipe[] by adding source property
+        const unifiedRecipes = spoonacularRecipes.map(recipe => ({
+          ...recipe,
+          source: 'spoonacular' as const,
+          ingredients: recipe.ingredients.map(ing => ({
+            name: ing,
+            amount: 0,
+            unit: '',
+          })),
+        }));
+        results.push(...unifiedRecipes);
       }
 
       return results.slice(0, maxResults);
@@ -123,7 +160,18 @@ class UnifiedRecipeService {
         const recipe = await FatSecretService.getRecipeDetails(recipeId);
         return recipe ? this.formatFatSecretRecipe(recipe) : null;
       } else {
-        return await SpoonacularService.getRecipeDetails(recipeId);
+        const recipeDetails =
+          await SpoonacularService.getRecipeDetails(recipeId);
+        // Convert RecipeDetails to UnifiedRecipe by adding source property
+        return {
+          ...recipeDetails,
+          source: 'spoonacular' as const,
+          ingredients: recipeDetails.ingredients.map(ing => ({
+            name: ing,
+            amount: 0,
+            unit: '',
+          })),
+        };
       }
     } catch (error) {
       console.error('[UnifiedRecipe] Get details error:', error);
@@ -190,7 +238,25 @@ class UnifiedRecipeService {
     maxResults: number,
   ): Promise<UnifiedRecipe[]> {
     try {
-      return await SpoonacularService.searchRecipes(query, maxResults);
+      // Spoonacular doesn't have a direct text search, use ingredient search as fallback
+      const ingredients = query.split(' ').filter(word => word.length > 3);
+      if (ingredients.length === 0) {
+        return [];
+      }
+      const recipes = await SpoonacularService.searchByIngredients(
+        ingredients,
+        maxResults,
+      );
+      // Convert Recipe[] to UnifiedRecipe[] by adding source property
+      return recipes.map(recipe => ({
+        ...recipe,
+        source: 'spoonacular' as const,
+        ingredients: recipe.ingredients.map(ing => ({
+          name: ing,
+          amount: 0,
+          unit: '',
+        })),
+      }));
     } catch (error) {
       console.error('[UnifiedRecipe] Spoonacular search error:', error);
       return [];

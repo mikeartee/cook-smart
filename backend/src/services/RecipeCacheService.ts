@@ -47,7 +47,16 @@ class RecipeCacheService {
         });
 
         for (const recipe of recipes) {
-          await this.cacheRecipe(recipe, 'fatsecret', season, true);
+          // Fetch full recipe details including ingredients and instructions
+          const fullRecipe = await FatSecretService.getRecipeDetails(
+            recipe.recipe_id,
+          );
+          if (fullRecipe) {
+            await this.cacheRecipe(fullRecipe, 'fatsecret', season, true);
+          } else {
+            // Fallback to basic recipe if details fetch fails
+            await this.cacheRecipe(recipe, 'fatsecret', season, true);
+          }
         }
       }
 
@@ -161,7 +170,16 @@ class RecipeCacheService {
         });
 
         for (const recipe of recipes) {
-          await this.cacheRecipe(recipe, 'fatsecret', 'all', false);
+          // Fetch full recipe details including ingredients and instructions
+          const fullRecipe = await FatSecretService.getRecipeDetails(
+            recipe.recipe_id,
+          );
+          if (fullRecipe) {
+            await this.cacheRecipe(fullRecipe, 'fatsecret', 'all', false);
+          } else {
+            // Fallback to basic recipe if details fetch fails
+            await this.cacheRecipe(recipe, 'fatsecret', 'all', false);
+          }
         }
       }
 
@@ -383,11 +401,15 @@ class RecipeCacheService {
   }
 
   private parseDietaryInfo(recipe: any): any {
+    const recipeTypes = recipe.recipe_types || '';
+    const typesString =
+      typeof recipeTypes === 'string' ? recipeTypes : String(recipeTypes);
+
     return {
-      vegetarian: recipe.recipe_types?.includes('vegetarian') || false,
-      vegan: recipe.recipe_types?.includes('vegan') || false,
-      glutenFree: recipe.recipe_types?.includes('gluten-free') || false,
-      dairyFree: recipe.recipe_types?.includes('dairy-free') || false,
+      vegetarian: typesString.toLowerCase().includes('vegetarian') || false,
+      vegan: typesString.toLowerCase().includes('vegan') || false,
+      glutenFree: typesString.toLowerCase().includes('gluten') || false,
+      dairyFree: typesString.toLowerCase().includes('dairy') || false,
     };
   }
 
