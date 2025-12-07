@@ -131,7 +131,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
   async getRecipeDetails(recipeId: string): Promise<RecipeDetails | null> {
     try {
-      const recipe = await this.service.getRecipeDetails(recipeId);
+      // Strip "fatsecret_" prefix if present (for cached recipe IDs)
+      const cleanId = recipeId.replace(/^fatsecret_/, '');
+      const recipe = await this.service.getRecipeDetails(cleanId);
 
       if (!recipe) {
         return null;
