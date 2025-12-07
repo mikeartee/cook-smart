@@ -199,14 +199,14 @@ export function Footer(): React.ReactElement {
             <p>
               Recipe data provided by{' '}
               <a
-                href="https://www.themealdb.com/"
+                href="https://www.fatsecret.com/"
                 className="hover:text-gray-400 transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                TheMealDB
+                FatSecret Platform API
               </a>{' '}
-              and internal sources.
+              and other sources.
             </p>
           </div>
         </div>

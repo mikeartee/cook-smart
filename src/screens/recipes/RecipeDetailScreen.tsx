@@ -850,6 +850,18 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
             </TouchableOpacity>
           )}
 
+          {/* Data Attribution */}
+          <View style={styles.attributionContainer}>
+            <Text style={styles.attributionText}>
+              Recipe data provided by{' '}
+              <Text
+                style={styles.attributionLink}
+                onPress={() => Linking.openURL('https://www.fatsecret.com/')}>
+                FatSecret Platform API
+              </Text>
+            </Text>
+          </View>
+
           {/* Bottom Padding */}
           <View style={styles.bottomPadding} />
         </View>
@@ -1227,6 +1239,23 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  attributionContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  attributionText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  attributionLink: {
+    color: '#10B981',
     fontWeight: '600',
   },
   bottomPadding: {
