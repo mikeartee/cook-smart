@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -72,6 +73,14 @@ const HomeScreen: React.FC = () => {
       color: '#8B5CF6',
       onPress: () =>
         (navigation as any).navigate('Recipes', {screen: 'CommunityFeed'}),
+    },
+    {
+      id: 'community',
+      title: 'Join Community',
+      subtitle: 'Chat on Discord',
+      icon: 'forum',
+      color: '#5865F2',
+      onPress: () => Linking.openURL('https://discord.gg/7mAeMvjGVH'),
     },
     {
       id: 'feedback',
