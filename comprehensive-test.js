@@ -273,13 +273,15 @@ async function testRecipes() {
       );
 
       const hasDetails =
-        response.data.ingredients && response.data.instructions;
+        response.data.recipe &&
+        response.data.recipe.ingredients &&
+        response.data.recipe.instructions;
 
       recordTest(
         'Recipe Details',
         hasDetails,
         'Recipe details loaded',
-        `Ingredients: ${response.data.ingredients?.length || 0}, Has instructions: ${!!response.data.instructions}`,
+        `Ingredients: ${response.data.recipe?.ingredients?.length || 0}, Has instructions: ${!!response.data.recipe?.instructions}`,
       );
     } catch (error) {
       recordTest(
@@ -331,8 +333,8 @@ async function testAllergyFeatures() {
     const response = await axios.post(
       `${API_BASE}/api/v1/dietary/allergies/user/${userId}`,
       {
-        allergy_id: 1, // Peanuts
-        severity_override: 'severe',
+        allergyId: 1, // Peanuts
+        severityOverride: 'severe',
       },
       {
         headers: {Authorization: `Bearer ${authToken}`},

@@ -25,12 +25,11 @@ router.get(
         rc.title,
         rc.image_url,
         rc.source,
-        rc.cuisine_type,
+        rc.cuisine AS cuisine_type,
         rc.meal_type,
-        rc.prep_time,
-        rc.cook_time
+        rc.ready_in_minutes AS prep_time
       FROM favorites f
-      LEFT JOIN recipe_cache rc ON f.recipe_id = rc.id
+      LEFT JOIN recipe_cache rc ON f.recipe_id = rc.recipe_id
       WHERE f.user_id = $1
       ORDER BY f.created_at DESC
     `;

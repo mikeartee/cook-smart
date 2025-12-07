@@ -1,5 +1,5 @@
 import {Router, Request, Response} from 'express';
-import {query, param} from 'express-validator';
+import {query} from 'express-validator';
 import {RecipeProviderService} from '../services/RecipeProviderService';
 import {APIUsageLogModel} from '../models/APIUsageLog';
 import {UserPointsModel} from '../models/UserPoints';
@@ -7,6 +7,7 @@ import {AchievementService} from '../services/AchievementService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import spoonacularService from '../services/SpoonacularService';
 import themealdbService from '../services/TheMealDBService';
+import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 
 // Initialize recipe provider service with Spoonacular (primary) and TheMealDB (fallback)
@@ -53,10 +54,26 @@ router.get(
         `Searching recipes for ingredients: ${ingredientList.join(', ')}`,
       );
 
-      const recipes = await recipeProviderService.searchByIngredients(
-        ingredientList,
-        20,
+      // First, try to get recipes from cache
+      const searchQuery = ingredientList.join(' ');
+      const cachedRecipes = await RecipeCacheService.searchCachedRecipes(
+        searchQuery,
+        {},
       );
+
+      let recipes: any[] = cachedRecipes.slice(0, 20);
+      let provider = 'cache';
+
+      // If we don't have enough cached recipes, fall back to API
+      if (recipes.length < 5) {
+        console.log('Not enough cached recipes, fetching from API...');
+        const apiRecipes = await recipeProviderService.searchByIngredients(
+          ingredientList,
+          20,
+        );
+        recipes = apiRecipes;
+        provider = 'api';
+      }
 
       // Award points for recipe search (only if user is authenticated)
       if (req.user?.id && recipes.length > 0) {
@@ -71,10 +88,6 @@ router.get(
           console.warn('Failed to award points:', pointsError);
         }
       }
-
-      // Determine if results are from cache or API
-      const provider =
-        recipes.length > 0 ? recipes[0]?.provider || 'unknown' : 'unknown';
 
       res.json({
         recipes,
@@ -98,7 +111,6 @@ router.get(
 // Get recipe details by ID
 router.get(
   '/:id',
-  [param('id').isNumeric()],
   authenticateToken,
   async (req: AuthRequest, res: Response) => {
     try {
@@ -114,7 +126,16 @@ router.get(
 
       console.log(`Fetching recipe details for ID: ${id}`);
 
-      const recipe = await recipeProviderService.getRecipeDetails(id);
+      // First try to get from cache
+      let recipe: any = await RecipeCacheService.getRecipeById(id);
+      let provider = 'cache';
+
+      // If not in cache, try API
+      if (!recipe) {
+        console.log('Recipe not in cache, fetching from API...');
+        recipe = await recipeProviderService.getRecipeDetails(id);
+        provider = 'api';
+      }
 
       // Track recipe view and check achievements
       if (req.user?.id) {
@@ -139,7 +160,7 @@ router.get(
 
       res.json({
         recipe,
-        provider: recipe.provider || 'unknown',
+        provider,
       });
     } catch (error) {
       console.error('Recipe details error:', error);
