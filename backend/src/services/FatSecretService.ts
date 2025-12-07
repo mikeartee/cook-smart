@@ -211,14 +211,9 @@ class FatSecretService {
   }
 
   async getRecipeDetails(recipeId: string): Promise<any> {
-    console.log(`[FatSecretService] ===== ENTERING getRecipeDetails =====`);
-    console.log(`[FatSecretService] Received recipeId parameter: ${recipeId}`);
     try {
       const token = await this.getAccessToken();
 
-      console.log(
-        `[FatSecretService] Sending to FatSecret API with recipe_id: ${recipeId}`,
-      );
       const response = await axios.post(
         'https://platform.fatsecret.com/rest/server.api',
         null,

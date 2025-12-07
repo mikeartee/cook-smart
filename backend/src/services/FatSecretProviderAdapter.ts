@@ -130,17 +130,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
   }
 
   async getRecipeDetails(recipeId: string): Promise<RecipeDetails | null> {
-    console.log(`[FatSecretAdapter] ===== ENTERING getRecipeDetails =====`);
-    console.log(`[FatSecretAdapter] Received recipeId: ${recipeId}`);
     try {
       // Strip "fatsecret_" prefix if present (for cached recipe IDs)
       const cleanId = recipeId.replace(/^fatsecret_/, '');
-      console.log(
-        `[FatSecretAdapter] Original ID: ${recipeId}, Clean ID: ${cleanId}`,
-      );
-      console.log(
-        `[FatSecretAdapter] Calling FatSecretService with: ${cleanId}`,
-      );
       const recipe = await this.service.getRecipeDetails(cleanId);
 
       if (!recipe) {
