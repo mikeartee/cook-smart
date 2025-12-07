@@ -1,40 +1,71 @@
 import express from 'express';
 import {ReferralModel} from '../models/Referral';
+import {authenticateToken} from '../middleware/auth';
 
 const router = express.Router();
 
-// Create new referral
-router.post('/user/:userId', async (req, res) => {
+// Create new referral (authenticated)
+router.post('/', authenticateToken, async (req: any, res) => {
   try {
-    const {userId} = req.params;
+    const userId = req.user?.id;
     const {email} = req.body;
 
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
     const referralCode = await ReferralModel.createReferral(userId, email);
-    res.json({success: true, referralCode});
+    return res.json({success: true, referralCode});
   } catch (_error) {
-    res.status(500).json({error: 'Failed to create referral'});
+    return res.status(500).json({error: 'Failed to create referral'});
   }
 });
 
-// Get user's referrals
-router.get('/user/:userId', async (req, res) => {
+// Get user's referrals (authenticated)
+router.get('/', authenticateToken, async (req: any, res) => {
   try {
-    const {userId} = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
     const referrals = await ReferralModel.getUserReferrals(userId);
-    res.json(referrals);
+    return res.json(referrals);
   } catch (_error) {
-    res.status(500).json({error: 'Failed to get referrals'});
+    return res.status(500).json({error: 'Failed to get referrals'});
   }
 });
 
-// Get referral stats
-router.get('/user/:userId/stats', async (req, res) => {
+// Get referral stats (authenticated)
+router.get('/stats', authenticateToken, async (req: any, res) => {
   try {
-    const {userId} = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
     const stats = await ReferralModel.getReferralStats(userId);
-    res.json(stats);
+    return res.json(stats);
   } catch (_error) {
-    res.status(500).json({error: 'Failed to get referral stats'});
+    return res.status(500).json({error: 'Failed to get referral stats'});
+  }
+});
+
+// Get referral access info (authenticated)
+router.get('/access-info', authenticateToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({error: 'Unauthorized'});
+    }
+
+    const accessInfo = await ReferralModel.getReferralAccessInfo(userId);
+    return res.json(accessInfo);
+  } catch (_error) {
+    return res.status(500).json({error: 'Failed to get access info'});
   }
 });
 
