@@ -40,6 +40,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         );
 
         const searchOptions: any = {
+          query: 'recipe', // Generic search term required by FatSecret
           recipeTypes: options.mealType,
           maxResults: limit,
         };
