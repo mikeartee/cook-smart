@@ -34,6 +34,8 @@ export const ReferFriendCard: React.FC<Props> = ({onPress}) => {
       setAccessInfo(info);
     } catch (error) {
       console.error('Error loading referral data:', error);
+      // Set a placeholder code so card still shows
+      setReferralCode('LOADING');
     } finally {
       setLoading(false);
     }
@@ -60,14 +62,7 @@ export const ReferFriendCard: React.FC<Props> = ({onPress}) => {
     Alert.alert('Copied!', `Referral code ${referralCode} copied to clipboard`);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="small" color="#4CAF50" />
-      </View>
-    );
-  }
-
+  // Always show the card, even if loading or error
   return (
     <TouchableOpacity
       style={styles.container}
@@ -100,19 +95,24 @@ export const ReferFriendCard: React.FC<Props> = ({onPress}) => {
         </View>
       )}
 
-      {referralCode && (
-        <View style={styles.codeSection}>
-          <Text style={styles.codeLabel}>Your Referral Code:</Text>
-          <View style={styles.codeContainer}>
-            <Text style={styles.code}>{referralCode}</Text>
-            <TouchableOpacity
-              style={styles.copyButton}
-              onPress={handleCopyCode}>
-              <Icon name="content-copy" size={18} color="#4CAF50" />
-            </TouchableOpacity>
-          </View>
+      <View style={styles.codeSection}>
+        <Text style={styles.codeLabel}>Your Referral Code:</Text>
+        <View style={styles.codeContainer}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#4CAF50" />
+          ) : (
+            <>
+              <Text style={styles.code}>{referralCode || 'Loading...'}</Text>
+              <TouchableOpacity
+                style={styles.copyButton}
+                onPress={handleCopyCode}
+                disabled={!referralCode || referralCode === 'LOADING'}>
+                <Icon name="content-copy" size={18} color="#4CAF50" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-      )}
+      </View>
 
       <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
         <Icon name="share" size={20} color="#FFFFFF" />
