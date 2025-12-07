@@ -155,7 +155,7 @@ export class RecipeEnhancementService {
 
   // COOKING HISTORY
   static async markRecipeCooked(
-    userId: number,
+    userId: string,
     recipeId: string,
     recipeType: 'api' | 'user',
     rating?: number,
@@ -164,12 +164,12 @@ export class RecipeEnhancementService {
     const result = await pool.query(
       `INSERT INTO recipe_cooking_history (user_id, recipe_id, recipe_type, rating, notes)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [userId.toString(), recipeId, recipeType, rating, notes],
+      [userId, recipeId, recipeType, rating, notes],
     );
     return result.rows[0];
   }
 
-  static async getCookingHistory(userId: number, limit = 20) {
+  static async getCookingHistory(userId: string, limit = 20) {
     const result = await pool.query(
       `SELECT * FROM recipe_cooking_history
        WHERE user_id = $1

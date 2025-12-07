@@ -201,7 +201,7 @@ router.post(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id as string);
+      const userId = req.user!.id as string;
       const {recipeId, recipeType, rating, notes} = req.body;
       const history = await RecipeEnhancementService.markRecipeCooked(
         userId,
@@ -223,7 +223,7 @@ router.get(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id as string);
+      const userId = req.user!.id as string;
       const history = await RecipeEnhancementService.getCookingHistory(userId);
       res.json({success: true, history});
     } catch (error) {
