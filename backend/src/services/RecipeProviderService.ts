@@ -43,13 +43,14 @@ export class RecipeProviderService {
     limit: number = 10,
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
-    const ingredientHash = this.generateIngredientHash(ingredients);
+    // Generate cache key including filters
+    const cacheKey = this.generateCacheKey(ingredients, options);
 
     // Step 1: Check cache first
     try {
-      const cached = await this.checkCache(ingredientHash);
+      const cached = await this.checkCache(cacheKey);
       if (cached && cached.length > 0) {
-        console.log(`✅ Cache HIT for ingredient search: ${ingredientHash}`);
+        console.log(`✅ Cache HIT for ingredient search: ${cacheKey}`);
         return cached;
       }
     } catch (cacheError) {
@@ -59,7 +60,7 @@ export class RecipeProviderService {
       );
     }
 
-    console.log(`❌ Cache MISS for ingredient search: ${ingredientHash}`);
+    console.log(`❌ Cache MISS for ingredient search: ${cacheKey}`);
 
     // Step 2: Try primary provider
     try {
@@ -93,7 +94,7 @@ export class RecipeProviderService {
           if (results && results.length > 0) {
             // Try to cache, but don't fail if caching fails
             try {
-              await this.cacheResults(ingredientHash, results);
+              await this.cacheResults(cacheKey, results);
             } catch (cacheError) {
               console.log(
                 `⚠️  Caching failed, but continuing:`,
@@ -172,7 +173,7 @@ export class RecipeProviderService {
             );
 
             if (results && results.length > 0) {
-              await this.cacheResults(ingredientHash, results);
+              await this.cacheResults(cacheKey, results);
               console.log(
                 `✅ ${provider.getProviderName()} returned ${results.length} recipes`,
               );
@@ -271,6 +272,27 @@ export class RecipeProviderService {
   private generateIngredientHash(ingredients: string[]): string {
     const sorted = ingredients.sort().join(',').toLowerCase();
     return crypto.createHash('md5').update(sorted).digest('hex');
+  }
+
+  /**
+   * Generate cache key including filters
+   */
+  private generateCacheKey(
+    ingredients: string[],
+    options?: {maxCalories?: number; mealType?: string},
+  ): string {
+    const sorted = ingredients.sort().join(',').toLowerCase();
+    let cacheString = sorted;
+
+    // Include filters in cache key
+    if (options?.maxCalories) {
+      cacheString += `|maxCal:${options.maxCalories}`;
+    }
+    if (options?.mealType) {
+      cacheString += `|meal:${options.mealType}`;
+    }
+
+    return crypto.createHash('md5').update(cacheString).digest('hex');
   }
 
   /**
