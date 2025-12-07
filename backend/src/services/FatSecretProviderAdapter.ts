@@ -170,6 +170,22 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         dishTypes: [recipe.recipe_types || 'main course'],
         diets: [],
         provider: 'fatsecret',
+        // Extract comprehensive nutrition data
+        calories: recipe.calories ? parseInt(recipe.calories) : undefined,
+        protein: recipe.protein ? parseFloat(recipe.protein) : undefined,
+        carbs: recipe.carbohydrate
+          ? parseFloat(recipe.carbohydrate)
+          : undefined,
+        fat: recipe.fat ? parseFloat(recipe.fat) : undefined,
+        fiber: recipe.fiber ? parseFloat(recipe.fiber) : undefined,
+        sugar: recipe.sugar ? parseFloat(recipe.sugar) : undefined,
+        sodium: recipe.sodium ? parseFloat(recipe.sodium) : undefined,
+        saturatedFat: recipe.saturated_fat
+          ? parseFloat(recipe.saturated_fat)
+          : undefined,
+        cholesterol: recipe.cholesterol
+          ? parseFloat(recipe.cholesterol)
+          : undefined,
       };
     } catch (error) {
       console.error('[FatSecretAdapter] Get details error:', error);

@@ -11,11 +11,16 @@ export interface Recipe {
   usedIngredients: UsedIngredient[];
   likes: number;
   provider?: string;
-  // Nutrition info from FatSecret
+  // Comprehensive nutrition info from FatSecret
   calories?: number;
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  saturatedFat?: number;
+  cholesterol?: number;
 }
 
 export interface MissedIngredient {
@@ -47,6 +52,16 @@ export interface RecipeDetails {
   instructions: string;
   ingredients: string[]; // TheMealDB format - array of ingredient strings
   provider?: string;
+  // Comprehensive nutrition info
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  saturatedFat?: number;
+  cholesterol?: number;
 }
 
 export interface SavedRecipe {

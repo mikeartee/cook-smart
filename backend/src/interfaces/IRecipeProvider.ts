@@ -24,12 +24,22 @@ export interface Recipe {
     protein: number;
     carbs: number;
     fat: number;
+    fiber?: number;
+    sugar?: number;
+    sodium?: number;
+    saturatedFat?: number;
+    cholesterol?: number;
   };
   // Individual nutrition fields for easier access
   calories?: number;
   protein?: number;
   carbs?: number;
   fat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  saturatedFat?: number;
+  cholesterol?: number;
   provider?: string;
 }
 

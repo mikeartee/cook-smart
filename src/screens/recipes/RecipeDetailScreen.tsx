@@ -28,6 +28,7 @@ import {
 } from '../../services/recipeEnhancementService';
 import RecipeSocialActions from '../../components/RecipeSocialActions';
 import RecipeComments from '../../components/RecipeComments';
+import {NutritionFacts} from '../../components/NutritionFacts';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -775,6 +776,20 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
               </Text>
             </View>
           )}
+
+          {/* Nutrition Facts */}
+          <NutritionFacts
+            servings={recipe.servings}
+            calories={recipe.calories}
+            protein={recipe.protein}
+            carbs={recipe.carbs}
+            fat={recipe.fat}
+            fiber={recipe.fiber}
+            sugar={recipe.sugar}
+            sodium={recipe.sodium}
+            saturatedFat={recipe.saturatedFat}
+            cholesterol={recipe.cholesterol}
+          />
 
           {/* Ingredients */}
           <View style={styles.section}>
