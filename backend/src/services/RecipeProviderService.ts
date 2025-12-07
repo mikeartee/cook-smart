@@ -6,7 +6,7 @@
  *
  * Flow:
  * 1. Check cache
- * 2. Try primary provider (TheMealDB - free & unlimited)
+ * 2. Try primary provider (FatSecret - 500K calls/month free)
  * 3. Try fallback providers (if configured)
  * 4. Return cached results if all fail
  */
@@ -382,7 +382,7 @@ export class RecipeProviderService {
    */
   private async checkRateLimitWarning(providerName: string): Promise<void> {
     const limits: {[key: string]: number} = {
-      TheMealDB: 999999, // Unlimited
+      FatSecret: 500000, // 500K calls/month
     };
 
     const dailyLimit = limits[providerName];

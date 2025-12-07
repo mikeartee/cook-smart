@@ -15,7 +15,7 @@ import {PrivacyPolicyScreen} from './src/screens/PrivacyPolicyScreen';
 import {TermsOfServiceScreen} from './src/screens/TermsOfServiceScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import CookieConsent from './src/components/CookieConsent';
-// Recipe API Migration Complete - TheMealDB Active
+// Recipe API: FatSecret Platform (Premier)
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {productLookupService} from './src/services/productLookupService';
