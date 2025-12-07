@@ -164,7 +164,7 @@ export class RecipeEnhancementService {
     const result = await pool.query(
       `INSERT INTO recipe_cooking_history (user_id, recipe_id, recipe_type, rating, notes)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [userId, recipeId, recipeType, rating, notes],
+      [userId.toString(), recipeId, recipeType, rating, notes],
     );
     return result.rows[0];
   }
@@ -175,7 +175,7 @@ export class RecipeEnhancementService {
        WHERE user_id = $1
        ORDER BY cooked_at DESC
        LIMIT $2`,
-      [userId, limit],
+      [userId.toString(), limit],
     );
     return result.rows;
   }
