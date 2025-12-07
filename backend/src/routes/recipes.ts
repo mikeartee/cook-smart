@@ -23,6 +23,11 @@ router.get(
   authenticateToken,
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
+    // Disable HTTP caching for recipe searches to ensure filters work correctly
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     try {
       const {ingredients, maxCalories, mealType} = req.query;
 
