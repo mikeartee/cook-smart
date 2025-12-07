@@ -1,6 +1,6 @@
 /**
  * Recipe Provider Interface
- * 
+ *
  * Defines the contract for all recipe API providers (Edamam, TheMealDB, etc.)
  * This allows easy switching between different recipe APIs while maintaining
  * consistent functionality throughout the application.
@@ -25,6 +25,11 @@ export interface Recipe {
     carbs: number;
     fat: number;
   };
+  // Individual nutrition fields for easier access
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
   provider?: string;
 }
 
@@ -38,9 +43,14 @@ export interface IRecipeProvider {
    * Search for recipes based on a list of ingredients
    * @param ingredients - Array of ingredient names
    * @param limit - Maximum number of recipes to return
+   * @param options - Optional filters (maxCalories, mealType, etc.)
    * @returns Promise resolving to array of recipes
    */
-  searchByIngredients(ingredients: string[], limit: number): Promise<Recipe[]>;
+  searchByIngredients(
+    ingredients: string[],
+    limit: number,
+    options?: {maxCalories?: number; mealType?: string},
+  ): Promise<Recipe[]>;
 
   /**
    * Get detailed information about a specific recipe

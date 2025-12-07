@@ -24,7 +24,7 @@ router.get(
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
     try {
-      const {ingredients} = req.query;
+      const {ingredients, maxCalories, mealType} = req.query;
 
       if (!ingredients || typeof ingredients !== 'string') {
         res.status(400).json({
@@ -54,9 +54,27 @@ router.get(
       // Always fetch fresh recipes from FatSecret to build our database
       // FatSecret Premier: 500,000 calls/month FREE - use it to build our recipe library
       console.log('Fetching fresh recipes from FatSecret API...');
+
+      // Build search options with filters
+      const searchOptions: any = {
+        ingredients: ingredientList,
+        maxResults: 20,
+      };
+
+      if (maxCalories && !isNaN(Number(maxCalories))) {
+        searchOptions.maxCalories = Number(maxCalories);
+        console.log(`Filtering by max calories: ${maxCalories}`);
+      }
+
+      if (mealType && typeof mealType === 'string') {
+        searchOptions.mealType = mealType;
+        console.log(`Filtering by meal type: ${mealType}`);
+      }
+
       const recipes = await recipeProviderService.searchByIngredients(
         ingredientList,
         20,
+        searchOptions,
       );
       const provider = 'fatsecret';
 

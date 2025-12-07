@@ -41,6 +41,7 @@ export class RecipeProviderService {
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
+    options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
     const ingredientHash = this.generateIngredientHash(ingredients);
 
@@ -72,6 +73,7 @@ export class RecipeProviderService {
           const results = await this.primaryProvider.searchByIngredients(
             ingredients,
             limit,
+            options,
           );
           const responseTime = Date.now() - startTime;
 
