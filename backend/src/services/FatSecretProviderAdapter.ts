@@ -21,8 +21,12 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
     try {
-      // FatSecret doesn't have direct ingredient search, so we search by ingredient names
-      const searchQuery = ingredients.join(' ');
+      // When using filters, use only the first 3-5 main ingredients for better results
+      // FatSecret's advanced search is very strict with recipe_types filter
+      const searchQuery =
+        options && (options.maxCalories || options.mealType)
+          ? ingredients.slice(0, 5).join(' ')
+          : ingredients.join(' ');
 
       // Use advanced search if filters are provided
       if (options && (options.maxCalories || options.mealType)) {
@@ -30,6 +34,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           maxCalories: options.maxCalories,
           mealType: options.mealType,
           query: searchQuery,
+          ingredientCount: ingredients.slice(0, 5).length,
         });
 
         const searchOptions: any = {
