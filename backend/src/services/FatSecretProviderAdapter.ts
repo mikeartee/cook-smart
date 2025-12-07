@@ -133,6 +133,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     try {
       // Strip "fatsecret_" prefix if present (for cached recipe IDs)
       const cleanId = recipeId.replace(/^fatsecret_/, '');
+      console.log(
+        `[FatSecretAdapter] Original ID: ${recipeId}, Clean ID: ${cleanId}`,
+      );
       const recipe = await this.service.getRecipeDetails(cleanId);
 
       if (!recipe) {
