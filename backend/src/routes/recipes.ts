@@ -146,7 +146,7 @@ router.get(
       // Always fetch from API to get full details (ingredients, instructions)
       // FatSecret search results don't include these, only the details API does
       console.log('Fetching full recipe details from FatSecret API...');
-      let recipe: any = await recipeProviderService.getRecipeDetails(id);
+      let recipe: any = await recipeProviderService.getRecipeDetails(id, true); // skipCache = true
       let provider = 'fatsecret';
 
       // Fallback to cache only if API fails

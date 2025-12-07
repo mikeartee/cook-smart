@@ -216,19 +216,26 @@ export class RecipeProviderService {
   /**
    * Get detailed recipe information
    */
-  async getRecipeDetails(recipeId: string): Promise<RecipeDetails> {
-    // Check cache first
-    try {
-      const cached = await RecipeCacheModel.getCachedRecipe(recipeId);
-      if (cached && cached.recipe_data) {
-        console.log(`✅ Cache HIT for recipe details: ${recipeId}`);
-        return cached.recipe_data;
+  async getRecipeDetails(
+    recipeId: string,
+    skipCache: boolean = false,
+  ): Promise<RecipeDetails> {
+    // Check cache first (unless skipCache is true)
+    if (!skipCache) {
+      try {
+        const cached = await RecipeCacheModel.getCachedRecipe(recipeId);
+        if (cached && cached.recipe_data) {
+          console.log(`✅ Cache HIT for recipe details: ${recipeId}`);
+          return cached.recipe_data;
+        }
+      } catch (cacheError) {
+        console.log(
+          `⚠️  Cache check failed for recipe ${recipeId}:`,
+          (cacheError as Error).message,
+        );
       }
-    } catch (cacheError) {
-      console.log(
-        `⚠️  Cache check failed for recipe ${recipeId}:`,
-        (cacheError as Error).message,
-      );
+    } else {
+      console.log(`⏭️  Skipping cache, fetching fresh from API: ${recipeId}`);
     }
 
     console.log(`❌ Cache MISS for recipe details: ${recipeId}`);
