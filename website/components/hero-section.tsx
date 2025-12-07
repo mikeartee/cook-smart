@@ -107,7 +107,7 @@ export function HeroSection() {
                 <div className="text-sm text-muted-foreground">Beta Testers</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">1,000+</div>
+                <div className="text-2xl font-bold">1M+</div>
                 <div className="text-sm text-muted-foreground">Recipes</div>
               </div>
               <div>

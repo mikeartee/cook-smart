@@ -1,9 +1,51 @@
 'use client';
 
-import { Calendar, ChefHat, ShoppingCart, TrendingUp, Users, Zap } from 'lucide-react';
+import {
+  AlertTriangle,
+  Calendar,
+  ChefHat,
+  Heart,
+  Shield,
+  ShoppingCart,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
 
 export function FeaturesSection() {
   const features = [
+    {
+      icon: ChefHat,
+      title: '1M+ Recipe Database',
+      description:
+        "Access over 1 million recipes from the world's largest database. Search by ingredients, cuisine, dietary needs, or browse trending recipes updated twice daily.",
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+    },
+    {
+      icon: Shield,
+      title: 'Allergy Safety Analysis',
+      description:
+        'Automatic recipe safety checks for your allergies. Get instant alerts for allergens, severity indicators, and smart ingredient substitutions.',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+    },
+    {
+      icon: AlertTriangle,
+      title: 'Cross-Contamination Warnings',
+      description:
+        'Advanced safety checks warn you about potential cross-contamination risks. Cook with confidence knowing your meals are safe.',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+    },
+    {
+      icon: Heart,
+      title: 'Personalized Recommendations',
+      description:
+        "AI-powered recipe suggestions based on your allergies, dietary preferences, and taste profile. Discover safe recipes you'll love.",
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+    },
     {
       icon: Calendar,
       title: 'Smart Meal Planning',
@@ -11,14 +53,6 @@ export function FeaturesSection() {
         'Plan your entire week in minutes. Our AI suggests balanced meals based on your preferences, dietary needs, and schedule.',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-    },
-    {
-      icon: ChefHat,
-      title: 'Recipe Discovery',
-      description:
-        'Access thousands of tested recipes from our community. Filter by cuisine, difficulty, cooking time, and dietary restrictions.',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
     },
     {
       icon: ShoppingCart,
@@ -41,16 +75,16 @@ export function FeaturesSection() {
       title: 'Family Sharing',
       description:
         'Share meal plans with family members. Coordinate cooking duties and ensure everyone eats well together.',
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
     },
     {
       icon: Zap,
       title: 'Quick & Easy',
       description:
         'Find recipes that fit your time. Filter by prep time and get step-by-step guidance with timers and notifications.',
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
     },
   ];
 
@@ -152,12 +186,12 @@ export function FeaturesSection() {
         <div className="mt-20 rounded-2xl bg-primary/5 p-8 md:p-12">
           <div className="grid gap-8 md:grid-cols-4">
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">100+</div>
-              <div className="text-sm text-muted-foreground">Beta Testers</div>
+              <div className="mb-2 text-4xl font-bold text-primary">1M+</div>
+              <div className="text-sm text-muted-foreground">Recipes Available</div>
             </div>
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold text-primary">1,000+</div>
-              <div className="text-sm text-muted-foreground">Recipes Available</div>
+              <div className="mb-2 text-4xl font-bold text-primary">100+</div>
+              <div className="text-sm text-muted-foreground">Beta Testers</div>
             </div>
             <div className="text-center">
               <div className="mb-2 text-4xl font-bold text-primary">FREE</div>

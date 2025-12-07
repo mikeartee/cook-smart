@@ -57,10 +57,11 @@ export default function AboutPage(): React.ReactElement {
                   <ChefHat className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="mb-2 text-xl font-semibold">Growing Recipe Collection</h3>
+                  <h3 className="mb-2 text-xl font-semibold">Massive Recipe Database</h3>
                   <p className="text-muted-foreground">
-                    Access over 1,000 recipes and growing! We're constantly adding new recipes based
-                    on beta tester feedback.
+                    Access over 1 million recipes from the world's largest recipe database! Search
+                    by ingredients, dietary preferences, or browse trending recipes updated twice
+                    daily.
                   </p>
                 </div>
               </div>
