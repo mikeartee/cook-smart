@@ -8,6 +8,8 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
+  Modal,
+  TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
@@ -18,12 +20,23 @@ interface RecipeSearchScreenProps {
   navigation: any;
 }
 
+const MEAL_TYPES = [
+  {label: 'All', value: null},
+  {label: 'Breakfast', value: 'breakfast'},
+  {label: 'Lunch', value: 'lunch'},
+  {label: 'Dinner', value: 'dinner'},
+  {label: 'Snack', value: 'snack'},
+];
+
 export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
   navigation,
 }) => {
   const {recipes, isLoading, error, provider, searchRecipes} = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [maxCalories, setMaxCalories] = useState<string>('');
+  const [selectedMealType, setSelectedMealType] = useState<string | null>(null);
 
   useEffect(() => {
     // Auto-search on mount
@@ -77,9 +90,19 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
         return;
       }
 
-      // Search recipes
-      console.log('🚀 Calling searchRecipes with:', ingredientNames);
-      await searchRecipes(ingredientNames);
+      // Build filters object
+      const filters: {maxCalories?: number; mealType?: string} = {};
+      if (maxCalories && parseInt(maxCalories, 10) > 0) {
+        filters.maxCalories = parseInt(maxCalories, 10);
+      }
+      if (selectedMealType) {
+        filters.mealType = selectedMealType;
+      }
+
+      // Search recipes with filters
+      console.log('🚀 Calling searchRecipes with:', ingredientNames, filters);
+      const hasFilters = Object.keys(filters).length > 0;
+      await searchRecipes(ingredientNames, hasFilters ? filters : undefined);
       console.log('✅ Search complete');
     } catch (err) {
       const errorMsg =
@@ -89,6 +112,20 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       console.error('❌ Search error:', errorMsg);
     }
   };
+
+  const applyFilters = () => {
+    setShowFilters(false);
+    handleSearch();
+  };
+
+  const clearFilters = () => {
+    setMaxCalories('');
+    setSelectedMealType(null);
+    setShowFilters(false);
+    handleSearch();
+  };
+
+  const hasActiveFilters = maxCalories !== '' || selectedMealType !== null;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -251,16 +288,31 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
           </Text>
           <Text style={styles.pullToRefreshHint}>Pull down to refresh</Text>
         </View>
-        <TouchableOpacity
-          onPress={handleSearch}
-          disabled={isLoading}
-          style={styles.refreshButton}>
-          <Icon
-            name="refresh"
-            size={24}
-            color={isLoading ? '#9CA3AF' : '#10B981'}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            onPress={() => setShowFilters(true)}
+            style={[
+              styles.filterButton,
+              hasActiveFilters && styles.filterButtonActive,
+            ]}>
+            <Icon
+              name="filter-list"
+              size={24}
+              color={hasActiveFilters ? '#FFFFFF' : '#6B7280'}
+            />
+            {hasActiveFilters && <View style={styles.filterDot} />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSearch}
+            disabled={isLoading}
+            style={styles.refreshButton}>
+            <Icon
+              name="refresh"
+              size={24}
+              color={isLoading ? '#9CA3AF' : '#10B981'}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Recipe List */}
@@ -292,6 +344,83 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
           <Text style={styles.loadingText}>Finding recipes...</Text>
         </View>
       )}
+
+      {/* Filter Modal */}
+      <Modal
+        visible={showFilters}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFilters(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter Recipes</Text>
+              <TouchableOpacity
+                onPress={() => setShowFilters(false)}
+                style={styles.modalCloseButton}>
+                <Icon name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Calorie Filter */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Max Calories</Text>
+              <TextInput
+                style={styles.calorieInput}
+                placeholder="e.g., 500"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                value={maxCalories}
+                onChangeText={setMaxCalories}
+              />
+              <Text style={styles.filterHint}>
+                Leave empty for no calorie limit
+              </Text>
+            </View>
+
+            {/* Meal Type Filter */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>Meal Type</Text>
+              <View style={styles.mealTypeChips}>
+                {MEAL_TYPES.map(type => (
+                  <TouchableOpacity
+                    key={type.label}
+                    style={[
+                      styles.mealTypeChip,
+                      selectedMealType === type.value &&
+                        styles.mealTypeChipActive,
+                    ]}
+                    onPress={() => setSelectedMealType(type.value)}>
+                    <Text
+                      style={[
+                        styles.mealTypeChipText,
+                        selectedMealType === type.value &&
+                          styles.mealTypeChipTextActive,
+                      ]}>
+                      {type.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearFilters}>
+                <Text style={styles.clearButtonText}>Clear All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={applyFilters}>
+                <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -322,6 +451,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 2,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    position: 'relative',
+  },
+  filterButtonActive: {
+    backgroundColor: '#10B981',
+  },
+  filterDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   refreshButton: {
     padding: 8,
@@ -512,5 +665,108 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#A78BFA',
     textTransform: 'capitalize',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  filterSection: {
+    marginBottom: 24,
+  },
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  calorieInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+  },
+  filterHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 6,
+  },
+  mealTypeChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  mealTypeChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  mealTypeChipActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  mealTypeChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  mealTypeChipTextActive: {
+    color: '#FFFFFF',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  clearButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  applyButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

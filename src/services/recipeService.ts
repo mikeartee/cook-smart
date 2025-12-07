@@ -64,11 +64,27 @@ class RecipeService {
   }
 
   // Search recipes by ingredients
-  async searchByIngredients(ingredients: string[]): Promise<Recipe[]> {
+  async searchByIngredients(
+    ingredients: string[],
+    filters?: {maxCalories?: number; mealType?: string},
+  ): Promise<Recipe[]> {
     const token = await this.getAuthToken();
 
+    // Build query string
+    const params = new URLSearchParams({
+      ingredients: ingredients.join(','),
+    });
+
+    if (filters?.maxCalories) {
+      params.append('maxCalories', filters.maxCalories.toString());
+    }
+
+    if (filters?.mealType) {
+      params.append('mealType', filters.mealType);
+    }
+
     const response = await fetch(
-      `${API_BASE_URL}/api/v1/recipes/search?ingredients=${ingredients.join(',')}`,
+      `${API_BASE_URL}/api/v1/recipes/search?${params.toString()}`,
       {
         method: 'GET',
         headers: {

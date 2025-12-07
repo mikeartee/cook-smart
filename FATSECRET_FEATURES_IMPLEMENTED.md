@@ -80,6 +80,20 @@
   - `src/screens/recipes/RecipeSearchScreen.tsx`
   - `src/screens/SeasonalRecipesScreen.tsx`
 
+#### 10. Calorie & Meal Type Filters (Frontend UI)
+- **Status**: ✅ Complete (Frontend)
+- **Features**:
+  - Filter button in header with active indicator
+  - Modal with calorie input field
+  - Meal type chip selector (All, Breakfast, Lunch, Dinner, Snack)
+  - Clear all filters button
+  - Apply filters button
+  - Filters persist during session
+- **Files Modified**:
+  - `src/screens/recipes/RecipeSearchScreen.tsx`
+  - `src/contexts/RecipeContext.tsx`
+  - `src/services/recipeService.ts`
+
 ## 🔄 Features Using FatSecret Data
 
 ### Currently Active:
@@ -90,6 +104,8 @@
 5. ✅ Recipe Images - High quality from FatSecret
 6. ✅ Ingredient Lists - Detailed with measurements
 7. ✅ Cooking Instructions - Step-by-step directions
+8. ✅ Calorie Filtering - Find recipes under calorie limit
+9. ✅ Meal Type Filtering - Filter by breakfast/lunch/dinner/snack
 
 ## 📊 API Usage Strategy
 
@@ -110,7 +126,6 @@
 ### Low Priority:
 1. **Meal Nutrition Summaries** - Daily/weekly nutrition totals
 2. **Recipe Collections by Cuisine** - Browse by cuisine type
-3. **Calorie/Meal Type Filters (Frontend UI)** - Backend ready, need UI
 
 ### Why Not Implemented:
 - Backend infrastructure is ready
@@ -120,12 +135,13 @@
 ## 🚀 Ready for Production
 
 ### What's Included in Next APK:
-1. ✅ Nutrition display on recipe cards
+1. ✅ Nutrition display on recipe cards (calorie badge + nutrition row)
 2. ✅ Pull-to-refresh on all recipe screens
 3. ✅ Shopping list auto-generation
 4. ✅ Fresh recipes from FatSecret every search
-5. ✅ App icon (coral/orange chef hat)
-6. ✅ All existing features (serving adjuster, ratings, etc.)
+5. ✅ Calorie & meal type filters with UI
+6. ✅ App icon (coral/orange chef hat)
+7. ✅ All existing features (serving adjuster, ratings, etc.)
 
 ### Backend Already Deployed:
 1. ✅ Calorie filter support
@@ -134,13 +150,20 @@
 4. ✅ Fresh recipe fetching
 5. ✅ Recipe caching with duplicate checking
 
+### Frontend Complete:
+1. ✅ Filter UI modal with calorie input
+2. ✅ Meal type chip selector
+3. ✅ Active filter indicators
+4. ✅ Nutrition display on cards
+5. ✅ Shopping list integration
+6. ✅ Pull-to-refresh everywhere
+
 ## 📝 Next Steps
 
-1. **Build APK** with all new features
-2. **Test** nutrition display, shopping list, pull-to-refresh
+1. ✅ **Build APK** with all new features
+2. **Test** nutrition display, shopping list, pull-to-refresh, filters
 3. **Deploy** to production
 4. **Monitor** FatSecret API usage
-5. **Add frontend UI** for calorie/meal filters (future update)
 
 ## 💡 Key Achievements
 

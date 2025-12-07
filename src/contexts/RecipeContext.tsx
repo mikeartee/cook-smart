@@ -20,7 +20,10 @@ interface RecipeContextType {
   isLoading: boolean;
   error: string | null;
   provider: string | null;
-  searchRecipes: (ingredients: string[]) => Promise<void>;
+  searchRecipes: (
+    ingredients: string[],
+    filters?: {maxCalories?: number; mealType?: string},
+  ) => Promise<void>;
   getRecipeDetails: (recipeId: number) => Promise<RecipeDetails>;
   saveRecipe: (recipe: RecipeDetails) => Promise<void>;
   deleteSavedRecipe: (recipeId: number) => Promise<void>;
@@ -67,13 +70,18 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({children}) => {
   }, [logout]);
 
   const searchRecipes = useCallback(
-    async (ingredients: string[]) => {
+    async (
+      ingredients: string[],
+      filters?: {maxCalories?: number; mealType?: string},
+    ) => {
       setIsLoading(true);
       setError(null);
       setProvider(null);
       try {
-        const response: any =
-          await recipeService.searchByIngredients(ingredients);
+        const response: any = await recipeService.searchByIngredients(
+          ingredients,
+          filters,
+        );
         console.log('Recipe service response:', response);
 
         // Handle both array response and object with recipes property
