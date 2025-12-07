@@ -85,13 +85,19 @@ export default function SubscriptionPlansScreen() {
         referralCode || undefined,
       );
 
-      // Open Stripe Checkout in browser
-      const supported = await Linking.canOpenURL(checkoutUrl);
+      console.log('Checkout URL received:', checkoutUrl);
 
-      if (supported) {
+      // Open Stripe Checkout in browser
+      // Note: Linking.canOpenURL may return false for HTTPS URLs on Android
+      // but Linking.openURL will still work, so we try to open it directly
+      try {
         await Linking.openURL(checkoutUrl);
-      } else {
-        Alert.alert('Error', 'Unable to open payment page');
+      } catch (linkingError) {
+        console.error('Error opening URL:', linkingError);
+        Alert.alert(
+          'Error',
+          'Unable to open payment page. Please try again or contact support.',
+        );
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
