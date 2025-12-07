@@ -5,17 +5,14 @@ import {APIUsageLogModel} from '../models/APIUsageLog';
 import {UserPointsModel} from '../models/UserPoints';
 import {AchievementService} from '../services/AchievementService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
-import spoonacularService from '../services/SpoonacularService';
-import themealdbService from '../services/TheMealDBService';
+import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 
-// Initialize recipe provider service with Spoonacular (primary) and TheMealDB (fallback)
-// Spoonacular: Better US recipes, multi-ingredient search, 150 free requests/day
-// TheMealDB: Free unlimited backup when Spoonacular limit reached
+// Initialize recipe provider service with FatSecret (primary and only provider)
+// FatSecret Premier: 500,000 calls/month FREE, 1M+ recipes, comprehensive nutrition data
 const recipeProviderService = new RecipeProviderService([
-  spoonacularService, // Primary: Better US recipe coverage
-  themealdbService, // Fallback: Free unlimited
+  FatSecretAdapter, // Primary: FatSecret Premier (free, unlimited for our needs)
 ]);
 
 const router = Router();
@@ -54,25 +51,27 @@ router.get(
         `Searching recipes for ingredients: ${ingredientList.join(', ')}`,
       );
 
-      // First, try to get recipes from cache
-      const searchQuery = ingredientList.join(' ');
-      const cachedRecipes = await RecipeCacheService.searchCachedRecipes(
-        searchQuery,
-        {},
+      // Always fetch fresh recipes from FatSecret to build our database
+      // FatSecret Premier: 500,000 calls/month FREE - use it to build our recipe library
+      console.log('Fetching fresh recipes from FatSecret API...');
+      const recipes = await recipeProviderService.searchByIngredients(
+        ingredientList,
+        20,
       );
+      const provider = 'fatsecret';
 
-      let recipes: any[] = cachedRecipes.slice(0, 20);
-      let provider = 'cache';
-
-      // If we don't have enough cached recipes, fall back to API
-      if (recipes.length < 5) {
-        console.log('Not enough cached recipes, fetching from API...');
-        const apiRecipes = await recipeProviderService.searchByIngredients(
-          ingredientList,
-          20,
-        );
-        recipes = apiRecipes;
-        provider = 'api';
+      // Cache the new recipes (RecipeCacheService handles duplicate checking)
+      if (recipes.length > 0) {
+        console.log(`Caching ${recipes.length} recipes to database...`);
+        try {
+          for (const recipe of recipes) {
+            await RecipeCacheService.cacheRecipe(recipe);
+          }
+          console.log('✅ Recipes cached successfully');
+        } catch (cacheError) {
+          console.error('Failed to cache recipes:', cacheError);
+          // Continue anyway - user still gets their recipes
+        }
       }
 
       // Award points for recipe search (only if user is authenticated)
