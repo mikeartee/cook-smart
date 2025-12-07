@@ -39,22 +39,31 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           },
         );
 
+        // FatSecret recipe_types works best WITHOUT search_expression
+        // Get more results and filter client-side for better results
         const searchOptions: any = {
-          query: 'recipe', // Generic search term required by FatSecret
           recipeTypes: options.mealType,
-          maxResults: limit,
+          maxResults: 50, // Get more results to filter from
         };
-
-        if (options.maxCalories) {
-          searchOptions.maxCalories = options.maxCalories;
-        }
 
         const recipes = await this.service.searchRecipesAdvanced(searchOptions);
         console.log(
           `[FatSecretAdapter] Meal type search returned ${recipes.length} recipes`,
         );
 
-        return this.formatRecipes(recipes);
+        // Client-side calorie filtering if specified
+        let filteredRecipes = recipes;
+        if (options.maxCalories) {
+          filteredRecipes = recipes.filter(
+            (r: any) =>
+              !r.calories || parseInt(r.calories) <= options.maxCalories!,
+          );
+          console.log(
+            `[FatSecretAdapter] Client-side filtered to ${filteredRecipes.length} recipes under ${options.maxCalories} cal`,
+          );
+        }
+
+        return this.formatRecipes(filteredRecipes.slice(0, limit));
       }
 
       // Use advanced search if only calorie filter is provided (no meal type)
