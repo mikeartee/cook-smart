@@ -1,15 +1,24 @@
-# CodePush - To Be Implemented in v1.2.0
+# CodePush - Investigation Complete
 
-## Current Status
+## Final Decision: Continue with Manual APKs
 
-**v1.1.0 released WITHOUT CodePush** - App works perfectly, but OTA updates not available yet.
+**Investigation Date**: December 7, 2025
+**Decision**: Continue with manual APK distribution indefinitely
+**Next Review**: January 2026 (check for free alternatives)
+
+## Root Cause Identified ✅
+
+**New Architecture Incompatibility**
+- Project has `newArchEnabled=true` in `android/gradle.properties`
+- CodePush v9.0.1 doesn't fully support React Native's New Architecture yet
+- This caused the runtime crash (native module couldn't initialize with Fabric/TurboModules)
 
 ## What Happened
 
 - CodePush package installed successfully
 - Build completes without errors
 - **App crashes immediately on launch** when CodePush is integrated
-- Issue appears to be with native module initialization, not the build process
+- Issue was with New Architecture compatibility, not the build process or gradle plugin
 
 ## What We Tried
 
@@ -20,48 +29,32 @@
 5. ✅ Manual package addition to MainApplication.kt (compilation errors)
 6. ❌ All approaches resulted in either build failure or runtime crash
 
-## Next Steps for v1.2.0
+## Decision: Wait for CodePush Update
 
-### 1. Get Crash Logs (Priority)
+### Why We're Waiting
 
-```bash
-# Connect device via USB
-adb logcat | findstr "CookSmart\|CodePush\|FATAL"
-# Open app and capture the crash error
-```
+1. **App stability is priority** - App works perfectly, don't risk breaking it
+2. **New Architecture benefits** - Better performance, modern React Native features
+3. **Manual APKs work fine** - Acceptable for beta phase
+4. **CodePush will catch up** - Microsoft will add New Architecture support eventually
 
-This will tell us exactly what's failing.
+### Alternative Considered (Not Chosen)
 
-### 2. Possible Solutions Based on Error
+**Disable New Architecture** - Could make CodePush work, but:
+- ❌ Lose performance benefits
+- ❌ Risk introducing new issues
+- ❌ Not worth it for beta phase
+- ❌ OTA updates are nice-to-have, not critical
 
-**If "Class not found":**
-- Manual linking required
-- Check autolinking configuration
-- Verify CodePush module is in node_modules
+### When to Revisit
 
-**If "NullPointerException":**
-- Missing initialization step
-- Deployment key not being read correctly
-- Need to add native initialization code
+**Check monthly for CodePush updates** - Look for:
+- Release notes mentioning "New Architecture"
+- Release notes mentioning "Fabric" or "TurboModules"
+- Community reports of success with RN 0.76+
+- Official compatibility announcement
 
-**If "Method not found":**
-- Version compatibility issue
-- Try older CodePush version
-- Check React Native 0.76 compatibility
-
-### 3. Alternative Approaches
-
-**Option A: Manual Linking**
-- Follow official CodePush docs for manual Android setup
-- More work but full control
-
-**Option B: Different Version**
-- Try CodePush v8.x instead of v9.0.1
-- Check compatibility matrix
-
-**Option C: Wait for Fix**
-- CodePush v9.0.1 might have React Native 0.76 issues
-- Wait for newer version or community fix
+**Next review date**: January 7, 2026
 
 ## Files to Keep
 
@@ -84,11 +77,24 @@ This will tell us exactly what's failing.
 
 **This is fine for beta** - Most apps don't have OTA updates anyway.
 
-## When to Tackle This
+## Implementation Plan (When CodePush is Ready)
 
-- After v1.1.0 is stable and tested
-- When we have time to debug properly with crash logs
-- Not urgent - manual APK distribution works fine for beta
+### Prerequisites
+- CodePush announces New Architecture support
+- Community confirms success with RN 0.76+
+- Official compatibility documentation available
+
+### Implementation Steps
+1. Test on safety branch first
+2. Follow minimal integration approach (no gradle plugin)
+3. Test OTA updates thoroughly
+4. Deploy to staging for beta testing
+5. If successful, deploy to production
+
+### Estimated Timeline
+- **Optimistic**: 1-2 months (Q1 2026)
+- **Realistic**: 3-6 months (Q2 2026)
+- **Pessimistic**: 6+ months (H2 2026)
 
 ## Resources
 
@@ -98,6 +104,23 @@ This will tell us exactly what's failing.
 
 ---
 
-**Decision**: Ship v1.1.0 without CodePush, add it in v1.2.0 after proper debugging.
+## Why Manual APKs (Not OTA Updates)
 
-**Date**: December 6, 2025
+**Reason 1**: Microsoft CodePush is DEAD (retired March 31, 2025)
+**Reason 2**: All alternatives cost money ($20-50+/month)
+**Reason 3**: Budget constraint ($20/month emergency only)
+**Reason 4**: Small beta user base (manual updates are fine)
+**Reason 5**: App is stable (not pushing updates constantly)
+
+## Investigation Documents
+
+- **CODEPUSH_FINAL_VERDICT.md** - Final decision and reasoning
+- **CODEPUSH_ALTERNATIVES_DEC7.md** - Overview of alternatives
+- **CODEPUSH_RESEARCH_DEC7.md** - Full technical analysis
+- **CODEPUSH_FINDINGS_DEC7.md** - Root cause (New Architecture incompatibility)
+- **CODEPUSH_ALTERNATIVES_RESEARCH.md** - Detailed alternative research
+- **.kiro/steering/codepush-build-fix.md** - Build workarounds (gradle plugin issue)
+
+---
+
+**Status**: ✅ Investigation complete, decision made, case closed

@@ -24,7 +24,7 @@ interface RecipeContextType {
     ingredients: string[],
     filters?: {maxCalories?: number; mealType?: string},
   ) => Promise<void>;
-  getRecipeDetails: (recipeId: number) => Promise<RecipeDetails>;
+  getRecipeDetails: (recipeId: number | string) => Promise<RecipeDetails>;
   saveRecipe: (recipe: RecipeDetails) => Promise<void>;
   deleteSavedRecipe: (recipeId: number) => Promise<void>;
   fetchSavedRecipes: () => Promise<void>;
@@ -118,7 +118,7 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({children}) => {
   );
 
   const getRecipeDetails = useCallback(
-    async (recipeId: number): Promise<RecipeDetails> => {
+    async (recipeId: number | string): Promise<RecipeDetails> => {
       setIsLoading(true);
       setError(null);
       try {
