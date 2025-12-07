@@ -160,6 +160,7 @@ export class RecipeProviderService {
             const results = await provider.searchByIngredients(
               ingredients,
               limit,
+              options,
             );
             const responseTime = Date.now() - startTime;
 
@@ -209,7 +210,7 @@ export class RecipeProviderService {
 
     // Step 4: Return cached results if all providers fail
     console.log(`⚠️  All providers failed, returning cached results only`);
-    return await this.getCachedResultsOnly(ingredientHash);
+    return await this.getCachedResultsOnly(cacheKey);
   }
 
   /**

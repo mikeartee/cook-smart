@@ -83,7 +83,7 @@ router.get(
         console.log(`Caching ${recipes.length} recipes to database...`);
         try {
           for (const recipe of recipes) {
-            await RecipeCacheService.cacheRecipe(recipe);
+            await RecipeCacheService.cacheRecipe(recipe, provider);
           }
           console.log('✅ Recipes cached successfully');
         } catch (cacheError) {
