@@ -230,7 +230,27 @@ class FatSecretService {
         },
       );
 
-      return response.data.recipe || null;
+      const recipe = response.data.recipe || null;
+
+      // Log what we got from FatSecret
+      console.log('[FatSecret] Recipe details response:', {
+        recipeId,
+        hasRecipe: !!recipe,
+        hasIngredients: !!recipe?.ingredients,
+        hasDirections: !!recipe?.directions,
+        ingredientCount: recipe?.ingredients?.ingredient
+          ? Array.isArray(recipe.ingredients.ingredient)
+            ? recipe.ingredients.ingredient.length
+            : 1
+          : 0,
+        directionCount: recipe?.directions?.direction
+          ? Array.isArray(recipe.directions.direction)
+            ? recipe.directions.direction.length
+            : 1
+          : 0,
+      });
+
+      return recipe;
     } catch (error) {
       console.error('[FatSecret] Recipe details error:', error);
       return null;
