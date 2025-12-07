@@ -3,7 +3,7 @@ import pool from '../config/database';
 export class RecipeEnhancementService {
   // RATINGS
   static async rateRecipe(
-    userId: number,
+    userId: string,
     recipeId: string,
     recipeType: 'api' | 'user',
     rating: number,
@@ -43,7 +43,7 @@ export class RecipeEnhancementService {
 
   // COLLECTIONS
   static async createCollection(
-    userId: number,
+    userId: string,
     name: string,
     description?: string,
     icon?: string,
@@ -56,7 +56,7 @@ export class RecipeEnhancementService {
     return result.rows[0];
   }
 
-  static async getUserCollections(userId: number) {
+  static async getUserCollections(userId: string) {
     const result = await pool.query(
       `SELECT c.*, COUNT(i.id) as recipe_count
        FROM recipe_collections c

@@ -7,7 +7,7 @@ const router = Router();
 // RATINGS
 router.post('/ratings', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id as string);
+    const userId = req.user!.id as string;
     const {recipeId, recipeType, rating, review} = req.body;
     const result = await RecipeEnhancementService.rateRecipe(
       userId,
@@ -47,7 +47,7 @@ router.post(
   authenticateToken,
   async (req: AuthRequest, res) => {
     try {
-      const userId = parseInt(req.user!.id as string);
+      const userId = req.user!.id as string;
       const {name, description, icon} = req.body;
       const collection = await RecipeEnhancementService.createCollection(
         userId,
@@ -65,7 +65,7 @@ router.post(
 
 router.get('/collections', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = parseInt(req.user!.id as string);
+    const userId = req.user!.id as string;
     const collections =
       await RecipeEnhancementService.getUserCollections(userId);
     res.json({success: true, collections});
