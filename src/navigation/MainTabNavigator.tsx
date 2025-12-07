@@ -24,6 +24,7 @@ import {PrivacyPolicyScreen} from '../screens/PrivacyPolicyScreen';
 import {TermsOfServiceScreen} from '../screens/TermsOfServiceScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
+import ReferralScreen from '../screens/ReferralScreen';
 import MyRecipesScreen from '../screens/MyRecipesScreen';
 import CreateRecipeScreen from '../screens/CreateRecipeScreen';
 import MealPlanningScreen from '../screens/MealPlanningScreen';
@@ -102,6 +103,7 @@ const AccountStack = () => (
       component={NotificationSettingsScreen}
     />
     <Stack.Screen name="Achievements" component={AchievementsScreen} />
+    <Stack.Screen name="ReferralScreen" component={ReferralScreen} />
     <Stack.Screen
       name="HolidayPreferences"
       component={HolidayPreferencesScreen}

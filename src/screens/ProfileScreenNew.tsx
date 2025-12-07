@@ -109,6 +109,14 @@ const ProfileScreenNew: React.FC = () => {
       onPress: () => navigation.navigate('Achievements' as never),
     },
     {
+      id: 'referral',
+      title: 'Refer & Earn',
+      subtitle: 'Share and get free months',
+      icon: 'card-giftcard',
+      color: '#10B981',
+      onPress: () => navigation.navigate('ReferralScreen' as never),
+    },
+    {
       id: 'notifications',
       title: 'Notifications',
       subtitle: 'Manage your alerts',
