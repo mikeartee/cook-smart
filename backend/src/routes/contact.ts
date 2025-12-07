@@ -1,11 +1,13 @@
 import express, {Request, Response} from 'express';
 import {Resend} from 'resend';
+import axios from 'axios';
 
 const router = express.Router();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL =
   process.env.EMAIL_FROM || 'Cook Smart <noreply@cooksmartapp.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'services.cooksmart@gmail.com';
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 interface ContactRequest {
   name: string;
@@ -62,6 +64,52 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         <p>${message.replace(/\n/g, '<br />')}</p>
       `,
     });
+
+    // Send to Discord webhook if configured
+    if (DISCORD_WEBHOOK_URL) {
+      try {
+        await axios.post(DISCORD_WEBHOOK_URL, {
+          embeds: [
+            {
+              title: '🎯 New Beta Request',
+              color: 0x10b981, // Green color
+              fields: [
+                {
+                  name: '👤 Name',
+                  value: name,
+                  inline: true,
+                },
+                {
+                  name: '📧 Email',
+                  value: email,
+                  inline: true,
+                },
+                {
+                  name: '📝 Subject',
+                  value: subject,
+                  inline: false,
+                },
+                {
+                  name: '💬 Message',
+                  value:
+                    message.length > 1024
+                      ? message.substring(0, 1021) + '...'
+                      : message,
+                  inline: false,
+                },
+              ],
+              timestamp: new Date().toISOString(),
+              footer: {
+                text: 'Cook Smart Contact Form',
+              },
+            },
+          ],
+        });
+      } catch (discordError) {
+        console.error('Discord webhook error:', discordError);
+        // Don't fail the request if Discord fails
+      }
+    }
 
     // Send confirmation email to user
     await resend.emails.send({
