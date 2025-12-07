@@ -4,25 +4,34 @@ import {authenticateToken, AuthRequest} from '../middleware/auth';
 
 const router = express.Router();
 
-// Get trending recipes
+// Get trending recipes - Always fresh from FatSecret
+// Cache refreshes every 6 hours to stay current
 router.get('/trending', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 20;
-    let recipes = await RecipeCacheService.getTrendingRecipes(limit);
 
-    // If cache is empty, fetch popular recipes from FatSecret
-    if (recipes.length === 0) {
-      console.log('[Trending] Cache empty, fetching from FatSecret...');
+    // Check if cache needs refresh (older than 6 hours)
+    const cacheAge = await RecipeCacheService.getTrendingCacheAge();
+    const needsRefresh = cacheAge === null || cacheAge > 6 * 60 * 60 * 1000; // 6 hours in ms
+
+    if (needsRefresh) {
+      console.log(
+        '[Trending] Cache stale or empty, fetching fresh from FatSecret...',
+      );
       await RecipeCacheService.fetchTrendingFromFatSecret();
-      // Update trending scores after fetching
       await RecipeCacheService.updateTrendingScores();
-      recipes = await RecipeCacheService.getTrendingRecipes(limit);
     }
+
+    const recipes = await RecipeCacheService.getTrendingRecipes(limit);
 
     res.json({
       success: true,
       recipes,
       count: recipes.length,
+      cached: !needsRefresh,
+      lastRefresh: needsRefresh
+        ? 'just now'
+        : `${Math.round(cacheAge! / (60 * 60 * 1000))} hours ago`,
     });
   } catch (error) {
     console.error('[Trending] Error:', error);
@@ -30,28 +39,35 @@ router.get('/trending', async (req, res) => {
   }
 });
 
-// Get seasonal recipes
+// Get seasonal recipes - Always fresh from FatSecret
+// Cache refreshes daily to stay current with seasonal ingredients
 router.get('/seasonal', async (req, res) => {
   try {
     const season = (req.query.season as string) || getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
 
-    let recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    // Check if cache needs refresh (older than 24 hours)
+    const cacheAge = await RecipeCacheService.getSeasonalCacheAge(season);
+    const needsRefresh = cacheAge === null || cacheAge > 24 * 60 * 60 * 1000; // 24 hours in ms
 
-    // If cache is empty, fetch from FatSecret
-    if (recipes.length === 0) {
+    if (needsRefresh) {
       console.log(
-        `[Seasonal] Cache empty for ${season}, fetching from FatSecret...`,
+        `[Seasonal] Cache stale or empty for ${season}, fetching fresh from FatSecret...`,
       );
       await RecipeCacheService.fetchSeasonalRecipes(season, 50);
-      recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
     }
+
+    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
 
     res.json({
       success: true,
       season,
       recipes,
       count: recipes.length,
+      cached: !needsRefresh,
+      lastRefresh: needsRefresh
+        ? 'just now'
+        : `${Math.round(cacheAge! / (60 * 60 * 1000))} hours ago`,
     });
   } catch (error) {
     console.error('[Seasonal] Error:', error);
@@ -65,22 +81,28 @@ router.get('/seasonal/current', async (req, res) => {
     const season = getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
 
-    let recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    // Check if cache needs refresh (older than 24 hours)
+    const cacheAge = await RecipeCacheService.getSeasonalCacheAge(season);
+    const needsRefresh = cacheAge === null || cacheAge > 24 * 60 * 60 * 1000; // 24 hours in ms
 
-    // If cache is empty, fetch from FatSecret
-    if (recipes.length === 0) {
+    if (needsRefresh) {
       console.log(
-        `[Seasonal Current] Cache empty for ${season}, fetching from FatSecret...`,
+        `[Seasonal Current] Cache stale or empty for ${season}, fetching fresh from FatSecret...`,
       );
       await RecipeCacheService.fetchSeasonalRecipes(season, 50);
-      recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
     }
+
+    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
 
     res.json({
       success: true,
       season,
       recipes,
       count: recipes.length,
+      cached: !needsRefresh,
+      lastRefresh: needsRefresh
+        ? 'just now'
+        : `${Math.round(cacheAge! / (60 * 60 * 1000))} hours ago`,
     });
   } catch (error) {
     console.error('[Seasonal Current] Error:', error);

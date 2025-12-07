@@ -88,6 +88,26 @@ class RecipeCacheService {
     }
   }
 
+  async getSeasonalCacheAge(season: string): Promise<number | null> {
+    try {
+      const result = await pool.query(
+        `SELECT MAX(updated_at) as last_update FROM recipe_cache 
+         WHERE season = $1 AND is_seasonal = true`,
+        [season],
+      );
+
+      if (result.rows[0]?.last_update) {
+        const lastUpdate = new Date(result.rows[0].last_update);
+        return Date.now() - lastUpdate.getTime();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[RecipeCache] Get seasonal cache age error:', error);
+      return null;
+    }
+  }
+
   private getSeasonalIngredients(season: string): string[] {
     const seasonalMap: Record<string, string[]> = {
       spring: ['asparagus', 'peas', 'strawberries', 'artichokes', 'radishes'],
@@ -153,6 +173,25 @@ class RecipeCacheService {
     } catch (error) {
       console.error('[RecipeCache] Get trending error:', error);
       return [];
+    }
+  }
+
+  async getTrendingCacheAge(): Promise<number | null> {
+    try {
+      const result = await pool.query(
+        `SELECT MAX(last_trending_update) as last_update FROM recipe_cache 
+         WHERE trending_score > 0`,
+      );
+
+      if (result.rows[0]?.last_update) {
+        const lastUpdate = new Date(result.rows[0].last_update);
+        return Date.now() - lastUpdate.getTime();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[RecipeCache] Get trending cache age error:', error);
+      return null;
     }
   }
 
