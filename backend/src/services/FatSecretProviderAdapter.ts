@@ -28,42 +28,43 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           ? ingredients.slice(0, 5).join(' ')
           : ingredients.join(' ');
 
-      // NEW APPROACH: When meal type is specified, search by meal type WITHOUT ingredients
+      // NEW APPROACH: When meal type is specified, use broad search + client-side filtering
+      // FatSecret's recipe_types parameter doesn't seem to work reliably
       // When "All" is selected (no mealType), search by ingredients
       if (options && options.mealType) {
         console.log(
-          '[FatSecretAdapter] Meal type filter - searching by meal type only (ignoring ingredients):',
+          '[FatSecretAdapter] Meal type filter - using broad search with client-side filtering:',
           {
             mealType: options.mealType,
             maxCalories: options.maxCalories,
           },
         );
 
-        // FatSecret recipe_types works best WITHOUT search_expression
-        // Get more results and filter client-side for better results
+        // Map meal types to search keywords that work better
+        const mealTypeKeywords: {[key: string]: string} = {
+          'Breakfast and Brunch': 'breakfast',
+          'Main Dishes': 'dinner',
+          'Appetizers and Snacks': 'snack appetizer',
+        };
+
+        const searchKeyword = mealTypeKeywords[options.mealType] || 'recipe';
+
+        // Use broad search with keyword
         const searchOptions: any = {
-          recipeTypes: options.mealType,
+          query: searchKeyword,
           maxResults: 50, // Get more results to filter from
         };
+
+        if (options.maxCalories) {
+          searchOptions.maxCalories = options.maxCalories;
+        }
 
         const recipes = await this.service.searchRecipesAdvanced(searchOptions);
         console.log(
           `[FatSecretAdapter] Meal type search returned ${recipes.length} recipes`,
         );
 
-        // Client-side calorie filtering if specified
-        let filteredRecipes = recipes;
-        if (options.maxCalories) {
-          filteredRecipes = recipes.filter(
-            (r: any) =>
-              !r.calories || parseInt(r.calories) <= options.maxCalories!,
-          );
-          console.log(
-            `[FatSecretAdapter] Client-side filtered to ${filteredRecipes.length} recipes under ${options.maxCalories} cal`,
-          );
-        }
-
-        return this.formatRecipes(filteredRecipes.slice(0, limit));
+        return this.formatRecipes(recipes.slice(0, limit));
       }
 
       // Use advanced search if only calorie filter is provided (no meal type)
