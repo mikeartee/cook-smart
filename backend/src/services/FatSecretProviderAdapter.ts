@@ -26,6 +26,12 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
       // Use advanced search if filters are provided
       if (options && (options.maxCalories || options.mealType)) {
+        console.log('[FatSecretAdapter] Using advanced search with filters:', {
+          maxCalories: options.maxCalories,
+          mealType: options.mealType,
+          query: searchQuery,
+        });
+
         const searchOptions: any = {
           query: searchQuery,
           maxResults: limit,
@@ -40,6 +46,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         }
 
         const recipes = await this.service.searchRecipesAdvanced(searchOptions);
+        console.log(
+          `[FatSecretAdapter] Advanced search returned ${recipes.length} recipes`,
+        );
         return this.formatRecipes(recipes);
       }
 
