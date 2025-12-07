@@ -8,7 +8,16 @@ const router = express.Router();
 router.get('/trending', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 20;
-    const recipes = await RecipeCacheService.getTrendingRecipes(limit);
+    let recipes = await RecipeCacheService.getTrendingRecipes(limit);
+
+    // If cache is empty, fetch popular recipes from FatSecret
+    if (recipes.length === 0) {
+      console.log('[Trending] Cache empty, fetching from FatSecret...');
+      await RecipeCacheService.fetchTrendingFromFatSecret();
+      // Update trending scores after fetching
+      await RecipeCacheService.updateTrendingScores();
+      recipes = await RecipeCacheService.getTrendingRecipes(limit);
+    }
 
     res.json({
       success: true,
@@ -27,7 +36,16 @@ router.get('/seasonal', async (req, res) => {
     const season = (req.query.season as string) || getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
 
-    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    let recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+
+    // If cache is empty, fetch from FatSecret
+    if (recipes.length === 0) {
+      console.log(
+        `[Seasonal] Cache empty for ${season}, fetching from FatSecret...`,
+      );
+      await RecipeCacheService.fetchSeasonalRecipes(season, 50);
+      recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    }
 
     res.json({
       success: true,
@@ -47,7 +65,16 @@ router.get('/seasonal/current', async (req, res) => {
     const season = getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
 
-    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    let recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+
+    // If cache is empty, fetch from FatSecret
+    if (recipes.length === 0) {
+      console.log(
+        `[Seasonal Current] Cache empty for ${season}, fetching from FatSecret...`,
+      );
+      await RecipeCacheService.fetchSeasonalRecipes(season, 50);
+      recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    }
 
     res.json({
       success: true,
