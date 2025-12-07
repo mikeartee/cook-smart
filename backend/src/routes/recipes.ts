@@ -143,15 +143,17 @@ router.get(
 
       console.log(`Fetching recipe details for ID: ${id}`);
 
-      // First try to get from cache
-      let recipe: any = await RecipeCacheService.getRecipeById(id);
-      let provider = 'cache';
+      // Always fetch from API to get full details (ingredients, instructions)
+      // FatSecret search results don't include these, only the details API does
+      console.log('Fetching full recipe details from FatSecret API...');
+      let recipe: any = await recipeProviderService.getRecipeDetails(id);
+      let provider = 'fatsecret';
 
-      // If not in cache, try API
+      // Fallback to cache only if API fails
       if (!recipe) {
-        console.log('Recipe not in cache, fetching from API...');
-        recipe = await recipeProviderService.getRecipeDetails(id);
-        provider = 'api';
+        console.log('API failed, trying cache...');
+        recipe = await RecipeCacheService.getRecipeById(id);
+        provider = 'cache';
       }
 
       // Track recipe view and check achievements
