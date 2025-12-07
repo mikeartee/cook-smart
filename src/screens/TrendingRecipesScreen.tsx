@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import socialService from '../services/socialService';
-import recipeService from '../services/recipeService';
 
 export default function TrendingRecipesScreen({navigation}: any) {
   const [trending, setTrending] = useState([]);
@@ -24,18 +23,15 @@ export default function TrendingRecipesScreen({navigation}: any) {
   const loadTrending = async () => {
     try {
       const response = await socialService.getTrendingRecipes();
-      if (response.success) {
-        setTrending(response.trending);
-        // Load recipe details
-        for (const item of response.trending) {
-          const recipeData = await recipeService.getRecipeById(item.recipe_id);
-          if (recipeData) {
-            setRecipes((prev: any) => ({
-              ...prev,
-              [item.recipe_id]: recipeData,
-            }));
-          }
-        }
+      if (response.success && response.recipes) {
+        // The API returns recipes directly, not trending items
+        setTrending(response.recipes);
+        // Recipes already have full details from FatSecret
+        const recipesMap: any = {};
+        response.recipes.forEach((recipe: any) => {
+          recipesMap[recipe.recipe_id] = recipe;
+        });
+        setRecipes(recipesMap);
       }
     } catch (error) {
       console.error('Error loading trending:', error);

@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import advancedRecipeService from '../services/advancedRecipeService';
-import recipeService from '../services/recipeService';
 
 export default function SeasonalRecipesScreen({navigation}: any) {
   const [season, setSeason] = useState('');
@@ -25,30 +24,20 @@ export default function SeasonalRecipesScreen({navigation}: any) {
   const loadSeasonalRecipes = async () => {
     try {
       const response = await advancedRecipeService.getCurrentSeasonalRecipes();
-      if (response.success) {
+      if (response.success && response.recipes) {
         setSeason(response.season);
 
-        // Check if recipes already have full details (from API)
-        if (response.recipes.length > 0 && response.recipes[0].title) {
-          // Recipes already have details from API
-          setRecipes(
-            response.recipes.map((item: any) => ({
-              id: item.recipe_id,
-              title: item.title,
-              image: item.image,
-              readyInMinutes: item.readyInMinutes,
-            })),
-          );
-        } else {
-          // Load recipe details from database
-          const recipeDetails = await Promise.all(
-            response.recipes.map(async (item: any) => {
-              const recipe = await recipeService.getRecipeById(item.recipe_id);
-              return recipe;
-            }),
-          );
-          setRecipes(recipeDetails.filter(r => r));
-        }
+        // Recipes from FatSecret cache have full details
+        setRecipes(
+          response.recipes.map((item: any) => ({
+            id: item.recipe_id,
+            title: item.title,
+            image: item.image_url || item.image,
+            readyInMinutes: item.ready_in_minutes || item.readyInMinutes,
+            servings: item.servings,
+            calories: item.nutrition?.calories,
+          })),
+        );
       }
     } catch (error) {
       console.error('Error loading seasonal recipes:', error);
