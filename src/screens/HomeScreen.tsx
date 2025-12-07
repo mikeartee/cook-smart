@@ -134,9 +134,11 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleHolidayRecipePress = (recipeId: string) => {
+    // Strip 'fatsecret_' prefix if present (FatSecret API needs clean IDs)
+    const cleanId = recipeId.replace(/^fatsecret_/, '');
     (navigation as any).navigate('Recipes', {
       screen: 'RecipeDetail',
-      params: {recipeId},
+      params: {recipeId: cleanId},
     });
   };
 
