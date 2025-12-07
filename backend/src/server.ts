@@ -139,6 +139,8 @@ import recipeModificationRoutes from './routes/recipeModification';
 import personalizedRecipesRoutes from './routes/personalizedRecipes';
 import substitutionFeedbackRoutes from './routes/substitutionFeedback';
 import safetyCheckRoutes from './routes/safetyCheck';
+import usersRoutes from './routes/users';
+import favoritesRoutes from './routes/favorites';
 
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/password', authLimiter, passwordResetRoutes);
@@ -184,6 +186,8 @@ app.use('/api/v1/recipe-modification', recipeModificationRoutes);
 app.use('/api/v1/personalized', personalizedRecipesRoutes);
 app.use('/api/v1/substitutions', substitutionFeedbackRoutes);
 app.use('/api/v1/safety-check', safetyCheckRoutes);
+app.use('/api/v1/users', usersRoutes);
+app.use('/api/v1/favorites', favoritesRoutes);
 app.use('/contact', contactRoutes);
 
 app.get('/api/v1/test', (req, res) => {
