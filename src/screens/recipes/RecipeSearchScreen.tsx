@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,18 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useRecipes } from '../../contexts/RecipeContext';
+import {useRecipes} from '../../contexts/RecipeContext';
 import ingredientService from '../../services/ingredientService';
-import { Recipe } from '../../services/recipeService';
+import {Recipe} from '../../services/recipeService';
 
 interface RecipeSearchScreenProps {
   navigation: any;
 }
 
-export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigation }) => {
-  const { recipes, isLoading, error, provider, searchRecipes } = useRecipes();
+export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
+  navigation,
+}) => {
+  const {recipes, isLoading, error, provider, searchRecipes} = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -31,6 +33,8 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
   // Re-search when screen comes into focus
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      // Refresh recipes when returning to this screen
+      console.log('🔄 Recipe screen focused - refreshing...');
       handleSearch();
     });
 
@@ -41,21 +45,21 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
     try {
       console.log('🔍 Starting recipe search...');
       setHasSearched(true);
-      
+
       // Get user's ingredients
       const response = await ingredientService.getUserIngredients();
       console.log('📦 Got ingredients:', response);
-      
+
       if (!response || (!response.ingredients && !response.customIngredients)) {
         console.log('⚠️  No ingredients response');
         return;
       }
-      
+
       const allIngredients = [
-        ...(response.ingredients || []), 
-        ...(response.customIngredients || [])
+        ...(response.ingredients || []),
+        ...(response.customIngredients || []),
       ];
-      
+
       if (allIngredients.length === 0) {
         console.log('⚠️  No ingredients found');
         return;
@@ -78,9 +82,10 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
       await searchRecipes(ingredientNames);
       console.log('✅ Search complete');
     } catch (err) {
-      const errorMsg = err && typeof err === 'object' && 'message' in err 
-        ? (err as Error).message 
-        : 'Unknown error';
+      const errorMsg =
+        err && typeof err === 'object' && 'message' in err
+          ? (err as Error).message
+          : 'Unknown error';
       console.error('❌ Search error:', errorMsg);
     }
   };
@@ -91,18 +96,56 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
     setRefreshing(false);
   };
 
-  const renderRecipeCard = ({ item }: { item: Recipe }) => (
+  const renderRecipeCard = ({item}: {item: Recipe}) => (
     <TouchableOpacity
       style={styles.recipeCard}
-      onPress={() => navigation.navigate('RecipeDetail', { recipeId: item.id })}
-      activeOpacity={0.7}
-    >
-      <Image source={{ uri: item.image }} style={styles.recipeImage} />
+      onPress={() => navigation.navigate('RecipeDetail', {recipeId: item.id})}
+      activeOpacity={0.7}>
+      <Image source={{uri: item.image}} style={styles.recipeImage} />
+
+      {/* Nutrition Badge */}
+      {item.calories && (
+        <View style={styles.nutritionBadge}>
+          <Icon name="local-fire-department" size={14} color="#FFFFFF" />
+          <Text style={styles.nutritionBadgeText}>{item.calories} cal</Text>
+        </View>
+      )}
+
       <View style={styles.recipeInfo}>
         <Text style={styles.recipeTitle} numberOfLines={2}>
           {item.title}
         </Text>
-        
+
+        {/* Nutrition Info Row */}
+        {(item.calories || item.protein || item.carbs || item.fat) && (
+          <View style={styles.nutritionRow}>
+            {item.calories && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionLabel}>Cal</Text>
+                <Text style={styles.nutritionValue}>{item.calories}</Text>
+              </View>
+            )}
+            {item.protein && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionLabel}>Protein</Text>
+                <Text style={styles.nutritionValue}>{item.protein}g</Text>
+              </View>
+            )}
+            {item.carbs && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionLabel}>Carbs</Text>
+                <Text style={styles.nutritionValue}>{item.carbs}g</Text>
+              </View>
+            )}
+            {item.fat && (
+              <View style={styles.nutritionItem}>
+                <Text style={styles.nutritionLabel}>Fat</Text>
+                <Text style={styles.nutritionValue}>{item.fat}g</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <Icon name="check-circle" size={16} color="#10B981" />
@@ -110,7 +153,9 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
           </View>
           <View style={styles.stat}>
             <Icon name="shopping-cart" size={16} color="#F59E0B" />
-            <Text style={styles.statText}>{item.missedIngredientCount} need</Text>
+            <Text style={styles.statText}>
+              {item.missedIngredientCount} need
+            </Text>
           </View>
           <View style={styles.stat}>
             <Icon name="favorite" size={16} color="#EF4444" />
@@ -176,8 +221,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
               if (parent) {
                 parent.navigate('Ingredients');
               }
-            }}
-          >
+            }}>
             <Icon name="add" size={20} color="#FFFFFF" />
             <Text style={styles.addButtonText}>Add Ingredients</Text>
           </TouchableOpacity>
@@ -194,20 +238,28 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
       <View style={styles.betaBanner}>
         <Icon name="science" size={16} color="#8B5CF6" />
         <Text style={styles.betaText}>Beta - Recipe Database</Text>
-        {provider && (
-          <Text style={styles.providerText}>• {provider}</Text>
-        )}
+        {provider && <Text style={styles.providerText}>• {provider}</Text>}
       </View>
 
       {/* Header Info */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>
-          {recipes.length > 0 
-            ? `Found ${recipes.length} recipe${recipes.length !== 1 ? 's' : ''}`
-            : 'Searching for recipes...'}
-        </Text>
-        <TouchableOpacity onPress={handleSearch} disabled={isLoading}>
-          <Icon name="refresh" size={24} color="#10B981" />
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerText}>
+            {recipes.length > 0
+              ? `Found ${recipes.length} recipe${recipes.length !== 1 ? 's' : ''}`
+              : 'Searching for recipes...'}
+          </Text>
+          <Text style={styles.pullToRefreshHint}>Pull down to refresh</Text>
+        </View>
+        <TouchableOpacity
+          onPress={handleSearch}
+          disabled={isLoading}
+          style={styles.refreshButton}>
+          <Icon
+            name="refresh"
+            size={24}
+            color={isLoading ? '#9CA3AF' : '#10B981'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -215,7 +267,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
       <FlatList
         data={recipes}
         renderItem={renderRecipeCard}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         contentContainerStyle={[
           styles.listContent,
           recipes.length === 0 && styles.listContentEmpty,
@@ -230,6 +282,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({ navigati
           />
         }
         showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={true}
       />
 
       {/* Loading Overlay */}
@@ -257,10 +310,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
+  headerLeft: {
+    flex: 1,
+  },
   headerText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
+  },
+  pullToRefreshHint: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  refreshButton: {
+    padding: 8,
   },
   listContent: {
     padding: 16,
@@ -275,7 +339,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -284,8 +348,50 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: '#E5E7EB',
   },
+  nutritionBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    zIndex: 1,
+  },
+  nutritionBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   recipeInfo: {
     padding: 16,
+  },
+  nutritionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+  },
+  nutritionItem: {
+    alignItems: 'center',
+  },
+  nutritionLabel: {
+    fontSize: 10,
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  nutritionValue: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '600',
   },
   recipeTitle: {
     fontSize: 18,

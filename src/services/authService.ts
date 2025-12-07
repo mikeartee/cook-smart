@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_ENDPOINTS, getAuthHeader } from '../config/api';
+import {API_ENDPOINTS, getAuthHeader} from '../config/api';
 
 export interface User {
   id: string;
@@ -30,25 +30,59 @@ class AuthService {
   private token: string | null = null;
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await fetch(API_ENDPOINTS.auth.login, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      console.log('[AuthService] Login attempt:', {
+        email,
+        apiUrl: API_ENDPOINTS.auth.login,
+      });
 
-    const data = await response.json();
+      const response = await fetch(API_ENDPOINTS.auth.login, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({email, password}),
+      });
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
+      console.log('[AuthService] Response status:', response.status);
+
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+        console.log('[AuthService] Response data:', {
+          hasToken: !!data.token,
+          hasUser: !!data.user,
+          message: data.message,
+        });
+      } catch (parseError) {
+        console.error('[AuthService] JSON parse error:', parseError);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      if (!response.ok) {
+        console.error('[AuthService] Login failed:', data);
+        throw new Error(data.message || data.error || 'Login failed');
+      }
+
+      if (!data.token || !data.user) {
+        console.error('[AuthService] Missing token or user in response');
+        throw new Error('Invalid response from server');
+      }
+
+      this.token = data.token;
+      await AsyncStorage.setItem('auth_token', data.token);
+      await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
+
+      console.log('[AuthService] Login successful');
+      return data;
+    } catch (error) {
+      console.error('[AuthService] Login error:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error. Please check your connection.');
     }
-
-    this.token = data.token;
-    await AsyncStorage.setItem('auth_token', data.token);
-    await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
-
-    return data;
   }
 
   async register(userData: {
@@ -58,25 +92,56 @@ class AuthService {
     last_name?: string;
     age_verified: boolean;
   }): Promise<AuthResponse> {
-    const response = await fetch(API_ENDPOINTS.auth.register, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+    try {
+      console.log('[AuthService] Register attempt:', {email: userData.email});
 
-    const data = await response.json();
+      const response = await fetch(API_ENDPOINTS.auth.register, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Registration failed');
+      console.log('[AuthService] Register response status:', response.status);
+
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+        console.log('[AuthService] Register response data:', {
+          hasToken: !!data.token,
+          hasUser: !!data.user,
+          message: data.message,
+        });
+      } catch (parseError) {
+        console.error('[AuthService] JSON parse error:', parseError);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      if (!response.ok) {
+        console.error('[AuthService] Registration failed:', data);
+        throw new Error(data.message || data.error || 'Registration failed');
+      }
+
+      if (!data.token || !data.user) {
+        console.error('[AuthService] Missing token or user in response');
+        throw new Error('Invalid response from server');
+      }
+
+      this.token = data.token;
+      await AsyncStorage.setItem('auth_token', data.token);
+      await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
+
+      console.log('[AuthService] Registration successful');
+      return data;
+    } catch (error) {
+      console.error('[AuthService] Registration error:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error. Please check your connection.');
     }
-
-    this.token = data.token;
-    await AsyncStorage.setItem('auth_token', data.token);
-    await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
-
-    return data;
   }
 
   async logout(): Promise<void> {
@@ -87,7 +152,7 @@ class AuthService {
 
   async getStoredToken(): Promise<string | null> {
     if (this.token) return this.token;
-    
+
     const storedToken = await AsyncStorage.getItem('auth_token');
     this.token = storedToken;
     return storedToken;

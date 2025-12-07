@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import fetch from 'node-fetch';
 
 export class AdvancedRecipeService {
   // Nutrition
@@ -164,58 +163,43 @@ export class AdvancedRecipeService {
 
   private async fetchSeasonalRecipesFromAPI(season: string, limit: number) {
     try {
-      const seasonalTags = this.getSeasonalTags(season);
-      const apiKey = process.env.SPOONACULAR_API_KEY;
+      const FatSecretService = require('./FatSecretService').default;
 
-      if (!apiKey) {
-        console.warn('No Spoonacular API key found, returning empty array');
+      if (!FatSecretService.isConfigured()) {
+        console.warn('FatSecret not configured, returning empty array');
         return [];
       }
 
+      const searchQuery = this.getSeasonalSearchQuery(season);
       console.log(
-        `Fetching seasonal recipes for ${season} with tags: ${seasonalTags}`,
+        `Fetching seasonal recipes for ${season} from FatSecret with query: ${searchQuery}`,
       );
 
-      const url = `https://api.spoonacular.com/recipes/complexSearch?tags=${seasonalTags}&number=${limit}&sort=popularity&addRecipeInformation=true&apiKey=${apiKey}`;
-      console.log('API URL:', url.replace(apiKey, 'HIDDEN'));
+      const recipes = await FatSecretService.searchRecipes(searchQuery, limit);
+      console.log(`Received ${recipes.length} seasonal recipes from FatSecret`);
 
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          'Failed to fetch seasonal recipes from API:',
-          response.status,
-          errorText,
-        );
+      if (!recipes || recipes.length === 0) {
+        console.warn('No seasonal recipes found from FatSecret');
         return [];
       }
 
-      const data: any = await response.json();
-      console.log(
-        `Received ${data.results?.length || 0} seasonal recipes from Spoonacular`,
-      );
-
-      if (!data.results || data.results.length === 0) {
-        console.warn('No seasonal recipes found from API');
-        return [];
-      }
-
-      // Transform API response to match our format
-      const recipes = data.results.map((recipe: any) => ({
-        recipe_id: recipe.id.toString(),
+      // Transform FatSecret response to match our format
+      const formattedRecipes = recipes.map((recipe: any) => ({
+        recipe_id: recipe.recipe_id.toString(),
         season: season,
         priority: 0,
-        title: recipe.title,
-        image: recipe.image,
-        readyInMinutes: recipe.readyInMinutes,
+        title: recipe.recipe_name,
+        image: recipe.recipe_image || recipe.recipe_images?.recipe_image || '',
+        readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
       }));
 
       // Cache the results in the database to avoid future API calls
-      if (recipes.length > 0) {
-        console.log(`Caching ${recipes.length} seasonal recipes to database`);
+      if (formattedRecipes.length > 0) {
+        console.log(
+          `Caching ${formattedRecipes.length} seasonal recipes to database`,
+        );
         try {
-          for (const recipe of recipes) {
+          for (const recipe of formattedRecipes) {
             await this.addSeasonalRecipe(recipe.recipe_id, season, 0);
           }
           console.log('✅ Seasonal recipes cached successfully');
@@ -225,21 +209,22 @@ export class AdvancedRecipeService {
         }
       }
 
-      return recipes;
+      return formattedRecipes;
     } catch (error) {
-      console.error('Error fetching seasonal recipes from API:', error);
+      console.error('Error fetching seasonal recipes from FatSecret:', error);
       return [];
     }
   }
 
-  private getSeasonalTags(season: string): string {
-    const seasonalIngredients: Record<string, string> = {
-      spring: 'asparagus,peas,strawberries,spring',
-      summer: 'tomatoes,corn,berries,summer,grilling',
-      fall: 'pumpkin,squash,apples,fall,autumn',
-      winter: 'root vegetables,winter,comfort food,soup',
+  private getSeasonalSearchQuery(season: string): string {
+    // FatSecret search queries for truly seasonal recipes
+    const seasonalQueries: Record<string, string> = {
+      spring: 'spring vegetables asparagus peas fresh salad',
+      summer: 'grilled bbq fresh berries summer salad',
+      fall: 'pumpkin squash apple cider autumn harvest',
+      winter: 'soup stew roast comfort warm hearty',
     };
-    return seasonalIngredients[season] || '';
+    return seasonalQueries[season] || 'seasonal';
   }
 
   getCurrentSeason(): string {

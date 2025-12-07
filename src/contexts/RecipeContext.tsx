@@ -114,13 +114,19 @@ export const RecipeProvider: React.FC<RecipeProviderProps> = ({children}) => {
       setIsLoading(true);
       setError(null);
       try {
+        console.log('[RecipeContext] Fetching recipe details:', recipeId);
         const details = await recipeService.getRecipeDetails(recipeId);
+        console.log('[RecipeContext] Recipe details fetched:', {
+          id: details?.id,
+          title: details?.title,
+          hasIngredients: !!details?.ingredients,
+        });
         return details;
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch recipe details';
         setError(errorMessage);
-        console.error('Get recipe details error:', err);
+        console.error('[RecipeContext] Get recipe details error:', err);
         throw err;
       } finally {
         setIsLoading(false);

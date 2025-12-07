@@ -269,6 +269,45 @@ class ShoppingListService {
       throw error;
     }
   }
+  // Add recipe ingredients to shopping list
+  async addRecipeToShoppingList(
+    recipeId: number,
+    ingredients: string[],
+    _servings: number = 1,
+  ): Promise<ShoppingListItem[]> {
+    try {
+      const items: AddShoppingListItemRequest[] = ingredients.map(ing => {
+        // Parse ingredient string (e.g., "2 cups flour" or "1 tablespoon olive oil")
+        const parts = ing.trim().split(' ');
+        let quantity = '1';
+        let unit = '';
+        let ingredient = ing;
+
+        if (parts.length >= 2) {
+          // Try to extract quantity and unit
+          const firstPart = parts[0];
+          if (!isNaN(Number(firstPart)) || firstPart.match(/^\d+\/\d+$/)) {
+            quantity = firstPart;
+            unit = parts[1] || '';
+            ingredient = parts.slice(2).join(' ') || parts.slice(1).join(' ');
+          }
+        }
+
+        return {
+          ingredient: ingredient || ing,
+          quantity: quantity,
+          unit: unit,
+          category: 'Uncategorized',
+          recipeId: recipeId.toString(),
+        };
+      });
+
+      return await this.addItems(items);
+    } catch (error) {
+      console.error('Error adding recipe to shopping list:', error);
+      throw error;
+    }
+  }
 }
 
 export const shoppingListService = new ShoppingListService();

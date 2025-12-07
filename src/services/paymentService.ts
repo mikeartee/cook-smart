@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PaymentErrorHandler } from '../utils/paymentErrorHandler';
+import {PaymentErrorHandler} from '../utils/paymentErrorHandler';
 
-const API_BASE = 'http://192.168.12.196:3000/api/v1';
+const API_BASE = 'https://api.cooksmartapp.com/api/v1';
 
 export interface PricingPlan {
   id: string;
@@ -59,37 +59,40 @@ class PaymentService {
     const token = await AsyncStorage.getItem('authToken');
     return {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` })
+      ...(token && {Authorization: `Bearer ${token}`}),
     };
   }
 
   async getPricingPlans(): Promise<PricingPlan[]> {
     const response = await fetch(`${API_BASE}/payments/plans`);
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to get pricing plans');
     }
-    
+
     return data.plans;
   }
 
   async createPaymentIntent(planId: string): Promise<PaymentIntent> {
     try {
-      const response = await fetch(`${API_BASE}/payments/create-payment-intent`, {
-        method: 'POST',
-        headers: await this.getAuthHeaders(),
-        body: JSON.stringify({ planId })
-      });
-      
+      const response = await fetch(
+        `${API_BASE}/payments/create-payment-intent`,
+        {
+          method: 'POST',
+          headers: await this.getAuthHeaders(),
+          body: JSON.stringify({planId}),
+        },
+      );
+
       const data = await response.json();
-      
+
       if (!data.success) {
-        const error = PaymentErrorHandler.parseError({ response: { data } });
+        const error = PaymentErrorHandler.parseError({response: {data}});
         PaymentErrorHandler.logError(error, 'createPaymentIntent');
         throw error;
       }
-      
+
       return data.paymentIntent;
     } catch (error) {
       if (error && typeof error === 'object' && 'type' in error) throw error; // Already a PaymentError
@@ -99,25 +102,28 @@ class PaymentService {
     }
   }
 
-  async createSubscription(planId: string, _paymentData: PaymentData): Promise<Subscription> {
+  async createSubscription(
+    planId: string,
+    _paymentData: PaymentData,
+  ): Promise<Subscription> {
     try {
       // Mock payment method creation
       const paymentMethodId = `pm_${Date.now()}`;
-      
+
       const response = await fetch(`${API_BASE}/payments/subscribe`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
-        body: JSON.stringify({ planId, paymentMethodId })
+        body: JSON.stringify({planId, paymentMethodId}),
       });
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
-        const error = PaymentErrorHandler.parseError({ response: { data } });
+        const error = PaymentErrorHandler.parseError({response: {data}});
         PaymentErrorHandler.logError(error, 'createSubscription');
         throw error;
       }
-      
+
       return data.subscription;
     } catch (error) {
       if (error && typeof error === 'object' && 'type' in error) throw error; // Already a PaymentError
@@ -129,27 +135,30 @@ class PaymentService {
 
   async getUserSubscriptions(): Promise<Subscription[]> {
     const response = await fetch(`${API_BASE}/payments/subscriptions`, {
-      headers: await this.getAuthHeaders()
+      headers: await this.getAuthHeaders(),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to get subscriptions');
     }
-    
+
     return data.subscriptions;
   }
 
-  async cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = true): Promise<void> {
+  async cancelSubscription(
+    subscriptionId: string,
+    cancelAtPeriodEnd: boolean = true,
+  ): Promise<void> {
     const response = await fetch(`${API_BASE}/payments/cancel-subscription`, {
       method: 'POST',
       headers: await this.getAuthHeaders(),
-      body: JSON.stringify({ subscriptionId, cancelAtPeriodEnd })
+      body: JSON.stringify({subscriptionId, cancelAtPeriodEnd}),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to cancel subscription');
     }
@@ -160,11 +169,11 @@ class PaymentService {
     const response = await fetch(`${API_BASE}/payments/cancel-subscription`, {
       method: 'POST',
       headers: await this.getAuthHeaders(),
-      body: JSON.stringify({ subscriptionId, cancelAtPeriodEnd: false })
+      body: JSON.stringify({subscriptionId, cancelAtPeriodEnd: false}),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to reactivate subscription');
     }
@@ -172,25 +181,29 @@ class PaymentService {
 
   validatePaymentData(paymentData: PaymentData): string[] {
     const errors: string[] = [];
-    
+
     if (!paymentData.cardholderName.trim()) {
       errors.push('Cardholder name is required');
     }
-    
+
     const cardNumber = paymentData.cardNumber.replace(/\s/g, '');
     if (cardNumber.length < 16) {
       errors.push('Invalid card number');
     }
-    
+
     const expiryParts = paymentData.expiryDate.split('/');
-    if (expiryParts.length !== 2 || expiryParts[0].length !== 2 || expiryParts[1].length !== 2) {
+    if (
+      expiryParts.length !== 2 ||
+      expiryParts[0].length !== 2 ||
+      expiryParts[1].length !== 2
+    ) {
       errors.push('Invalid expiry date');
     }
-    
+
     if (paymentData.cvv.length < 3) {
       errors.push('Invalid CVV');
     }
-    
+
     return errors;
   }
 
@@ -200,10 +213,10 @@ class PaymentService {
 
   getPlanDisplayName(planId: string): string {
     const names: Record<string, string> = {
-      'weekly': 'Weekly Plan',
-      'monthly': 'Monthly Plan',
-      'yearly': 'Yearly Plan',
-      'beta-presale': 'BETA Pre-Purchase'
+      weekly: 'Weekly Plan',
+      monthly: 'Monthly Plan',
+      yearly: 'Yearly Plan',
+      'beta-presale': 'BETA Pre-Purchase',
     };
     return names[planId] || planId;
   }
@@ -216,7 +229,9 @@ class PaymentService {
     if (subscription.status === 'active' && subscription.cancelAtPeriodEnd) {
       return 'Ending Soon';
     }
-    return subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1);
+    return (
+      subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)
+    );
   }
 
   isBetaUser(): boolean {
@@ -226,15 +241,15 @@ class PaymentService {
 
   async getPaymentMethods(): Promise<PaymentMethod[]> {
     const response = await fetch(`${API_BASE}/payments/payment-methods`, {
-      headers: await this.getAuthHeaders()
+      headers: await this.getAuthHeaders(),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to get payment methods');
     }
-    
+
     return data.paymentMethods;
   }
 
@@ -242,39 +257,45 @@ class PaymentService {
     const response = await fetch(`${API_BASE}/payments/payment-methods`, {
       method: 'POST',
       headers: await this.getAuthHeaders(),
-      body: JSON.stringify(paymentData)
+      body: JSON.stringify(paymentData),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to add payment method');
     }
-    
+
     return data.paymentMethod;
   }
 
   async setDefaultPaymentMethod(paymentMethodId: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/payments/payment-methods/${paymentMethodId}/default`, {
-      method: 'POST',
-      headers: await this.getAuthHeaders()
-    });
-    
+    const response = await fetch(
+      `${API_BASE}/payments/payment-methods/${paymentMethodId}/default`,
+      {
+        method: 'POST',
+        headers: await this.getAuthHeaders(),
+      },
+    );
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to set default payment method');
     }
   }
 
   async deletePaymentMethod(paymentMethodId: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/payments/payment-methods/${paymentMethodId}`, {
-      method: 'DELETE',
-      headers: await this.getAuthHeaders()
-    });
-    
+    const response = await fetch(
+      `${API_BASE}/payments/payment-methods/${paymentMethodId}`,
+      {
+        method: 'DELETE',
+        headers: await this.getAuthHeaders(),
+      },
+    );
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to delete payment method');
     }
@@ -282,15 +303,15 @@ class PaymentService {
 
   async getBillingHistory(): Promise<BillingItem[]> {
     const response = await fetch(`${API_BASE}/payments/billing-history`, {
-      headers: await this.getAuthHeaders()
+      headers: await this.getAuthHeaders(),
     });
-    
+
     const data = await response.json();
-    
+
     if (!data.success) {
       throw new Error(data.error || 'Failed to get billing history');
     }
-    
+
     return data.billingHistory;
   }
 

@@ -92,6 +92,43 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
     }
   };
 
+  const handleAddToShoppingList = async () => {
+    if (!recipe) return;
+
+    try {
+      Alert.alert(
+        'Add to Shopping List',
+        `Add all ${recipe.ingredients.length} ingredients to your shopping list?`,
+        [
+          {text: 'Cancel', style: 'cancel'},
+          {
+            text: 'Add',
+            onPress: async () => {
+              try {
+                await shoppingListService.addRecipeToShoppingList(
+                  recipe.id,
+                  recipe.ingredients,
+                  servings,
+                );
+                Alert.alert(
+                  'Success',
+                  'Ingredients added to your shopping list!',
+                );
+              } catch (_err) {
+                Alert.alert(
+                  'Error',
+                  'Failed to add ingredients to shopping list',
+                );
+              }
+            },
+          },
+        ],
+      );
+    } catch (err) {
+      console.error('Error adding to shopping list:', err);
+    }
+  };
+
   const handleCookThis = async () => {
     Alert.alert('Cook This Recipe', 'Mark this recipe as cooked?', [
       {text: 'Cancel', style: 'cancel'},
@@ -464,12 +501,30 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
 
   const loadRecipe = async () => {
     try {
+      console.log('[RecipeDetail] Loading recipe:', recipeId);
       setLoading(true);
       setError(null);
+
+      if (!recipeId) {
+        throw new Error('No recipe ID provided');
+      }
+
       const details = await getRecipeDetails(recipeId);
+      console.log('[RecipeDetail] Recipe loaded:', {
+        id: details?.id,
+        title: details?.title,
+        hasIngredients: !!details?.ingredients,
+        ingredientsCount: details?.ingredients?.length || 0,
+      });
+
+      if (!details) {
+        throw new Error('Recipe not found');
+      }
+
       setRecipe(details);
-      setServings(details.servings); // Set initial servings
+      setServings(details.servings || 1); // Set initial servings with fallback
     } catch (err) {
+      console.error('[RecipeDetail] Error loading recipe:', err);
       setError(err instanceof Error ? err.message : 'Failed to load recipe');
     } finally {
       setLoading(false);
@@ -647,6 +702,16 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
               <Text style={styles.stepByStepButtonText}>Step-by-Step</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Shopping List Button */}
+          <TouchableOpacity
+            style={styles.shoppingListButton}
+            onPress={handleAddToShoppingList}>
+            <Icon name="shopping-cart" size={20} color="#10B981" />
+            <Text style={styles.shoppingListButtonText}>
+              Add Ingredients to Shopping List
+            </Text>
+          </TouchableOpacity>
 
           {/* Social Actions */}
           <RecipeSocialActions recipeId={recipeId} recipeTitle={recipe.title} />
@@ -926,7 +991,25 @@ const styles = StyleSheet.create({
   actionButtonsRow: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 12,
+  },
+  shoppingListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#10B981',
     marginBottom: 16,
+  },
+  shoppingListButtonText: {
+    color: '#10B981',
+    fontSize: 14,
+    fontWeight: '600',
   },
   cookButton: {
     flexDirection: 'row',

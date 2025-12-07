@@ -11,6 +11,11 @@ export interface Recipe {
   usedIngredients: UsedIngredient[];
   likes: number;
   provider?: string;
+  // Nutrition info from FatSecret
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
 }
 
 export interface MissedIngredient {
@@ -84,23 +89,54 @@ class RecipeService {
 
   // Get recipe details
   async getRecipeDetails(recipeId: number): Promise<RecipeDetails> {
-    const token = await this.getAuthToken();
+    try {
+      console.log('[RecipeService] Getting recipe details:', recipeId);
+      const token = await this.getAuthToken();
 
-    const response = await fetch(`${API_BASE_URL}/api/v1/recipes/${recipeId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+      const url = `${API_BASE_URL}/api/v1/recipes/${recipeId}`;
+      console.log('[RecipeService] Fetching from:', url);
 
-    const data = await response.json();
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch recipe details');
+      console.log('[RecipeService] Response status:', response.status);
+
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+        console.log('[RecipeService] Response data:', {
+          hasRecipe: !!data.recipe,
+          recipeId: data.recipe?.id,
+          recipeTitle: data.recipe?.title,
+        });
+      } catch (parseError) {
+        console.error('[RecipeService] JSON parse error:', parseError);
+        throw new Error('Invalid response from server');
+      }
+
+      if (!response.ok) {
+        console.error('[RecipeService] Error response:', data);
+        throw new Error(
+          data.error || data.message || 'Failed to fetch recipe details',
+        );
+      }
+
+      if (!data.recipe) {
+        console.error('[RecipeService] No recipe in response');
+        throw new Error('Recipe not found');
+      }
+
+      return data.recipe;
+    } catch (error) {
+      console.error('[RecipeService] Error in getRecipeDetails:', error);
+      throw error;
     }
-
-    return data.recipe;
   }
 
   // Save recipe locally

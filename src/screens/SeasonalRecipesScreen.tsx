@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import advancedRecipeService from '../services/advancedRecipeService';
@@ -15,6 +16,7 @@ export default function SeasonalRecipesScreen({navigation}: any) {
   const [season, setSeason] = useState('');
   const [recipes, setRecipes] = useState<any>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadSeasonalRecipes();
@@ -52,6 +54,12 @@ export default function SeasonalRecipesScreen({navigation}: any) {
       console.error('Error loading seasonal recipes:', error);
     }
     setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadSeasonalRecipes();
+    setRefreshing(false);
   };
 
   const getSeasonIcon = () => {
@@ -112,6 +120,15 @@ export default function SeasonalRecipesScreen({navigation}: any) {
             </View>
           ) : null
         }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#10B981']}
+            tintColor="#10B981"
+          />
+        }
+        alwaysBounceVertical={true}
       />
     </View>
   );
