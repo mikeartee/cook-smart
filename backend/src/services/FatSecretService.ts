@@ -283,6 +283,8 @@ class FatSecretService {
           options.mustNotIncludeIngredients;
       if (options.maxCalories) params.max_calories = options.maxCalories;
 
+      console.log('[FatSecret] Search params:', params);
+
       const response = await axios.post(
         'https://platform.fatsecret.com/rest/server.api',
         null,
@@ -295,6 +297,15 @@ class FatSecretService {
         },
       );
 
+      console.log('[FatSecret] Search response:', {
+        hasRecipes: !!response.data?.recipes,
+        recipeCount: response.data?.recipes?.recipe
+          ? Array.isArray(response.data.recipes.recipe)
+            ? response.data.recipes.recipe.length
+            : 1
+          : 0,
+      });
+
       if (
         response.data &&
         response.data.recipes &&
@@ -306,8 +317,12 @@ class FatSecretService {
       }
 
       return [];
-    } catch (error) {
-      console.error('[FatSecret] Advanced recipe search error:', error);
+    } catch (error: any) {
+      console.error('[FatSecret] Advanced recipe search error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       return [];
     }
   }
