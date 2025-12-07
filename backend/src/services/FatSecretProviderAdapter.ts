@@ -28,9 +28,35 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           ? ingredients.slice(0, 5).join(' ')
           : ingredients.join(' ');
 
-      // Use advanced search if calorie filter is provided
-      // NOTE: FatSecret's recipe_types filter is too restrictive and returns 0 results
-      // For now, we only support calorie filtering. Meal type filtering disabled.
+      // NEW APPROACH: When meal type is specified, search by meal type WITHOUT ingredients
+      // When "All" is selected (no mealType), search by ingredients
+      if (options && options.mealType) {
+        console.log(
+          '[FatSecretAdapter] Meal type filter - searching by meal type only (ignoring ingredients):',
+          {
+            mealType: options.mealType,
+            maxCalories: options.maxCalories,
+          },
+        );
+
+        const searchOptions: any = {
+          recipeTypes: options.mealType,
+          maxResults: limit,
+        };
+
+        if (options.maxCalories) {
+          searchOptions.maxCalories = options.maxCalories;
+        }
+
+        const recipes = await this.service.searchRecipesAdvanced(searchOptions);
+        console.log(
+          `[FatSecretAdapter] Meal type search returned ${recipes.length} recipes`,
+        );
+
+        return this.formatRecipes(recipes);
+      }
+
+      // Use advanced search if only calorie filter is provided (no meal type)
       if (options && options.maxCalories) {
         console.log(
           '[FatSecretAdapter] Using advanced search with calorie filter:',
@@ -38,7 +64,6 @@ class FatSecretProviderAdapter implements IRecipeProvider {
             maxCalories: options.maxCalories,
             query: searchQuery,
             ingredientCount: ingredients.slice(0, 5).length,
-            note: 'Meal type filter disabled - FatSecret recipe_types too restrictive',
           },
         );
 
@@ -54,17 +79,6 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         );
 
         return this.formatRecipes(recipes);
-      }
-
-      // If only meal type filter (no calories), ignore it and do standard search
-      // FatSecret's recipe_types parameter is too restrictive
-      if (options && options.mealType && !options.maxCalories) {
-        console.log(
-          '[FatSecretAdapter] Meal type filter requested but not supported - doing standard search',
-        );
-        console.log(
-          '[FatSecretAdapter] Note: FatSecret recipe_types filter returns 0 results, disabled for now',
-        );
       }
 
       // Standard search without filters

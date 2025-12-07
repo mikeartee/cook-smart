@@ -20,12 +20,22 @@ interface RecipeSearchScreenProps {
   navigation: any;
 }
 
+// Meal type filtering: When specific meal type selected, search by meal type only
+// When "All" selected, search by user's ingredients
 const MEAL_TYPES = [
-  {label: 'All', value: null},
-  {label: 'Breakfast', value: 'Breakfast and Brunch'},
-  {label: 'Lunch', value: 'Main Dishes'},
-  {label: 'Dinner', value: 'Main Dishes'},
-  {label: 'Snack', value: 'Appetizers and Snacks'},
+  {label: 'All', value: null, description: 'Recipes with your ingredients'},
+  {
+    label: 'Breakfast',
+    value: 'Breakfast and Brunch',
+    description: 'Breakfast recipes',
+  },
+  {label: 'Lunch', value: 'Main Dishes', description: 'Lunch recipes'},
+  {label: 'Dinner', value: 'Main Dishes', description: 'Dinner recipes'},
+  {
+    label: 'Snack',
+    value: 'Appetizers and Snacks',
+    description: 'Snack recipes',
+  },
 ];
 
 export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
@@ -382,6 +392,10 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
             {/* Meal Type Filter */}
             <View style={styles.filterSection}>
               <Text style={styles.filterLabel}>Meal Type</Text>
+              <Text style={styles.filterHint}>
+                "All" shows recipes with your ingredients. Other options show
+                meal-specific recipes.
+              </Text>
               <View style={styles.mealTypeChips}>
                 {MEAL_TYPES.map(type => (
                   <TouchableOpacity
