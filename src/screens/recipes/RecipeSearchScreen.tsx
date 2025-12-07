@@ -22,10 +22,10 @@ interface RecipeSearchScreenProps {
 
 const MEAL_TYPES = [
   {label: 'All', value: null},
-  {label: 'Breakfast', value: 'breakfast'},
-  {label: 'Lunch', value: 'lunch'},
-  {label: 'Dinner', value: 'dinner'},
-  {label: 'Snack', value: 'snack'},
+  {label: 'Breakfast', value: 'Breakfast and Brunch'},
+  {label: 'Lunch', value: 'Main Dishes'},
+  {label: 'Dinner', value: 'Main Dishes'},
+  {label: 'Snack', value: 'Appetizers and Snacks'},
 ];
 
 export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
