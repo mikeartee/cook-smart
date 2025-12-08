@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-12-07
+
+### Fixed
+- **Holiday Recipe Loading** - Fixed recipe IDs being returned as numbers instead of strings
+  - Backend now ensures all recipe IDs from search results are strings
+  - Resolves "Failed to fetch recipe" errors when clicking holiday recipes
+  - Applies to New Year's recipes and all future holiday recipe sections
+
+## [1.1.1] - 2025-12-07
+
+### Fixed
+- Holiday recipe detail loading (initial attempt)
+
 ## [1.1.0] - 2025-12-07
 
 ### Added
