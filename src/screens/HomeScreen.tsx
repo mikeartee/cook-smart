@@ -13,7 +13,6 @@ import {useAuth} from '../contexts/AuthContext';
 import {FeedbackModal} from '../components/FeedbackModal';
 import feedbackService from '../services/feedbackService';
 import {getUpcomingHoliday} from '../utils/holidays';
-import HolidayBanner from '../components/HolidayBanner';
 import HolidayRecipeSection from '../components/HolidayRecipeSection';
 
 const HomeScreen: React.FC = () => {
@@ -124,21 +123,11 @@ const HomeScreen: React.FC = () => {
     },
   };
 
-  const handleHolidayPress = () => {
-    if (upcomingHoliday) {
-      (navigation as any).navigate('Recipes', {
-        screen: 'RecipeSearch',
-        params: {initialSearch: upcomingHoliday.searchTerms[0]},
-      });
-    }
-  };
-
   const handleHolidayRecipePress = (recipeId: string) => {
-    // Strip 'fatsecret_' prefix if present (FatSecret API needs clean IDs)
-    const cleanId = recipeId.replace(/^fatsecret_/, '');
+    // Recipe IDs from search are already clean strings (e.g., "90117408")
     (navigation as any).navigate('Recipes', {
       screen: 'RecipeDetail',
-      params: {recipeId: cleanId},
+      params: {recipeId: recipeId},
     });
   };
 
@@ -220,11 +209,6 @@ const HomeScreen: React.FC = () => {
           )}
         </View>
       </View>
-
-      {/* Holiday Banner */}
-      {upcomingHoliday && (
-        <HolidayBanner holiday={upcomingHoliday} onPress={handleHolidayPress} />
-      )}
 
       {/* Holiday Recipe Section */}
       {upcomingHoliday && (

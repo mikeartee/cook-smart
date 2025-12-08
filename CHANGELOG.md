@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-12-07
+
+### Fixed
+- **Holiday Recipe Cards** - Fixed recipe detail loading for holiday recipe suggestions
+  - Removed redundant holiday banner (kept recipe cards only)
+  - Fixed recipe ID handling - no longer strips non-existent prefix
+  - Recipe cards now properly navigate to recipe details
+
+### Changed
+- Simplified holiday recipe UI - removed banner, kept recipe cards
+
 ## [1.1.2] - 2025-12-07
 
 ### Fixed
