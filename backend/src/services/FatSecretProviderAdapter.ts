@@ -105,7 +105,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
   private formatRecipes(recipes: any[]): Recipe[] {
     return recipes.map(
       (recipe: any): Recipe => ({
-        id: recipe.recipe_id,
+        id: String(recipe.recipe_id), // Ensure ID is always a string
         title: recipe.recipe_name,
         image: recipe.recipe_image || '',
         servings: parseInt(recipe.number_of_servings) || 4,
