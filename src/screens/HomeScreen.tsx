@@ -12,14 +12,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useAuth} from '../contexts/AuthContext';
 import {FeedbackModal} from '../components/FeedbackModal';
 import feedbackService from '../services/feedbackService';
-import {getUpcomingHoliday} from '../utils/holidays';
-import HolidayRecipeSection from '../components/HolidayRecipeSection';
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   const {user} = useAuth();
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const upcomingHoliday = getUpcomingHoliday();
 
   const handleSubmitFeedback = async (feedback: {
     message: string;
@@ -123,18 +120,6 @@ const HomeScreen: React.FC = () => {
     },
   };
 
-  const handleHolidayRecipePress = (recipeId: string) => {
-    console.log('[HomeScreen] handleHolidayRecipePress called with:', {
-      recipeId,
-      idType: typeof recipeId,
-    });
-    // Recipe IDs from search are already clean strings (e.g., "90117408")
-    (navigation as any).navigate('Recipes', {
-      screen: 'RecipeDetail',
-      params: {recipeId: recipeId},
-    });
-  };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -214,13 +199,8 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Holiday Recipe Section */}
-      {upcomingHoliday && (
-        <HolidayRecipeSection
-          holiday={upcomingHoliday}
-          onRecipePress={handleHolidayRecipePress}
-        />
-      )}
+      {/* Holiday Recipe Section - Disabled due to FatSecret API limitations */}
+      {/* FatSecret returns recipe IDs in search that don't have full details available */}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Coming Soon</Text>
