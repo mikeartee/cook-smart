@@ -48,6 +48,14 @@ export default function HolidayRecipeSection({
       const results = await recipeService.searchByIngredients([
         holiday.searchTerms[0],
       ]);
+      console.log('[HolidayRecipeSection] Search results:', results.length);
+      if (results.length > 0) {
+        console.log('[HolidayRecipeSection] First recipe:', {
+          id: results[0].id,
+          idType: typeof results[0].id,
+          title: results[0].title,
+        });
+      }
       setRecipes(results.slice(0, 4));
     } catch (error) {
       console.error('Failed to load holiday recipes:', error);
@@ -80,7 +88,14 @@ export default function HolidayRecipeSection({
           <TouchableOpacity
             key={recipe.id}
             style={styles.recipeCard}
-            onPress={() => onRecipePress(recipe.id)}>
+            onPress={() => {
+              console.log('[HolidayRecipeSection] Recipe clicked:', {
+                id: recipe.id,
+                idType: typeof recipe.id,
+                title: recipe.title,
+              });
+              onRecipePress(recipe.id);
+            }}>
             <Image source={{uri: recipe.image}} style={styles.recipeImage} />
             <View style={styles.recipeInfo}>
               <Text style={styles.recipeName} numberOfLines={2}>

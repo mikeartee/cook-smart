@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {API_BASE_URL} from '../config/api';
 
 export interface Recipe {
-  id: number;
+  id: string | number; // Support both string and number IDs for compatibility
   title: string;
   image: string;
   usedIngredientCount: number;
@@ -40,7 +40,7 @@ export interface UsedIngredient {
 }
 
 export interface RecipeDetails {
-  id: number;
+  id: string | number; // Support both string and number IDs for compatibility
   title: string;
   image: string;
   servings: number;

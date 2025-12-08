@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2025-12-07
+
+### Fixed
+- **Recipe ID Type Mismatch** - Fixed critical type incompatibility
+  - Updated Recipe and RecipeDetails interfaces to accept both string and number IDs
+  - Backend returns string IDs, frontend expected numbers
+  - Resolves "Failed to fetch recipe details" for all recipe types
+  - Fixes holiday recipes, trending recipes, and seasonal recipes
+
 ## [1.1.3] - 2025-12-07
 
 ### Fixed

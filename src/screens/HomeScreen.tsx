@@ -124,6 +124,10 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleHolidayRecipePress = (recipeId: string) => {
+    console.log('[HomeScreen] handleHolidayRecipePress called with:', {
+      recipeId,
+      idType: typeof recipeId,
+    });
     // Recipe IDs from search are already clean strings (e.g., "90117408")
     (navigation as any).navigate('Recipes', {
       screen: 'RecipeDetail',
