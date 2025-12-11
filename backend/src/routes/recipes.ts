@@ -83,6 +83,53 @@ router.get(
   authenticateToken,
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
+    // 🚨 EMERGENCY DEBUG: Test if this route is being called at all
+    console.log('🚨 [EMERGENCY DEBUG] Recipe search route called!');
+    console.log('🚨 [EMERGENCY DEBUG] Query params:', req.query);
+
+    if (
+      req.query.ingredients &&
+      req.query.ingredients.toString().includes('chicken')
+    ) {
+      console.log(
+        '🚨 [EMERGENCY DEBUG] Chicken search detected - returning test data',
+      );
+      return res.json({
+        recipes: [
+          {
+            id: 'route-test-789',
+            title: 'TEST RECIPE - Route Working',
+            image: '',
+            servings: 4,
+            readyInMinutes: 30,
+            sourceUrl: 'https://test-route.com',
+            summary: 'This is a test recipe to verify the route is working',
+            ingredients: [],
+            instructions: '',
+            cuisines: [],
+            dishTypes: ['test'],
+            diets: [],
+            provider: 'test-route',
+            calories: 500,
+            protein: 35,
+            carbs: 40,
+            fat: 25,
+            matchPercentage: 95,
+            usedIngredientCount: 5,
+            missedIngredientCount: 0,
+            usedIngredients: [
+              {id: 1, name: 'chicken', amount: 1, unit: 'lb', image: ''},
+            ],
+            missedIngredients: [],
+            likes: 0,
+          },
+        ],
+        count: 1,
+        provider: 'test-route',
+        message: 'EMERGENCY DEBUG: Route is working',
+      });
+    }
+
     // Disable HTTP caching for recipe searches to ensure filters work correctly
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
