@@ -73,12 +73,26 @@ class ApiClient {
     this.authToken = token;
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_token', token);
+      // Also set as cookie for middleware
+      document.cookie = `auth_token=${token}; path=/; max-age=${8 * 60 * 60}; secure; samesite=strict`;
     }
   }
 
   getAuthToken(): string | null {
     if (!this.authToken && typeof window !== 'undefined') {
+      // Try localStorage first
       this.authToken = localStorage.getItem('auth_token');
+
+      // If not in localStorage, try cookies
+      if (!this.authToken) {
+        const cookies = document.cookie.split(';');
+        const authCookie = cookies.find((cookie) => cookie.trim().startsWith('auth_token='));
+        if (authCookie) {
+          this.authToken = authCookie.split('=')[1];
+          // Sync back to localStorage
+          localStorage.setItem('auth_token', this.authToken);
+        }
+      }
     }
     return this.authToken;
   }
@@ -87,6 +101,8 @@ class ApiClient {
     this.authToken = null;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
+      // Also clear cookie
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
   }
 

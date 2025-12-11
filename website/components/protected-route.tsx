@@ -22,18 +22,32 @@ export function ProtectedRoute({
       isAuthenticated,
       user: !!user,
       userRole: user?.role,
+      pathname: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
     });
 
-    // Only redirect if we're definitely not loading and not authenticated
-    if (!isLoading && !isAuthenticated) {
-      console.log('[PROTECTED] Not authenticated, redirecting to login');
-      // Use a small delay to prevent race conditions
-      setTimeout(() => {
-        router.push('/admin/login');
-      }, 100);
+    // Don't redirect if we're still loading
+    if (isLoading) {
+      console.log('[PROTECTED] Still loading, not redirecting');
+      return;
     }
 
-    if (!isLoading && isAuthenticated && requiredRole && user?.role !== requiredRole) {
+    // Only redirect if we're definitely not loading and not authenticated
+    if (!isAuthenticated) {
+      console.log('[PROTECTED] Not authenticated, redirecting to login');
+      // Use a longer delay to prevent race conditions with auth state updates
+      const redirectTimer = setTimeout(() => {
+        console.log('[PROTECTED] Executing redirect to login');
+        router.push('/admin/login');
+      }, 200);
+
+      // Cleanup timer if component unmounts or auth state changes
+      return () => {
+        console.log('[PROTECTED] Clearing redirect timer');
+        clearTimeout(redirectTimer);
+      };
+    }
+
+    if (isAuthenticated && requiredRole && user?.role !== requiredRole) {
       console.log('[PROTECTED] Wrong role, redirecting to unauthorized');
       router.push('/admin/unauthorized');
     }

@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
               console.log('[AUTH] Admin page detected, using admin me endpoint...');
               try {
                 const adminResponse = await apiClient.get<{ admin: any }>('/api/v1/admin/auth/me');
-                console.log('[AUTH] Admin info fetched:', adminResponse.admin);
+                console.log('[AUTH] Admin info fetched successfully:', adminResponse.admin);
 
                 userData = {
                   id: adminResponse.admin.id.toString(),
@@ -91,29 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
                   name: adminResponse.admin.name || 'Admin User',
                   role: 'admin',
                 };
+
+                console.log('[AUTH] Admin user data prepared:', userData);
               } catch (adminError) {
-                console.error('[AUTH] Admin endpoint failed, trying regular endpoint:', adminError);
-                // Fallback to regular endpoint
-                const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
-                console.log('[AUTH] User info fetched (fallback):', response.user);
-
-                // Check if user has admin access
-                if (
-                  !response.user.is_admin &&
-                  !response.user.is_co_founder &&
-                  !response.user.is_creator
-                ) {
-                  throw new Error('User does not have admin access');
-                }
-
-                userData = {
-                  id: response.user.id,
-                  email: response.user.email,
-                  name:
-                    `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
-                    'Admin User',
-                  role: 'admin',
-                };
+                console.error('[AUTH] Admin endpoint failed:', adminError);
+                // Don't fallback for admin pages - if admin endpoint fails, they shouldn't access admin
+                throw adminError;
               }
             } else {
               // Regular user endpoint for non-admin pages
@@ -133,8 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
               };
             }
 
-            console.log('[AUTH] Setting user state:', userData);
+            console.log('[AUTH] About to set user state:', userData);
             setUser(userData);
+            console.log('[AUTH] User state set successfully');
           } catch (error) {
             console.error('[AUTH] Failed to validate token:', error);
             // Token is invalid, clear it
@@ -150,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
         apiClient.clearAuth();
         setUser(null);
       } finally {
+        console.log('[AUTH] Setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -222,8 +207,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
           role: 'admin',
         };
       }
-      console.log('[AUTH] Setting user state:', newUser);
+      console.log('[AUTH] About to set user state:', newUser);
       setUser(newUser);
+      console.log('[AUTH] User state set in login function');
 
       setLastActivity(Date.now());
       console.log('[AUTH] Login complete!');
@@ -231,8 +217,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
       // Return a promise that resolves after state is set
       return new Promise((resolve) => {
         setTimeout(() => {
+          console.log('[AUTH] Login promise resolving');
           resolve();
-        }, 50);
+        }, 100);
       });
     } catch (error) {
       console.error('[AUTH] Login failed:', error);
