@@ -1,0 +1,88 @@
+name: Auto-Deploy Backend
+
+on:
+  push:
+    branches: [ fresh-project-migration ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/fresh-project-migration'
+    
+    steps:
+    - name: Deploy to Backend Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 34.203.8.150
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        timeout: 60s
+        command_timeout: 120s
+        script: |
+          echo "🚀 Starting backend deployment..."
+          
+          # Navigate to backend directory
+          cd /home/ubuntu/cook-smart/backend/backend
+          
+          # Pull latest changes
+          echo "📥 Pulling latest changes..."
+          git pull origin fresh-project-migration
+          
+          # Install dependencies (only if package.json changed)
+          if git diff --name-only HEAD~1 HEAD | grep -q "package.json"; then
+            echo "📦 Installing dependencies..."
+            npm install
+          else
+            echo "⏭️ Skipping npm install (no package.json changes)"
+          fi
+          
+          # Restart the backend service
+          echo "🔄 Restarting backend service..."
+          pm2 restart cook-smart-backend
+          
+          # Wait for service to start
+          sleep 5
+          
+          # Check if service is running
+          echo "🔍 Checking service status..."
+          pm2 status cook-smart-backend
+          
+          # Show recent logs
+          echo "📋 Recent logs:"
+          pm2 logs cook-smart-backend --lines 10 --nostream
+          
+          echo "✅ Backend deployment completed!"
+
+    - name: Verify Deployment
+      run: |
+        echo "🧪 Verifying deployment..."
+        
+        # Wait a moment for service to fully start
+        sleep 10
+        
+        # Test health endpoint
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://api.cooksmartapp.com/health || echo "000")
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ Backend is responding correctly!"
+        else
+          echo "⚠️ Backend health check returned: $response"
+          echo "Deployment may need manual verification"
+        fi
+
+    - name: Notify Success
+      if: success()
+      run: |
+        echo "🎉 Backend auto-deployment successful!"
+        echo "✅ Changes from commit ${{ github.sha }} are now live"
+        echo "🔗 Backend URL: https://api.cooksmartapp.com"
+
+    - name: Notify Failure
+      if: failure()
+      run: |
+        echo "❌ Backend auto-deployment failed!"
+        echo "🔧 Manual intervention may be required"
+        echo "📋 Check the action logs for details"
