@@ -16,9 +16,17 @@ CREATE TABLE IF NOT EXISTS user_ingredients (
     unit VARCHAR(50),
     category VARCHAR(100),
     expiry_date DATE,
-    added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Add added_at column if it doesn't exist (for backward compatibility)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_ingredients' AND column_name = 'added_at') THEN
+        ALTER TABLE user_ingredients ADD COLUMN added_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+    END IF;
+END $$;
 
 -- User Recipes Table (referenced in admin recipes and analytics)
 CREATE TABLE IF NOT EXISTS user_recipes (
@@ -207,8 +215,15 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 
 -- User Ingredients Indexes
 CREATE INDEX IF NOT EXISTS idx_user_ingredients_user_id ON user_ingredients(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_ingredients_added_at ON user_ingredients(added_at);
+CREATE INDEX IF NOT EXISTS idx_user_ingredients_created_at ON user_ingredients(created_at);
 CREATE INDEX IF NOT EXISTS idx_user_ingredients_category ON user_ingredients(category);
+-- Add index for added_at if column exists
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_ingredients' AND column_name = 'added_at') THEN
+        CREATE INDEX IF NOT EXISTS idx_user_ingredients_added_at ON user_ingredients(added_at);
+    END IF;
+END $$;
 
 -- User Recipes Indexes
 CREATE INDEX IF NOT EXISTS idx_user_recipes_user_id ON user_recipes(user_id);
