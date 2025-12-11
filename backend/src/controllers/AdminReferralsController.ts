@@ -43,19 +43,16 @@ export class AdminReferralsController {
       const limit = parseInt(req.query.limit as string) || 20;
       const period = (req.query.period as string) || 'all_time';
 
-      // Check if user_referrals table exists
-      const tableCheckQuery = `
-        SELECT table_name FROM information_schema.tables 
-        WHERE table_schema = 'public' AND table_name = 'user_referrals'
-      `;
-      const tableCheck = await pool.query(tableCheckQuery);
+      // Check if user_referrals table has any data
+      const countQuery = 'SELECT COUNT(*) as count FROM user_referrals';
+      const countResult = await pool.query(countQuery);
 
-      if (tableCheck.rows.length === 0) {
-        // Table doesn't exist, return empty results
+      if (parseInt(countResult.rows[0].count) === 0) {
+        // No referral data yet, return empty results
         res.json({
           topReferrers: [],
           period,
-          message: 'Referral system not yet configured',
+          message: 'No referral data available yet',
         });
         return;
       }
