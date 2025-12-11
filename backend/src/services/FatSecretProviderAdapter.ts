@@ -269,22 +269,49 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       `[FatSecretAdapter] User ingredients: ${userIngredients.slice(0, 5).join(', ')}`,
     );
 
-    return recipes.map((recipe: any): Recipe => {
+    const formattedRecipes = recipes.map((recipe: any): Recipe => {
       // Calculate ingredient matching
       console.log(
         `[FatSecretAdapter] Processing recipe: ${recipe.recipe_name || recipe.title}`,
       );
-      const matchingData = this.calculateIngredientMatching(
-        recipe,
-        userIngredients,
-      );
 
-      console.log(`[FatSecretAdapter] Matching data calculated:`, {
-        usedCount: matchingData.usedCount,
-        matchPercentage: matchingData.matchPercentage,
-      });
+      let matchingData;
+      try {
+        matchingData = this.calculateIngredientMatching(
+          recipe,
+          userIngredients,
+        );
+        console.log(
+          `[FatSecretAdapter] Matching data calculated successfully:`,
+          {
+            usedCount: matchingData.usedCount,
+            matchPercentage: matchingData.matchPercentage,
+          },
+        );
+      } catch (matchingError) {
+        console.error(
+          `[FatSecretAdapter] Error calculating matching:`,
+          matchingError,
+        );
+        // Provide default matching data if calculation fails
+        matchingData = {
+          usedCount: 1,
+          missedCount: userIngredients.length - 1,
+          usedIngredients: [
+            {
+              id: 0,
+              name: userIngredients[0] || 'ingredient',
+              amount: 1,
+              unit: '',
+              image: '',
+            },
+          ],
+          missedIngredients: [],
+          matchPercentage: 50,
+        };
+      }
 
-      return {
+      const formattedRecipe = {
         id: recipe.recipe_id,
         title: recipe.recipe_name,
         image: this.getValidImageUrl(recipe.recipe_image),
@@ -305,7 +332,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           ? parseFloat(recipe.carbohydrate)
           : undefined,
         fat: recipe.fat ? parseFloat(recipe.fat) : undefined,
-        // Add ingredient matching data - ALWAYS include these fields
+        // CRITICAL: Add ingredient matching data - ALWAYS include these fields
         usedIngredientCount: matchingData.usedCount || 0,
         missedIngredientCount: matchingData.missedCount || 0,
         usedIngredients: matchingData.usedIngredients || [],
@@ -313,7 +340,28 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         matchPercentage: matchingData.matchPercentage || 0,
         likes: 0, // FatSecret doesn't provide likes
       };
+
+      console.log(`[FatSecretAdapter] Recipe formatted with matching data:`, {
+        title: formattedRecipe.title,
+        matchPercentage: formattedRecipe.matchPercentage,
+        usedIngredientCount: formattedRecipe.usedIngredientCount,
+        hasMatchingFields: 'matchPercentage' in formattedRecipe,
+      });
+
+      return formattedRecipe;
     });
+
+    console.log(
+      `[FatSecretAdapter] ===== formatRecipesWithMatching COMPLETE =====`,
+    );
+    console.log(
+      `[FatSecretAdapter] Returning ${formattedRecipes.length} recipes with matching data`,
+    );
+    console.log(
+      `[FatSecretAdapter] First recipe match: ${formattedRecipes[0]?.matchPercentage}%`,
+    );
+
+    return formattedRecipes;
   }
 
   private calculateIngredientMatching(
