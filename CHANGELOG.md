@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.8] - 2025-12-10
+
+### Fixed
+- **Recipe Image Loading Issues** - Comprehensive fix for missing/broken recipe images
+  - Added image fallback placeholders (🍽️) across all recipe screens
+  - Enhanced backend image URL validation in FatSecretProviderAdapter
+  - Improved error handling and logging for image load failures
+  - RecipeDetailScreen now shows "No Image Available" message for missing images
+  - Recipe lists (Search, Saved) now display consistent placeholders
+  - Confirmed FatSecret Premium API working correctly from AWS production server
+
+### Technical Improvements
+- Added `getValidImageUrl()` method for image URL validation
+- Enhanced error logging for FatSecret API IP blocking detection
+- Consistent image fallback styling across all components
+- Better graceful degradation when external APIs have issues
+
+### Investigation Results
+- **Root Cause**: Missing image fallback UI components (not API issues)
+- **FatSecret Status**: Premium tier confirmed working, 1M+ recipes available
+- **AWS Integration**: Production server (34.203.8.150) has full API access
+- **User Experience**: App now handles missing images gracefully
+
 ## [1.1.7] - 2025-12-07
 
 ### Removed
