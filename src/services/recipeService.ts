@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {API_BASE_URL} from '../config/api';
+import ingredientService from './ingredientService';
 
 export interface Recipe {
   id: number;
@@ -87,9 +88,27 @@ class RecipeService {
   ): Promise<Recipe[]> {
     const token = await this.getAuthToken();
 
+    // If no ingredients provided, get user's ingredients from database
+    let searchIngredients = ingredients;
+    if (!ingredients || ingredients.length === 0) {
+      try {
+        const userIngredients = await ingredientService.getUserIngredients();
+        searchIngredients = userIngredients.ingredients
+          .map(ing => ing.ingredient_name || ing.name || '')
+          .filter(name => name.length > 0);
+        console.log(
+          'Using user ingredients for search:',
+          searchIngredients.slice(0, 5),
+        );
+      } catch (error) {
+        console.error('Failed to get user ingredients:', error);
+        searchIngredients = [];
+      }
+    }
+
     // Build query string
     const params = new URLSearchParams({
-      ingredients: ingredients.join(','),
+      ingredients: searchIngredients.join(','),
     });
 
     if (filters?.maxCalories) {
@@ -119,14 +138,16 @@ class RecipeService {
 
     // Map recipe_image to image for consistency and calculate match percentage
     const recipes = (data.recipes || []).map((recipe: any) => {
-      const totalIngredients =
-        (recipe.usedIngredientCount || 0) + (recipe.missedIngredientCount || 0);
+      const totalIngredients = searchIngredients.length;
+      const usedCount = recipe.usedIngredientCount || 0;
       const matchPercentage =
         totalIngredients > 0
-          ? Math.round(
-              ((recipe.usedIngredientCount || 0) / totalIngredients) * 100,
-            )
+          ? Math.round((usedCount / totalIngredients) * 100)
           : 0;
+
+      console.log(
+        `Recipe "${recipe.title}" - Used: ${usedCount}/${totalIngredients} = ${matchPercentage}%`,
+      );
 
       return {
         ...recipe,
@@ -159,10 +180,16 @@ class RecipeService {
         matchPercentage: r.matchPercentage,
         used: r.usedIngredientCount,
         missed: r.missedIngredientCount,
+        totalUserIngredients: searchIngredients.length,
       })),
     );
 
-    return sortedRecipes;
+    console.log('Search ingredients used:', searchIngredients.slice(0, 10));
+
+    return sortedRecipes.map(recipe => ({
+      ...recipe,
+      searchIngredients, // Include for debugging
+    }));
   }
 
   // Get recipe details
