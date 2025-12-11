@@ -1,5 +1,6 @@
 import express from 'express';
 import RecipeCacheService from '../services/RecipeCacheService';
+import FatSecretService from '../services/FatSecretService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 
 const router = express.Router();
@@ -16,13 +17,26 @@ router.get('/trending-recipes', async (req, res) => {
 
     console.log('[Trending] Fetching trending recipes from FatSecret...');
 
-    await RecipeCacheService.fetchTrendingRecipes(50);
-    const recipes = await RecipeCacheService.getTrendingRecipes(limit);
+    const categories = ['dinner', 'dessert', 'breakfast', 'lunch'];
+    const allRecipes = [];
+
+    for (const category of categories) {
+      const recipes = await FatSecretService.searchRecipesAdvanced({
+        recipeTypes: category,
+        maxResults: Math.ceil(limit / categories.length),
+      });
+      allRecipes.push(...recipes);
+
+      // Cache each recipe
+      for (const recipe of recipes) {
+        await RecipeCacheService.cacheRecipe(recipe, 'fatsecret', 'all', false);
+      }
+    }
 
     res.json({
       success: true,
-      recipes,
-      count: recipes.length,
+      recipes: allRecipes.slice(0, limit),
+      count: allRecipes.length,
       source: 'fatsecret',
     });
   } catch (error) {
@@ -44,8 +58,16 @@ router.get('/seasonal-recipes', async (req, res) => {
 
     console.log(`[Seasonal] Fetching ${season} recipes from FatSecret...`);
 
-    await RecipeCacheService.fetchSeasonalRecipes(season, 50);
-    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    const seasonalIngredients = getSeasonalIngredients(season);
+    const recipes = await FatSecretService.searchRecipesAdvanced({
+      mustIncludeIngredients: seasonalIngredients.slice(0, 3).join(','),
+      maxResults: limit,
+    });
+
+    // Cache each recipe
+    for (const recipe of recipes) {
+      await RecipeCacheService.cacheRecipe(recipe, 'fatsecret', season, true);
+    }
 
     res.json({
       success: true,
@@ -162,13 +184,30 @@ router.post(
   },
 );
 
-// Helper function
+// Helper functions
 function getCurrentSeason(): string {
   const month = new Date().getMonth() + 1;
   if (month >= 3 && month <= 5) return 'spring';
   if (month >= 6 && month <= 8) return 'summer';
   if (month >= 9 && month <= 11) return 'fall';
   return 'winter';
+}
+
+function getSeasonalIngredients(season: string): string[] {
+  const seasonalMap: Record<string, string[]> = {
+    spring: ['asparagus', 'peas', 'strawberries', 'artichokes', 'radishes'],
+    summer: [
+      'tomatoes',
+      'corn',
+      'zucchini',
+      'berries',
+      'peaches',
+      'watermelon',
+    ],
+    fall: ['pumpkin', 'squash', 'apples', 'sweet potato', 'brussels sprouts'],
+    winter: ['kale', 'cabbage', 'citrus', 'root vegetables', 'pomegranate'],
+  };
+  return seasonalMap[season] || [];
 }
 
 export default router;
