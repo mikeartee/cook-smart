@@ -9,6 +9,65 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 
+// Prioritize ingredients for search when user has large inventory
+function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
+  // Common versatile ingredients that work well in searches
+  const highPriorityIngredients = [
+    'chicken',
+    'beef',
+    'pork',
+    'fish',
+    'salmon',
+    'shrimp',
+    'rice',
+    'pasta',
+    'noodles',
+    'bread',
+    'flour',
+    'onion',
+    'garlic',
+    'tomato',
+    'potato',
+    'carrot',
+    'cheese',
+    'milk',
+    'egg',
+    'butter',
+    'oil',
+    'salt',
+    'pepper',
+    'herbs',
+    'spices',
+  ];
+
+  const prioritized: string[] = [];
+  const remaining: string[] = [];
+
+  // First, add high-priority ingredients that user has
+  ingredients.forEach(ingredient => {
+    const normalized = ingredient.toLowerCase().trim();
+    const isHighPriority = highPriorityIngredients.some(
+      priority =>
+        normalized.includes(priority) || priority.includes(normalized),
+    );
+
+    if (isHighPriority) {
+      prioritized.push(ingredient);
+    } else {
+      remaining.push(ingredient);
+    }
+  });
+
+  // Combine prioritized + remaining, limit to reasonable number
+  const result = [...prioritized, ...remaining].slice(0, 25);
+
+  console.log(
+    `[Recipe Search] Prioritized ${prioritized.length} high-value ingredients from ${ingredients.length} total`,
+  );
+
+  return result;
+}
+
 // Initialize recipe provider service with FatSecret (primary and only provider)
 // FatSecret Premier: 500,000 calls/month FREE, 1M+ recipes, comprehensive nutrition data
 const recipeProviderService = new RecipeProviderService([
@@ -39,21 +98,52 @@ router.get(
         return;
       }
 
-      const ingredientList = ingredients
+      let ingredientList = ingredients
         .split(',')
         .map(i => i.trim())
         .filter(i => i.length > 0);
 
+      // If no ingredients provided, get user's ingredients from database
+      if (ingredientList.length === 0 && req.user?.id) {
+        try {
+          // Get user ingredients with smart prioritization for large inventories
+          const userIngredientsQuery = await pool.query(
+            `SELECT ingredient_name, name, added_at, expiration_date 
+             FROM user_ingredients 
+             WHERE user_id = $1 
+             ORDER BY 
+               CASE WHEN expiration_date IS NOT NULL THEN expiration_date END ASC NULLS LAST,
+               added_at DESC 
+             LIMIT 50`,
+            [req.user.id],
+          );
+
+          const allUserIngredients = userIngredientsQuery.rows
+            .map(row => row.ingredient_name || row.name)
+            .filter(name => name && name.length > 0);
+
+          // For large inventories, prioritize common/versatile ingredients
+          ingredientList = prioritizeIngredientsForSearch(allUserIngredients);
+
+          console.log(
+            `User has ${allUserIngredients.length} total ingredients, using top ${ingredientList.length} for search:`,
+            ingredientList.slice(0, 5),
+          );
+        } catch (dbError) {
+          console.error('Failed to get user ingredients:', dbError);
+        }
+      }
+
       if (ingredientList.length === 0) {
         res.status(400).json({
-          error: 'No valid ingredients provided',
-          message: 'Please provide at least one ingredient',
+          error: 'No ingredients available',
+          message: 'Please add some ingredients to your pantry first',
         });
         return;
       }
 
       console.log(
-        `Searching recipes for ingredients: ${ingredientList.join(', ')}`,
+        `Searching recipes for ${ingredientList.length} ingredients: ${ingredientList.slice(0, 5).join(', ')}${ingredientList.length > 5 ? '...' : ''}`,
       );
 
       // Always fetch fresh recipes from FatSecret to build our database
@@ -115,6 +205,7 @@ router.get(
         recipes,
         count: recipes.length,
         provider,
+        searchedIngredients: ingredientList.slice(0, 10), // For debugging
         message:
           recipes.length === 0
             ? 'No recipes found. Try different ingredients.'

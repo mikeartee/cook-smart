@@ -264,15 +264,28 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       `[FatSecretAdapter] Calculating matches for "${recipe.recipe_name}"`,
     );
     console.log(
-      `[FatSecretAdapter] User ingredients:`,
+      `[FatSecretAdapter] User ingredients (${userIngredients.length} total):`,
       userIngredients.slice(0, 5),
     );
+
+    // For large inventories, limit matching calculation to most relevant ingredients
+    const maxIngredientsForMatching = 20;
+    const ingredientsToMatch = userIngredients.slice(
+      0,
+      maxIngredientsForMatching,
+    );
+
+    if (userIngredients.length > maxIngredientsForMatching) {
+      console.log(
+        `[FatSecretAdapter] Large inventory detected (${userIngredients.length}), using top ${maxIngredientsForMatching} for matching`,
+      );
+    }
 
     const usedIngredients: any[] = [];
     const missedIngredients: any[] = [];
 
-    // Normalize user ingredients for matching
-    const normalizedUserIngredients = userIngredients.map(ing =>
+    // Normalize user ingredients for matching (using limited set for large inventories)
+    const normalizedUserIngredients = ingredientsToMatch.map(ing =>
       ing.toLowerCase().trim(),
     );
 
@@ -285,11 +298,11 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       recipeText.substring(0, 100) + '...',
     );
 
-    // Check each user ingredient
+    // Check each user ingredient (from limited set)
     normalizedUserIngredients.forEach((userIng, index) => {
       const ingredientObj = {
         id: index,
-        name: userIngredients[index], // Original case
+        name: ingredientsToMatch[index], // Original case from limited set
         amount: 1,
         unit: '',
         image: '',
@@ -315,15 +328,15 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     // CRITICAL FIX: When FatSecret returns recipes from must_include_ingredient_names search,
     // we should assume those recipes match the requested ingredients
     // This is because FatSecret's search API specifically returns recipes that contain the ingredients
-    if (usedIngredients.length === 0 && userIngredients.length > 0) {
+    if (usedIngredients.length === 0 && ingredientsToMatch.length > 0) {
       console.log(
         `[FatSecretAdapter] No text matches found, but FatSecret returned this recipe - assuming ingredient matches`,
       );
 
       // Assume at least 30-50% of ingredients match since FatSecret returned this recipe
       const assumedMatches = Math.min(
-        Math.max(2, Math.floor(userIngredients.length * 0.4)), // At least 40% match
-        userIngredients.length,
+        Math.max(2, Math.floor(ingredientsToMatch.length * 0.4)), // At least 40% match
+        ingredientsToMatch.length,
       );
 
       console.log(
