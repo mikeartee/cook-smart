@@ -12,36 +12,18 @@ router.get('/trending-recipes', async (req, res) => {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   try {
-    const _limit = parseInt(req.query.limit as string) || 20;
+    const limit = parseInt(req.query.limit as string) || 20;
 
-    console.log('[Trending] Getting trending recipes...');
+    console.log('[Trending] Fetching trending recipes from FatSecret...');
 
-    // Return mock data for now to avoid FatSecret API issues
-    const recipes = [
-      {
-        id: 'trending_1',
-        title: 'Popular Chicken Stir Fry',
-        description: 'Quick and healthy chicken stir fry',
-        image_url: 'https://via.placeholder.com/300x200',
-        ready_in_minutes: 20,
-        servings: 4,
-      },
-      {
-        id: 'trending_2',
-        title: 'Classic Pasta Carbonara',
-        description: 'Creamy Italian pasta dish',
-        image_url: 'https://via.placeholder.com/300x200',
-        ready_in_minutes: 15,
-        servings: 2,
-      },
-    ];
+    await RecipeCacheService.fetchTrendingRecipes(50);
+    const recipes = await RecipeCacheService.getTrendingRecipes(limit);
 
     res.json({
       success: true,
       recipes,
       count: recipes.length,
       source: 'fatsecret',
-      note: 'Building recipe database - always fetching fresh',
     });
   } catch (error) {
     console.error('[Trending] Error:', error);
@@ -58,21 +40,12 @@ router.get('/seasonal-recipes', async (req, res) => {
   res.set('Expires', '0');
   try {
     const season = (req.query.season as string) || getCurrentSeason();
-    const _limit = parseInt(req.query.limit as string) || 20;
+    const limit = parseInt(req.query.limit as string) || 20;
 
-    console.log(`[Seasonal] Getting ${season} recipes...`);
+    console.log(`[Seasonal] Fetching ${season} recipes from FatSecret...`);
 
-    // Return mock seasonal data
-    const recipes = [
-      {
-        id: 'seasonal_1',
-        title: `${season} Vegetable Soup`,
-        description: `Fresh ${season} vegetables in a hearty soup`,
-        image_url: 'https://via.placeholder.com/300x200',
-        ready_in_minutes: 30,
-        servings: 6,
-      },
-    ];
+    await RecipeCacheService.fetchSeasonalRecipes(season, 50);
+    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
 
     res.json({
       success: true,
@@ -80,7 +53,6 @@ router.get('/seasonal-recipes', async (req, res) => {
       recipes,
       count: recipes.length,
       source: 'fatsecret',
-      note: 'Building recipe database - always fetching fresh',
     });
   } catch (error) {
     console.error('[Seasonal] Error:', error);
