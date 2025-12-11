@@ -37,6 +37,26 @@ class FatSecretService {
     };
   }
 
+  isConfigured(): boolean {
+    return Boolean(this.config.clientId && this.config.clientSecret);
+  }
+
+  static formatNutritionPer100g(serving: any): any {
+    if (!serving) return undefined;
+
+    // Convert serving data to per 100g
+    const servingAmount = parseFloat(serving.metric_serving_amount) || 100;
+    const multiplier = 100 / servingAmount;
+
+    return {
+      calories: Math.round(parseFloat(serving.calories) * multiplier),
+      protein: Math.round(parseFloat(serving.protein) * multiplier * 10) / 10,
+      carbs:
+        Math.round(parseFloat(serving.carbohydrate) * multiplier * 10) / 10,
+      fat: Math.round(parseFloat(serving.fat) * multiplier * 10) / 10,
+    };
+  }
+
   private async getAccessToken(): Promise<string> {
     // Return cached token if still valid
     if (this.accessToken && Date.now() < this.tokenExpiry) {

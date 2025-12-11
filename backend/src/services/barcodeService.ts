@@ -69,9 +69,11 @@ class BarcodeService {
 
   private async tryFatSecret(barcode: string): Promise<BarcodeResult> {
     try {
+      console.log(`[FatSecret] Attempting barcode lookup: ${barcode}`);
       const food = await FatSecretService.searchByBarcode(barcode);
 
       if (food && food.servings && food.servings.serving) {
+        console.log(`[FatSecret] Found food: ${food.food_name}`);
         const serving = Array.isArray(food.servings.serving)
           ? food.servings.serving[0]
           : food.servings.serving;
@@ -92,6 +94,7 @@ class BarcodeService {
         };
       }
 
+      console.log(`[FatSecret] No food data found for barcode: ${barcode}`);
       return {found: false};
     } catch (error) {
       console.error('[FatSecret] Barcode lookup error:', error);
