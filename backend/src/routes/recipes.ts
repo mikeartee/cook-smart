@@ -8,7 +8,7 @@ import {authenticateToken, AuthRequest} from '../middleware/auth';
 import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
-import {IngredientStandardizationService} from '../services/IngredientStandardizationService';
+import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -106,7 +106,9 @@ router.get(
         .filter(i => i.length > 0);
       const standardizedFromQuery = await Promise.all(
         rawIngredients.map(name =>
-          IngredientStandardizationService.getStandardizedNameForMatching(name),
+          ComprehensiveIngredientStandardizer.getStandardizedNameForMatching(
+            name,
+          ),
         ),
       );
 
@@ -143,7 +145,7 @@ router.get(
           // Standardize ingredients for better matching
           const standardizedIngredients = await Promise.all(
             rawIngredientNames.map(name =>
-              IngredientStandardizationService.getStandardizedNameForMatching(
+              ComprehensiveIngredientStandardizer.getStandardizedNameForMatching(
                 name,
               ),
             ),
