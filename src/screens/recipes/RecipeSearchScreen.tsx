@@ -199,6 +199,23 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
         )}
 
         <View style={styles.statsRow}>
+          {/* Match Percentage Badge */}
+          {item.matchPercentage !== undefined && (
+            <View
+              style={[
+                styles.matchBadge,
+                item.matchPercentage >= 80
+                  ? styles.matchBadgeHigh
+                  : item.matchPercentage >= 50
+                    ? styles.matchBadgeMedium
+                    : styles.matchBadgeLow,
+              ]}>
+              <Text style={styles.matchBadgeText}>
+                {item.matchPercentage}% match
+              </Text>
+            </View>
+          )}
+
           <View style={styles.stat}>
             <Icon name="check-circle" size={16} color="#10B981" />
             <Text style={styles.statText}>{item.usedIngredientCount} have</Text>
@@ -261,9 +278,10 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       return (
         <View style={styles.emptyState}>
           <Icon name="search-off" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No Recipes Found</Text>
+          <Text style={styles.emptyTitle}>No Matching Recipes Found</Text>
           <Text style={styles.emptyText}>
-            Add more ingredients to find recipes you can make!
+            No recipes found that match your current ingredients. Try adding
+            more ingredients to your inventory!
           </Text>
           <TouchableOpacity
             style={styles.addButton}
@@ -298,7 +316,7 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
         <View style={styles.headerLeft}>
           <Text style={styles.headerText}>
             {recipes.length > 0
-              ? `Found ${recipes.length} recipe${recipes.length !== 1 ? 's' : ''}`
+              ? `Found ${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} matching your ingredients`
               : 'Searching for recipes...'}
           </Text>
           <Text style={styles.pullToRefreshHint}>Pull down to refresh</Text>
@@ -581,7 +599,9 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 16,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 12,
     marginBottom: 12,
   },
   stat: {
@@ -592,6 +612,26 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 14,
     color: '#6B7280',
+  },
+  matchBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  matchBadgeHigh: {
+    backgroundColor: '#10B981',
+  },
+  matchBadgeMedium: {
+    backgroundColor: '#F59E0B',
+  },
+  matchBadgeLow: {
+    backgroundColor: '#EF4444',
+  },
+  matchBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   missingIngredientsContainer: {
     flexDirection: 'row',

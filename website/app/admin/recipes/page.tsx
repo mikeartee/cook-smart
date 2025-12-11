@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Star, Eye, MoreVertical, Edit, Trash2, Filter } from 'lucide-react';
+import { Search, Star, Eye, MoreVertical, Edit, Trash2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { recipesApi } from '@/lib/api-client';
@@ -9,6 +9,9 @@ import { Recipe } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AdminRefreshButton } from '@/components/admin-refresh-button';
+import { usePageRefresh } from '@/contexts/admin-refresh-context';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,30 +22,56 @@ import {
 export default function RecipesManagementPage(): React.ReactElement {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const { refreshTrigger } = usePageRefresh('recipes');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchRecipes();
-  }, [search, statusFilter, page]);
+  }, [search, statusFilter, page, refreshTrigger]);
 
   const fetchRecipes = async (): Promise<void> => {
     try {
       setIsLoading(true);
+      setError(null);
+
       const params: any = { page, limit: 20 };
       if (search) params.search = search;
       if (statusFilter !== 'all') params.status = statusFilter;
 
+      console.log('Fetching recipes with params:', params);
       const response = await recipesApi.getAll(params);
+
       setRecipes(response.recipes as Recipe[]);
       setTotal(response.total);
       setSelectedRecipes(new Set());
-    } catch (error) {
-      console.error('Failed to fetch recipes:', error);
+      setLastUpdated(new Date());
+
+      if (refreshTrigger > 0) {
+        toast({
+          title: 'Recipes Updated',
+          description: 'Recipe data has been refreshed successfully.',
+        });
+      }
+    } catch (fetchError) {
+      console.error('Failed to fetch recipes:', fetchError);
+      const errorMessage =
+        fetchError instanceof Error ? fetchError.message : 'Failed to load recipes';
+      setError(errorMessage);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to load recipes. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,17 +97,26 @@ export default function RecipesManagementPage(): React.ReactElement {
 
   const handleBulkApprove = async (): Promise<void> => {
     if (selectedRecipes.size === 0) return;
-    
+
     if (!confirm(`Approve ${selectedRecipes.size} selected recipe(s)?`)) return;
 
     try {
       setIsProcessing(true);
       await recipesApi.bulkUpdate(Array.from(selectedRecipes), { status: 'published' });
-      alert('Recipes approved successfully');
+
+      toast({
+        title: 'Success',
+        description: `${selectedRecipes.size} recipe(s) approved successfully.`,
+      });
+
       fetchRecipes();
-    } catch (error) {
-      console.error('Failed to approve recipes:', error);
-      alert('Failed to approve recipes');
+    } catch (err) {
+      console.error('Failed to approve recipes:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve recipes. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -86,7 +124,7 @@ export default function RecipesManagementPage(): React.ReactElement {
 
   const handleBulkReject = async (): Promise<void> => {
     if (selectedRecipes.size === 0) return;
-    
+
     if (!confirm(`Reject ${selectedRecipes.size} selected recipe(s)?`)) return;
 
     try {
@@ -94,8 +132,8 @@ export default function RecipesManagementPage(): React.ReactElement {
       await recipesApi.bulkUpdate(Array.from(selectedRecipes), { status: 'draft' });
       alert('Recipes rejected successfully');
       fetchRecipes();
-    } catch (error) {
-      console.error('Failed to reject recipes:', error);
+    } catch (rejectError) {
+      console.error('Failed to reject recipes:', rejectError);
       alert('Failed to reject recipes');
     } finally {
       setIsProcessing(false);
@@ -104,27 +142,63 @@ export default function RecipesManagementPage(): React.ReactElement {
 
   const handleBulkDelete = async (): Promise<void> => {
     if (selectedRecipes.size === 0) return;
-    
-    if (!confirm(`Delete ${selectedRecipes.size} selected recipe(s)? This action cannot be undone.`)) return;
+
+    if (
+      !confirm(`Delete ${selectedRecipes.size} selected recipe(s)? This action cannot be undone.`)
+    )
+      return;
 
     try {
       setIsProcessing(true);
       await recipesApi.bulkDelete(Array.from(selectedRecipes));
       alert('Recipes deleted successfully');
       fetchRecipes();
-    } catch (error) {
-      console.error('Failed to delete recipes:', error);
+    } catch (deleteError) {
+      console.error('Failed to delete recipes:', deleteError);
       alert('Failed to delete recipes');
     } finally {
       setIsProcessing(false);
     }
   };
 
+  if (error) {
+    return (
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">Recipe Management</h1>
+            <p className="text-muted-foreground">Manage and curate community recipes</p>
+          </div>
+          <AdminRefreshButton pageId="recipes" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+            <h3 className="mb-2 text-lg font-semibold">Failed to Load Recipes</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <AdminRefreshButton pageId="recipes" variant="default">
+              Try Again
+            </AdminRefreshButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold">Recipe Management</h1>
-        <p className="text-muted-foreground">Manage and curate community recipes</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Recipe Management</h1>
+          <p className="text-muted-foreground">Manage and curate community recipes</p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <AdminRefreshButton pageId="recipes" />
       </div>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -170,20 +244,10 @@ export default function RecipesManagementPage(): React.ReactElement {
             {selectedRecipes.size} recipe{selectedRecipes.size > 1 ? 's' : ''} selected
           </span>
           <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleBulkApprove}
-              disabled={isProcessing}
-            >
+            <Button size="sm" variant="default" onClick={handleBulkApprove} disabled={isProcessing}>
               Approve
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBulkReject}
-              disabled={isProcessing}
-            >
+            <Button size="sm" variant="outline" onClick={handleBulkReject} disabled={isProcessing}>
               Reject
             </Button>
             <Button
@@ -225,7 +289,10 @@ export default function RecipesManagementPage(): React.ReactElement {
           </div>
         ) : (
           recipes.map((recipe) => (
-            <div key={recipe.id} className="group rounded-lg border bg-background transition-shadow hover:shadow-md">
+            <div
+              key={recipe.id}
+              className="group rounded-lg border bg-background transition-shadow hover:shadow-md"
+            >
               <div className="relative aspect-4/3 overflow-hidden rounded-t-lg">
                 <div className="absolute left-2 top-2 z-10">
                   <input
@@ -237,12 +304,7 @@ export default function RecipesManagementPage(): React.ReactElement {
                   />
                 </div>
                 {recipe.imageUrl ? (
-                  <Image
-                    src={recipe.imageUrl}
-                    alt={recipe.title}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={recipe.imageUrl} alt={recipe.title} fill className="object-cover" />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-muted">
                     <span className="text-4xl">🍳</span>

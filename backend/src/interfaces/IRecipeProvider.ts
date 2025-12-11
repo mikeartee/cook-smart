@@ -41,6 +41,24 @@ export interface Recipe {
   saturatedFat?: number;
   cholesterol?: number;
   provider?: string;
+  // Ingredient matching data for inventory-based search
+  usedIngredientCount?: number;
+  missedIngredientCount?: number;
+  usedIngredients?: Array<{
+    id: number;
+    name: string;
+    amount: number;
+    unit: string;
+    image: string;
+  }>;
+  missedIngredients?: Array<{
+    id: number;
+    name: string;
+    amount: number;
+    unit: string;
+    image: string;
+  }>;
+  likes?: number;
 }
 
 export interface RecipeDetails extends Recipe {

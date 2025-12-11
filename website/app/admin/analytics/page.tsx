@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, ChefHat, Eye, Download, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
+import { Users, Eye, Download, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { analyticsApi } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { AdminRefreshButton } from '@/components/admin-refresh-button';
+import { usePageRefresh } from '@/contexts/admin-refresh-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface MetricData {
   name: string;
@@ -23,22 +26,56 @@ interface AnalyticsData {
 export default function AnalyticsPage(): React.ReactElement {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState('30d');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const { refreshTrigger } = usePageRefresh('analytics');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchAnalytics();
-  }, [dateRange]);
+  }, [dateRange, refreshTrigger]);
 
   const fetchAnalytics = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      const response = await analyticsApi.getOverview();
+      setError(null);
+
+      console.log('Fetching analytics data...');
+      const response = await analyticsApi.getOverview({
+        startDate: getStartDate(dateRange),
+        endDate: new Date().toISOString(),
+      });
+
       setData(response as AnalyticsData);
-    } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+      setLastUpdated(new Date());
+
+      toast({
+        title: 'Analytics Updated',
+        description: 'Analytics data has been refreshed successfully.',
+      });
+    } catch (fetchError) {
+      console.error('Failed to fetch analytics:', fetchError);
+      const errorMessage =
+        fetchError instanceof Error ? fetchError.message : 'Failed to load analytics data';
+      setError(errorMessage);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to load analytics data. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getStartDate = (range: string): string => {
+    const now = new Date();
+    const days = parseInt(range.replace('d', ''));
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    return startDate.toISOString();
   };
 
   const handleExport = async (format: 'csv' | 'pdf'): Promise<void> => {
@@ -52,15 +89,50 @@ export default function AnalyticsPage(): React.ReactElement {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
-      console.error('Failed to export analytics:', error);
+    } catch (err) {
+      console.error('Failed to export analytics:', err);
     }
   };
 
+  if (error) {
+    return (
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">Analytics</h1>
+            <p className="text-muted-foreground">Monitor app usage and engagement metrics</p>
+          </div>
+          <AdminRefreshButton pageId="analytics" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <Card className="p-8 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+            <h3 className="mb-2 text-lg font-semibold">Failed to Load Analytics</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <AdminRefreshButton pageId="analytics" variant="default">
+              Try Again
+            </AdminRefreshButton>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">Analytics</h1>
+            <p className="text-muted-foreground">Monitor app usage and engagement metrics</p>
+          </div>
+          <AdminRefreshButton pageId="analytics" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
       </div>
     );
   }
@@ -71,8 +143,14 @@ export default function AnalyticsPage(): React.ReactElement {
         <div>
           <h1 className="mb-2 text-3xl font-bold">Analytics</h1>
           <p className="text-muted-foreground">Monitor app usage and engagement metrics</p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
+          <AdminRefreshButton pageId="analytics" />
           <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
             Export CSV
           </Button>
@@ -113,7 +191,9 @@ export default function AnalyticsPage(): React.ReactElement {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-                  <p className="mt-2 text-3xl font-bold">{data.activeUsers.value.toLocaleString()}</p>
+                  <p className="mt-2 text-3xl font-bold">
+                    {data.activeUsers.value.toLocaleString()}
+                  </p>
                   <div className="mt-2 flex items-center gap-1 text-sm">
                     {data.activeUsers.trend === 'up' ? (
                       <TrendingUp className="h-4 w-4 text-green-500" />
@@ -237,7 +317,9 @@ export default function AnalyticsPage(): React.ReactElement {
                         <p className="text-sm text-muted-foreground">by Author Name</p>
                       </div>
                     </div>
-                    <span className="text-sm font-medium">{(1000 - i * 100).toLocaleString()} views</span>
+                    <span className="text-sm font-medium">
+                      {(1000 - i * 100).toLocaleString()} views
+                    </span>
                   </div>
                 ))}
               </div>

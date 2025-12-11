@@ -38,26 +38,26 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
     try {
-      // When using filters, use only the first 3-5 main ingredients for better results
-      // FatSecret's advanced search is very strict with recipe_types filter
-      const searchQuery =
-        options && (options.maxCalories || options.mealType)
-          ? ingredients.slice(0, 5).join(' ')
-          : ingredients.join(' ');
+      console.log('[FatSecretAdapter] Searching by ingredients:', {
+        ingredients,
+        limit,
+        options,
+      });
 
-      // NEW APPROACH: When meal type is specified, use broad search + client-side filtering
-      // FatSecret's recipe_types parameter doesn't seem to work reliably
-      // When "All" is selected (no mealType), search by ingredients
+      // FIXED: Always use ingredient-based search for Recipe tab
+      // This ensures recipes actually match user's inventory
+
+      // When meal type is specified, use broad search (for meal-specific tabs)
       if (options && options.mealType) {
         console.log(
-          '[FatSecretAdapter] Meal type filter - using broad search with client-side filtering:',
+          '[FatSecretAdapter] Meal type filter - using broad search:',
           {
             mealType: options.mealType,
             maxCalories: options.maxCalories,
           },
         );
 
-        // Map meal types to search keywords that work better
+        // Map meal types to search keywords
         const mealTypeKeywords: {[key: string]: string} = {
           'Breakfast and Brunch': 'breakfast',
           'Main Dishes': 'dinner',
@@ -66,10 +66,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
         const searchKeyword = mealTypeKeywords[options.mealType] || 'recipe';
 
-        // Use broad search with keyword
         const searchOptions: any = {
           query: searchKeyword,
-          maxResults: 50, // Get more results to filter from
+          maxResults: Math.min(50, limit * 3), // Get more results to filter from
         };
 
         if (options.maxCalories) {
@@ -81,38 +80,51 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           `[FatSecretAdapter] Meal type search returned ${recipes.length} recipes`,
         );
 
-        return this.formatRecipes(recipes.slice(0, limit));
+        return this.formatRecipesWithMatching(
+          recipes.slice(0, limit),
+          ingredients,
+        );
       }
 
-      // Use advanced search if only calorie filter is provided (no meal type)
-      if (options && options.maxCalories) {
-        console.log(
-          '[FatSecretAdapter] Using advanced search with calorie filter:',
-          {
-            maxCalories: options.maxCalories,
-            query: searchQuery,
-            ingredientCount: ingredients.slice(0, 5).length,
-          },
-        );
+      // CORE FIX: For Recipe tab (no meal type), use ingredient matching
+      console.log(
+        '[FatSecretAdapter] Using ingredient-based search for Recipe tab:',
+        {
+          ingredients: ingredients.slice(0, 8), // Use up to 8 ingredients
+          maxCalories: options?.maxCalories,
+        },
+      );
 
-        const searchOptions: any = {
-          query: searchQuery,
-          maxResults: limit,
-          maxCalories: options.maxCalories,
-        };
+      // Use FatSecret's must_include_ingredient_names for proper matching
+      const searchOptions: any = {
+        mustIncludeIngredients: ingredients.slice(0, 8).join(','), // Limit to 8 ingredients
+        maxResults: Math.min(50, limit * 2), // Get more results for better matching
+      };
 
-        const recipes = await this.service.searchRecipesAdvanced(searchOptions);
-        console.log(
-          `[FatSecretAdapter] Advanced search returned ${recipes.length} recipes`,
-        );
-
-        return this.formatRecipes(recipes);
+      if (options?.maxCalories) {
+        searchOptions.maxCalories = options.maxCalories;
       }
 
-      // Standard search without filters
-      const recipes = await this.service.searchRecipes(searchQuery, limit);
+      const recipes = await this.service.searchRecipesAdvanced(searchOptions);
+      console.log(
+        `[FatSecretAdapter] Ingredient search returned ${recipes.length} recipes`,
+      );
 
-      return this.formatRecipes(recipes);
+      // Format recipes with ingredient matching data
+      const formattedRecipes = this.formatRecipesWithMatching(
+        recipes,
+        ingredients,
+      );
+
+      // Sort by ingredient match percentage (highest first)
+      const sortedRecipes = formattedRecipes.sort((a, b) => {
+        const aMatch = (a as any).usedIngredientCount || 0;
+        const bMatch = (b as any).usedIngredientCount || 0;
+        return bMatch - aMatch;
+      });
+
+      // Return top results
+      return sortedRecipes.slice(0, limit);
     } catch (error: any) {
       console.error('[FatSecretAdapter] Search error:', error);
 
@@ -153,6 +165,140 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         fat: recipe.fat ? parseFloat(recipe.fat) : undefined,
       }),
     );
+  }
+
+  private formatRecipesWithMatching(
+    recipes: any[],
+    userIngredients: string[],
+  ): Recipe[] {
+    return recipes.map((recipe: any): Recipe => {
+      // Calculate ingredient matching
+      const matchingData = this.calculateIngredientMatching(
+        recipe,
+        userIngredients,
+      );
+
+      return {
+        id: recipe.recipe_id,
+        title: recipe.recipe_name,
+        image: this.getValidImageUrl(recipe.recipe_image),
+        servings: parseInt(recipe.number_of_servings) || 4,
+        readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
+        sourceUrl: `https://www.fatsecret.com/recipes/${recipe.recipe_id}`,
+        summary: recipe.recipe_description || '',
+        ingredients: [] as string[],
+        instructions: '',
+        cuisines: [] as string[],
+        dishTypes: [recipe.recipe_types || 'main course'],
+        diets: [] as string[],
+        provider: 'fatsecret',
+        // Add nutrition info
+        calories: recipe.calories ? parseInt(recipe.calories) : undefined,
+        protein: recipe.protein ? parseFloat(recipe.protein) : undefined,
+        carbs: recipe.carbohydrate
+          ? parseFloat(recipe.carbohydrate)
+          : undefined,
+        fat: recipe.fat ? parseFloat(recipe.fat) : undefined,
+        // Add ingredient matching data
+        usedIngredientCount: matchingData.usedCount,
+        missedIngredientCount: matchingData.missedCount,
+        usedIngredients: matchingData.usedIngredients,
+        missedIngredients: matchingData.missedIngredients,
+        likes: 0, // FatSecret doesn't provide likes
+      };
+    });
+  }
+
+  private calculateIngredientMatching(
+    recipe: any,
+    userIngredients: string[],
+  ): {
+    usedCount: number;
+    missedCount: number;
+    usedIngredients: any[];
+    missedIngredients: any[];
+  } {
+    // Normalize user ingredients for matching
+    const normalizedUserIngredients = userIngredients.map(ing =>
+      ing.toLowerCase().trim(),
+    );
+
+    // Extract recipe ingredients from title and description
+    // FatSecret search results don't include full ingredient lists
+    const recipeText =
+      `${recipe.recipe_name} ${recipe.recipe_description || ''}`.toLowerCase();
+
+    const usedIngredients: any[] = [];
+    const missedIngredients: any[] = [];
+
+    // Check which user ingredients are mentioned in the recipe
+    normalizedUserIngredients.forEach((userIng, index) => {
+      const isUsed = this.isIngredientMentioned(userIng, recipeText);
+
+      const ingredientObj = {
+        id: index,
+        name: userIngredients[index], // Original case
+        amount: 1,
+        unit: '',
+        image: '',
+      };
+
+      if (isUsed) {
+        usedIngredients.push(ingredientObj);
+      } else {
+        missedIngredients.push(ingredientObj);
+      }
+    });
+
+    return {
+      usedCount: usedIngredients.length,
+      missedCount: missedIngredients.length,
+      usedIngredients,
+      missedIngredients,
+    };
+  }
+
+  private isIngredientMentioned(
+    ingredient: string,
+    recipeText: string,
+  ): boolean {
+    // Handle common ingredient variations and plurals
+    const variations = this.getIngredientVariations(ingredient);
+
+    return variations.some(variation =>
+      recipeText.includes(variation.toLowerCase()),
+    );
+  }
+
+  private getIngredientVariations(ingredient: string): string[] {
+    const base = ingredient.toLowerCase().trim();
+    const variations = [base];
+
+    // Add plural/singular variations
+    if (base.endsWith('s') && base.length > 3) {
+      variations.push(base.slice(0, -1)); // Remove 's'
+    } else {
+      variations.push(base + 's'); // Add 's'
+    }
+
+    // Add common variations
+    const commonVariations: {[key: string]: string[]} = {
+      chicken: ['chicken breast', 'chicken thigh', 'poultry'],
+      beef: ['ground beef', 'beef steak', 'steak'],
+      pork: ['pork chop', 'pork loin'],
+      fish: ['salmon', 'tuna', 'cod', 'tilapia'],
+      cheese: ['cheddar', 'mozzarella', 'parmesan'],
+      onion: ['onions', 'yellow onion', 'white onion'],
+      tomato: ['tomatoes', 'cherry tomato', 'roma tomato'],
+      pepper: ['bell pepper', 'peppers'],
+      mushroom: ['mushrooms', 'button mushroom'],
+    };
+
+    if (commonVariations[base]) {
+      variations.push(...commonVariations[base]);
+    }
+
+    return variations;
   }
 
   async getRecipeDetails(recipeId: string): Promise<RecipeDetails | null> {

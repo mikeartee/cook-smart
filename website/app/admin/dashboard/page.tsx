@@ -1,8 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, ChefHat, Eye, TrendingUp, TrendingDown, DollarSign, UserCheck } from 'lucide-react';
+import {
+  Users,
+  ChefHat,
+  Eye,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  UserCheck,
+  AlertCircle,
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { AdminRefreshButton } from '@/components/admin-refresh-button';
+import { usePageRefresh } from '@/contexts/admin-refresh-context';
+import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/lib/api-client';
 
 interface StatCardProps {
@@ -106,39 +118,71 @@ export default function AdminDashboardPage(): React.ReactElement {
   const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const { refreshTrigger } = usePageRefresh('dashboard');
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchAnalytics = async (): Promise<void> => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.get<{ overview: AnalyticsOverview }>(
-          '/api/v1/admin/analytics/overview'
-        );
-        setAnalytics(response.overview);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch analytics:', err);
-        setError('Failed to load dashboard data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchAnalytics();
-  }, []);
+  }, [refreshTrigger]);
+
+  const fetchAnalytics = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log('Fetching analytics overview...');
+      const response = await apiClient.get<{ overview: AnalyticsOverview }>(
+        '/api/v1/admin/analytics/overview'
+      );
+
+      console.log('Analytics response:', response);
+      setAnalytics(response.overview);
+      setLastUpdated(new Date());
+
+      toast({
+        title: 'Data Refreshed',
+        description: 'Dashboard data has been updated successfully.',
+      });
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard data';
+      setError(errorMessage);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (error) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Card className="p-8 text-center">
-          <p className="text-red-500 mb-4">⚠️ {error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-          >
-            Retry
-          </button>
-        </Card>
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with Cook Smart.
+            </p>
+          </div>
+          <AdminRefreshButton pageId="dashboard" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <Card className="p-8 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+            <h3 className="mb-2 text-lg font-semibold">Failed to Load Dashboard</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <AdminRefreshButton pageId="dashboard" variant="default">
+              Try Again
+            </AdminRefreshButton>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -160,11 +204,19 @@ export default function AdminDashboardPage(): React.ReactElement {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's what's happening with Cook Smart.
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's what's happening with Cook Smart.
+          </p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <AdminRefreshButton pageId="dashboard" />
       </div>
 
       {/* Stats Grid */}

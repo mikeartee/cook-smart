@@ -196,13 +196,24 @@ export const blogApi = {
 
 export const usersApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
-    apiClient.get<{ users: unknown[]; total: number }>('/admin/users', { params }),
+    apiClient.get<{ users: unknown[]; total: number }>('/api/v1/admin/users', { params }),
 
-  getById: (id: string) => apiClient.get<unknown>(`/admin/users/${id}`),
+  getById: (id: string) => apiClient.get<unknown>(`/api/v1/admin/users/${id}`),
 
-  update: (id: string, data: unknown) => apiClient.patch<unknown>(`/admin/users/${id}`, data),
+  update: (id: string, data: unknown) =>
+    apiClient.patch<unknown>(`/api/v1/admin/users/${id}`, data),
 
-  deactivate: (id: string) => apiClient.post(`/admin/users/${id}/deactivate`),
+  deactivate: (id: string) => apiClient.post(`/api/v1/admin/users/${id}/deactivate`),
+
+  suspend: (id: string) => apiClient.post(`/api/v1/admin/users/${id}/suspend`),
+
+  delete: (id: string) => apiClient.delete(`/api/v1/admin/users/${id}`),
+
+  grantAdmin: (id: string) =>
+    apiClient.patch(`/api/v1/admin/users/${id}/admin-access`, { isAdmin: true }),
+
+  revokeAdmin: (id: string) =>
+    apiClient.patch(`/api/v1/admin/users/${id}/admin-access`, { isAdmin: false }),
 };
 
 export const moderationApi = {

@@ -21,6 +21,8 @@ export interface Recipe {
   sodium?: number;
   saturatedFat?: number;
   cholesterol?: number;
+  // Ingredient match percentage for better sorting
+  matchPercentage?: number;
 }
 
 export interface MissedIngredient {
@@ -115,15 +117,52 @@ class RecipeService {
       throw new Error(data.error || 'Failed to search recipes');
     }
 
-    // Map recipe_image to image for consistency
-    const recipes = (data.recipes || []).map((recipe: any) => ({
-      ...recipe,
-      image: recipe.recipe_image || recipe.image_url || recipe.image || '',
-      imageUrl:
-        recipe.recipe_image || recipe.image_url || recipe.imageUrl || '',
-    }));
+    // Map recipe_image to image for consistency and calculate match percentage
+    const recipes = (data.recipes || []).map((recipe: any) => {
+      const totalIngredients =
+        (recipe.usedIngredientCount || 0) + (recipe.missedIngredientCount || 0);
+      const matchPercentage =
+        totalIngredients > 0
+          ? Math.round(
+              ((recipe.usedIngredientCount || 0) / totalIngredients) * 100,
+            )
+          : 0;
 
-    return recipes;
+      return {
+        ...recipe,
+        image: recipe.recipe_image || recipe.image_url || recipe.image || '',
+        imageUrl:
+          recipe.recipe_image || recipe.image_url || recipe.imageUrl || '',
+        matchPercentage,
+      };
+    });
+
+    // Sort recipes by match percentage (highest first) for Recipe tab
+    const sortedRecipes = recipes.sort((a: any, b: any) => {
+      // Primary sort: match percentage (higher is better)
+      const aMatch = a.matchPercentage || 0;
+      const bMatch = b.matchPercentage || 0;
+      if (aMatch !== bMatch) {
+        return bMatch - aMatch;
+      }
+
+      // Secondary sort: fewer missing ingredients (lower is better)
+      const aMissed = a.missedIngredientCount || 0;
+      const bMissed = b.missedIngredientCount || 0;
+      return aMissed - bMissed;
+    });
+
+    console.log(
+      'Recipe search results sorted by match percentage:',
+      sortedRecipes.slice(0, 5).map((r: any) => ({
+        title: r.title,
+        matchPercentage: r.matchPercentage,
+        used: r.usedIngredientCount,
+        missed: r.missedIngredientCount,
+      })),
+    );
+
+    return sortedRecipes;
   }
 
   // Get recipe details

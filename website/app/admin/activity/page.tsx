@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Eye, Heart, Share2, TrendingUp, Activity } from 'lucide-react';
+import { Eye, Heart, Share2, TrendingUp, Activity, AlertCircle } from 'lucide-react';
 import { analyticsApi } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AdminRefreshButton } from '@/components/admin-refresh-button';
+import { AdminPageStatus } from '@/components/admin-data-status';
+import { usePageRefresh } from '@/contexts/admin-refresh-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface ActiveSession {
   userId: string;
@@ -35,26 +39,52 @@ export default function ActivityMonitorPage(): React.ReactElement {
   const [engagement, setEngagement] = useState<EngagementMetrics | null>(null);
   const [cohorts, setCohorts] = useState<CohortData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const { refreshTrigger } = usePageRefresh('activity');
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchActivityData();
-    
+
     if (autoRefresh) {
       const interval = setInterval(fetchActivityData, 30000);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh]);
+  }, [autoRefresh, refreshTrigger]);
 
   const fetchActivityData = async (): Promise<void> => {
     try {
       setIsLoading(true);
+      setError(null);
+
+      console.log('Fetching activity data...');
       const response: any = await analyticsApi.getMetric('activity');
+
       setActiveSessions(response.activeSessions || []);
       setEngagement(response.engagement || null);
       setCohorts(response.cohorts || []);
-    } catch (error) {
-      console.error('Failed to fetch activity data:', error);
+      setLastUpdated(new Date());
+
+      if (refreshTrigger > 0) {
+        toast({
+          title: 'Activity Data Updated',
+          description: 'Activity monitoring data has been refreshed.',
+        });
+      }
+    } catch (fetchError) {
+      console.error('Failed to fetch activity data:', fetchError);
+      const errorMessage =
+        fetchError instanceof Error ? fetchError.message : 'Failed to load activity data';
+      setError(errorMessage);
+
+      toast({
+        title: 'Error',
+        description: 'Failed to load activity data. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,10 +98,45 @@ export default function ActivityMonitorPage(): React.ReactElement {
     return `${hours}h ${minutes % 60}m`;
   };
 
+  if (error) {
+    return (
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">User Activity Monitor</h1>
+            <p className="text-muted-foreground">Real-time user engagement and behavior analysis</p>
+          </div>
+          <AdminRefreshButton pageId="activity" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+            <h3 className="mb-2 text-lg font-semibold">Failed to Load Activity Data</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <AdminRefreshButton pageId="activity" variant="default">
+              Try Again
+            </AdminRefreshButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading && activeSessions.length === 0) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <div>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">User Activity Monitor</h1>
+            <p className="text-muted-foreground">Real-time user engagement and behavior analysis</p>
+          </div>
+          <AdminRefreshButton pageId="activity" />
+        </div>
+
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
       </div>
     );
   }
@@ -82,16 +147,19 @@ export default function ActivityMonitorPage(): React.ReactElement {
         <div>
           <h1 className="mb-2 text-3xl font-bold">User Activity Monitor</h1>
           <p className="text-muted-foreground">Real-time user engagement and behavior analysis</p>
+          <AdminPageStatus
+            pageId="activity"
+            lastUpdated={lastUpdated}
+            error={error}
+            isLoading={isLoading}
+          />
         </div>
         <div className="flex items-center gap-2">
+          <AdminRefreshButton pageId="activity" />
           <Badge variant={autoRefresh ? 'default' : 'outline'}>
             {autoRefresh ? 'Auto-refresh ON' : 'Auto-refresh OFF'}
           </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setAutoRefresh(!autoRefresh)}>
             {autoRefresh ? 'Pause' : 'Resume'}
           </Button>
         </div>
@@ -167,7 +235,10 @@ export default function ActivityMonitorPage(): React.ReactElement {
           ) : (
             <div className="space-y-3">
               {activeSessions.slice(0, 10).map((session) => (
-                <div key={session.userId} className="flex items-center justify-between rounded-lg border p-3">
+                <div
+                  key={session.userId}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                       {session.username.charAt(0).toUpperCase()}
@@ -215,9 +286,7 @@ export default function ActivityMonitorPage(): React.ReactElement {
                       <td className="py-2 text-right">{cohort.newUsers}</td>
                       <td className="py-2 text-right">{cohort.retained}</td>
                       <td className="py-2 text-right">
-                        <Badge
-                          variant={cohort.retentionRate >= 50 ? 'default' : 'secondary'}
-                        >
+                        <Badge variant={cohort.retentionRate >= 50 ? 'default' : 'secondary'}>
                           {cohort.retentionRate}%
                         </Badge>
                       </td>
@@ -239,4 +308,3 @@ export default function ActivityMonitorPage(): React.ReactElement {
     </div>
   );
 }
-
