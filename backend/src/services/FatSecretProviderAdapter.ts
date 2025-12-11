@@ -216,12 +216,24 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     recipes: any[],
     userIngredients: string[],
   ): Recipe[] {
+    console.log(
+      `[FatSecretAdapter] formatRecipesWithMatching called with ${recipes.length} recipes and ${userIngredients.length} ingredients`,
+    );
+
     return recipes.map((recipe: any): Recipe => {
       // Calculate ingredient matching
+      console.log(
+        `[FatSecretAdapter] Processing recipe: ${recipe.recipe_name || recipe.title}`,
+      );
       const matchingData = this.calculateIngredientMatching(
         recipe,
         userIngredients,
       );
+
+      console.log(`[FatSecretAdapter] Matching data calculated:`, {
+        usedCount: matchingData.usedCount,
+        matchPercentage: matchingData.matchPercentage,
+      });
 
       return {
         id: recipe.recipe_id,
