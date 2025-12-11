@@ -18,13 +18,59 @@ function cleanIngredientName(rawName: string): string {
 
   let cleaned = rawName.toLowerCase().trim();
 
-  // Remove common quantity patterns
-  cleaned = cleaned.replace(/^\d+[\s\w]*\s+/, ''); // Remove leading numbers and units
-  cleaned = cleaned.replace(/\b\d+[\s\w]*$/, ''); // Remove trailing numbers and units
-  cleaned = cleaned.replace(/\b\d+\/\d+\b/g, ''); // Remove fractions like 1/2
-  cleaned = cleaned.replace(/\b\d+\.\d+\b/g, ''); // Remove decimals like 1.5
+  // Handle ingredients that start with punctuation or measurements
+  if (
+    cleaned.startsWith(',') ||
+    cleaned.startsWith('fl oz') ||
+    cleaned.startsWith('serving')
+  ) {
+    // Look for the actual ingredient name after the measurement/punctuation
+    const words = cleaned.split(/[,\s]+/).filter(word => word.length > 2);
+    const ingredientWords = words.filter(
+      word =>
+        ![
+          'cup',
+          'cups',
+          'tbsp',
+          'tsp',
+          'oz',
+          'fl',
+          'lb',
+          'lbs',
+          'g',
+          'kg',
+          'ml',
+          'l',
+          'serving',
+          'servings',
+          'piece',
+          'pieces',
+          'slice',
+          'slices',
+          'chopped',
+          'sliced',
+          'diced',
+          'minced',
+        ].includes(word) && !/^\d/.test(word), // Not starting with a number
+    );
 
-  // Remove common measurement units
+    if (ingredientWords.length > 0) {
+      return ingredientWords[0];
+    }
+  }
+
+  // Remove everything after first comma (descriptions)
+  cleaned = cleaned.split(',')[0].trim();
+
+  // Remove "NS as to" patterns
+  cleaned = cleaned.replace(/\bns as to\b.*$/i, '');
+
+  // Remove numbers and fractions
+  cleaned = cleaned.replace(/\b\d+[\s\w]*\b/g, ''); // Remove numbers with units
+  cleaned = cleaned.replace(/\b\d+\/\d+\b/g, ''); // Remove fractions
+  cleaned = cleaned.replace(/\b\d+\.\d+\b/g, ''); // Remove decimals
+
+  // Remove measurement units
   const units = [
     'cup',
     'cups',
@@ -46,21 +92,21 @@ function cleanIngredientName(rawName: string): string {
     'slices',
   ];
   units.forEach(unit => {
-    cleaned = cleaned.replace(new RegExp(`\\b${unit}s?\\b`, 'g'), '');
+    cleaned = cleaned.replace(new RegExp(`\\b${unit}s?\\b`, 'gi'), '');
   });
 
-  // Remove descriptive text patterns
-  cleaned = cleaned.replace(/,.*$/, ''); // Remove everything after first comma
-  cleaned = cleaned.replace(/\(.*?\)/g, ''); // Remove parenthetical content
-  cleaned = cleaned.replace(/\bns as to\b.*$/i, ''); // Remove "NS as to..." patterns
-  cleaned = cleaned.replace(/\bchopped\b|\bsliced\b|\bdiced\b|\bminced\b/g, ''); // Remove preparation methods
+  // Remove preparation methods
+  cleaned = cleaned.replace(
+    /\b(chopped|sliced|diced|minced|fresh|dried|ground)\b/gi,
+    '',
+  );
 
   // Clean up whitespace and punctuation
-  cleaned = cleaned.replace(/[,;:]/g, ' '); // Replace punctuation with spaces
-  cleaned = cleaned.replace(/\s+/g, ' '); // Collapse multiple spaces
+  cleaned = cleaned.replace(/[,;:()]/g, ' ');
+  cleaned = cleaned.replace(/\s+/g, ' ');
   cleaned = cleaned.trim();
 
-  // Extract the main ingredient (first meaningful word)
+  // Get the first meaningful word
   const words = cleaned.split(' ').filter(word => word.length > 2);
   if (words.length > 0) {
     return words[0];
