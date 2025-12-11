@@ -77,14 +77,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
             const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
             console.log('[AUTH] User info fetched:', response.user);
 
-            setUser({
+            const userData = {
               id: response.user.id,
               email: response.user.email,
               name:
                 `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
                 'Admin User',
               role: 'admin',
-            });
+            };
+            console.log('[AUTH] Setting user state:', userData);
+            setUser(userData);
           } catch (error) {
             console.error('[AUTH] Failed to validate token:', error);
             // Token is invalid, clear it
