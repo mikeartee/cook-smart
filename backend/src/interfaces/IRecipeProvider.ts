@@ -59,6 +59,7 @@ export interface Recipe {
     image: string;
   }>;
   likes?: number;
+  matchPercentage?: number; // Percentage of user ingredients that match this recipe
 }
 
 export interface RecipeDetails extends Recipe {

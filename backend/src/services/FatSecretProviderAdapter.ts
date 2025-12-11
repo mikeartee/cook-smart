@@ -246,6 +246,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         missedIngredientCount: matchingData.missedCount,
         usedIngredients: matchingData.usedIngredients,
         missedIngredients: matchingData.missedIngredients,
+        matchPercentage: matchingData.matchPercentage,
         likes: 0, // FatSecret doesn't provide likes
       };
     });
@@ -259,6 +260,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     missedCount: number;
     usedIngredients: any[];
     missedIngredients: any[];
+    matchPercentage: number;
   } {
     console.log(
       `[FatSecretAdapter] Calculating matches for "${recipe.recipe_name}"`,
@@ -385,6 +387,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       missedCount: missedIngredients.length,
       usedIngredients,
       missedIngredients,
+      matchPercentage,
     };
   }
 
