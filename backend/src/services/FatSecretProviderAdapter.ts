@@ -47,6 +47,48 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         options,
       });
 
+      // EMERGENCY DEBUG: Force return test data to verify this method is being called
+      if (ingredients.includes('chicken')) {
+        console.log(
+          '[FatSecretAdapter] 🚨 EMERGENCY DEBUG: Returning test recipe with matching data',
+        );
+        return [
+          {
+            id: 'test-123',
+            title: 'TEST RECIPE - FatSecret Adapter Working',
+            image: '',
+            servings: 4,
+            readyInMinutes: 30,
+            sourceUrl: 'https://test.com',
+            summary: 'This is a test recipe to verify the adapter is working',
+            ingredients: [],
+            instructions: '',
+            cuisines: [],
+            dishTypes: ['test'],
+            diets: [],
+            provider: 'fatsecret',
+            calories: 350,
+            protein: 25,
+            carbs: 30,
+            fat: 15,
+            // CRITICAL: Test matching fields
+            matchPercentage: 75,
+            usedIngredientCount: 3,
+            missedIngredientCount: 2,
+            usedIngredients: [
+              {id: 1, name: 'chicken', amount: 1, unit: 'lb', image: ''},
+              {id: 2, name: 'rice', amount: 1, unit: 'cup', image: ''},
+              {id: 3, name: 'onion', amount: 1, unit: 'medium', image: ''},
+            ],
+            missedIngredients: [
+              {id: 4, name: 'garlic', amount: 2, unit: 'cloves', image: ''},
+              {id: 5, name: 'soy sauce', amount: 2, unit: 'tbsp', image: ''},
+            ],
+            likes: 0,
+          },
+        ];
+      }
+
       // FIXED: Always use ingredient-based search for Recipe tab
       // This ensures recipes actually match user's inventory
 
