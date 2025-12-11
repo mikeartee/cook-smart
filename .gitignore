@@ -60,6 +60,8 @@ android/app/build/
 android/build/
 *.apk
 *.aab
+android/app/debug.keystore
+android/app/release.keystore
 
 # Temporary folders
 tmp/
@@ -93,3 +95,10 @@ secrets/
 # Backend environment files
 backend/.env
 backend/.env.production
+
+# Backup files
+*.backup
+*.backup.*
+*.old
+*.bak
+*~
