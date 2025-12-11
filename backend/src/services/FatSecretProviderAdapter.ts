@@ -147,15 +147,24 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         );
 
         if (fallbackRecipes.length > 0) {
+          console.log(
+            `[FatSecretAdapter] FALLBACK: Calling formatRecipesWithMatching with ${fallbackRecipes.length} recipes`,
+          );
           const formattedRecipes = this.formatRecipesWithMatching(
             fallbackRecipes,
             ingredients,
+          );
+          console.log(
+            `[FatSecretAdapter] FALLBACK: First recipe match: ${formattedRecipes[0]?.matchPercentage}%`,
           );
           return formattedRecipes.slice(0, limit);
         }
       }
 
-      // Format recipes with ingredient matching data
+      // CRITICAL FIX: Always use formatRecipesWithMatching for all code paths
+      console.log(
+        `[FatSecretAdapter] CALLING formatRecipesWithMatching with ${recipes.length} recipes and ${ingredients.length} ingredients`,
+      );
       const formattedRecipes = this.formatRecipesWithMatching(
         recipes,
         ingredients,
@@ -167,6 +176,10 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         const bMatch = (b as any).usedIngredientCount || 0;
         return bMatch - aMatch;
       });
+
+      console.log(
+        `[FatSecretAdapter] Formatted recipes - first recipe match: ${sortedRecipes[0]?.matchPercentage}%`,
+      );
 
       // Return top results
       return sortedRecipes.slice(0, limit);
