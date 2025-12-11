@@ -208,14 +208,23 @@ router.get(
         20,
         searchOptions,
       );
-      const provider = 'fatsecret';
+      const actualProvider = recipeProviderService.getLastUsedProvider();
+
+      // CRITICAL FIX: Use actual provider instead of hardcoded 'fatsecret'
+      console.log(`[Recipe Search] Actual provider used: ${actualProvider}`);
+      console.log(
+        `[Recipe Search] First recipe provider: ${recipes[0]?.provider || 'none'}`,
+      );
+      console.log(
+        `[Recipe Search] Recipe has matching data: ${recipes[0]?.matchPercentage !== undefined}`,
+      );
 
       // Cache the new recipes (RecipeCacheService handles duplicate checking)
       if (recipes.length > 0) {
         console.log(`Caching ${recipes.length} recipes to database...`);
         try {
           for (const recipe of recipes) {
-            await RecipeCacheService.cacheRecipe(recipe, provider);
+            await RecipeCacheService.cacheRecipe(recipe, actualProvider);
           }
           console.log('✅ Recipes cached successfully');
         } catch (cacheError) {
@@ -241,7 +250,7 @@ router.get(
       res.json({
         recipes,
         count: recipes.length,
-        provider,
+        provider: actualProvider, // Use actual provider instead of hardcoded
         searchedIngredients: ingredientList.slice(0, 10), // For debugging
         message:
           recipes.length === 0
@@ -280,13 +289,13 @@ router.get(
       // FatSecret search results don't include these, only the details API does
       console.log('Fetching full recipe details from FatSecret API...');
       let recipe: any = await recipeProviderService.getRecipeDetails(id, true); // skipCache = true
-      let provider = 'fatsecret';
+      let actualProvider = recipeProviderService.getLastUsedProvider();
 
       // Fallback to cache only if API fails
       if (!recipe) {
         console.log('API failed, trying cache...');
         recipe = await RecipeCacheService.getRecipeById(id);
-        provider = 'cache';
+        actualProvider = 'cache';
       }
 
       // Track recipe view and check achievements
@@ -312,7 +321,7 @@ router.get(
 
       res.json({
         recipe,
-        provider,
+        provider: actualProvider,
       });
     } catch (error) {
       console.error('Recipe details error:', error);

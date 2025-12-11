@@ -24,6 +24,7 @@ export class RecipeProviderService {
   private providers: IRecipeProvider[];
   private primaryProvider: IRecipeProvider;
   private fallbackProviders: IRecipeProvider[];
+  private lastUsedProvider: string = '';
 
   constructor(providers: IRecipeProvider[]) {
     if (providers.length === 0) {
@@ -46,21 +47,31 @@ export class RecipeProviderService {
     // Generate cache key including filters
     const cacheKey = this.generateCacheKey(ingredients, options);
 
-    // Step 1: Check cache first
-    try {
-      const cached = await this.checkCache(cacheKey);
-      if (cached && cached.length > 0) {
-        console.log(`✅ Cache HIT for ingredient search: ${cacheKey}`);
-        return cached;
-      }
-    } catch (cacheError) {
-      console.log(
-        `⚠️  Cache check failed, continuing to API:`,
-        (cacheError as Error).message,
-      );
-    }
+    // SKIP CACHE for ingredient searches to ensure fresh matching calculations
+    // Cached recipes don't have proper ingredient matching data
+    console.log(
+      `⏭️  Skipping cache for ingredient search to ensure fresh matching`,
+    );
 
-    console.log(`❌ Cache MISS for ingredient search: ${cacheKey}`);
+    // Step 1: Check cache first (DISABLED for ingredient matching)
+    // The cache-first strategy was causing 0% matches because cached recipes
+    // don't have proper ingredient matching calculations
+    // try {
+    //   const cached = await this.checkCache(cacheKey);
+    //   if (cached && cached.length > 0) {
+    //     console.log(`✅ Cache HIT for ingredient search: ${cacheKey}`);
+    //     return cached;
+    //   }
+    // } catch (cacheError) {
+    //   console.log(
+    //     `⚠️  Cache check failed, continuing to API:`,
+    //     (cacheError as Error).message,
+    //   );
+    // }
+
+    console.log(
+      `⏭️  Forcing fresh API call for ingredient search: ${cacheKey}`,
+    );
 
     // Step 2: Try primary provider
     try {
@@ -92,6 +103,9 @@ export class RecipeProviderService {
           }
 
           if (results && results.length > 0) {
+            // Track which provider was actually used
+            this.lastUsedProvider = this.primaryProvider.getProviderName();
+
             // Try to cache, but don't fail if caching fails
             try {
               await this.cacheResults(cacheKey, results);
@@ -389,5 +403,12 @@ export class RecipeProviderService {
     if (dailyLimit) {
       await APIUsageLogModel.checkRateLimitWarning(providerName, dailyLimit);
     }
+  }
+
+  /**
+   * Get the name of the provider that was last used
+   */
+  getLastUsedProvider(): string {
+    return this.lastUsedProvider || this.primaryProvider.getProviderName();
   }
 }
