@@ -219,7 +219,6 @@ EMAIL_FROM=Cook Smart <noreply@cooksmartapp.com>
 - **State Management**: React Context + Hooks
 - **HTTP Client**: Axios
 - **Push Notifications**: React Native Firebase
-- **OTA Updates**: CodePush (Microsoft App Center)
 
 ### Project Structure
 
@@ -282,7 +281,6 @@ export const API_ENDPOINTS = {
 ```xml
 <resources>
     <string name="app_name">Cook Smart</string>
-    <string moduleConfig="true" name="CodePushDeploymentKey">bae46bc7be34462548be479a10bcdf21238eeb95</string>
 </resources>
 ```
 
@@ -345,21 +343,7 @@ cd android
 # android/app/build/outputs/apk/release/app-release.apk
 ```
 
-#### CodePush (OTA Updates)
 
-```bash
-# Install CodePush CLI
-npm install -g appcenter-cli
-
-# Login to App Center
-appcenter login
-
-# Release update to production
-appcenter codepush release-react -a YOUR_USERNAME/CookSmartFresh-Android -d Production
-
-# Release update to staging
-appcenter codepush release-react -a YOUR_USERNAME/CookSmartFresh-Android -d Staging
-```
 
 ### Common Issues & Solutions
 
@@ -1152,20 +1136,7 @@ DISCORD_ERROR_WEBHOOK_URL=https://discord.com/api/webhooks/1434777612990943354/r
 - System health alerts
 - User activity monitoring
 
-### CodePush (Microsoft App Center)
 
-```env
-# Production deployment key
-CodePushDeploymentKey=bae46bc7be34462548be479a10bcdf21238eeb95
-
-# Staging deployment key
-CodePushDeploymentKey=a1f4233f724a1f80164dbab79cc1c2c5689577aa
-```
-
-**Usage**:
-
-- Over-the-air updates for React Native app
-- Instant bug fixes without app store approval
 
 ---
 
@@ -1205,18 +1176,7 @@ cd android
 adb install android/app/build/outputs/apk/release/app-release.apk
 ```
 
-#### CodePush Deployment
 
-```bash
-# Release to production
-appcenter codepush release-react -a YOUR_USERNAME/CookSmartFresh-Android -d Production
-
-# Release to staging
-appcenter codepush release-react -a YOUR_USERNAME/CookSmartFresh-Android -d Staging
-
-# Check deployment history
-appcenter codepush deployment history Production -a YOUR_USERNAME/CookSmartFresh-Android
-```
 
 ### Backend Deployment
 
@@ -1753,7 +1713,6 @@ ssh -i ~/.ssh/cook-smart-key.pem ubuntu@34.203.8.150 "top -bn1 | head -20"
 
 - **AWS Console**: <https://console.aws.amazon.com>
 - **Stripe Dashboard**: <https://dashboard.stripe.com>
-- **App Center**: <https://appcenter.ms>
 - **Resend Dashboard**: <https://resend.com/dashboard>
 
 ### Documentation Files
