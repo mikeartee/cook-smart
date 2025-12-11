@@ -376,6 +376,17 @@ router.get(
   },
 );
 
+// 🚨 DEPLOYMENT VERIFICATION ENDPOINT
+router.get('/deployment-check', async (req: Request, res: Response) => {
+  res.json({
+    status: 'DEPLOYMENT_WORKING',
+    timestamp: new Date().toISOString(),
+    message: 'This endpoint confirms the latest deployment is active',
+    version: 'emergency-debug-v3',
+    deploymentId: Date.now(),
+  });
+});
+
 // Get cache statistics (admin endpoint)
 router.get('/admin/cache-stats', async (req: Request, res: Response) => {
   try {
