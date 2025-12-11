@@ -194,6 +194,20 @@ router.post(
   },
 );
 
+// Logout endpoint
+router.post(
+  '/logout',
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    // For JWT tokens, logout is handled client-side by removing the token
+    // We can optionally add token blacklisting here in the future
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  },
+);
+
 // Get current user profile
 router.get(
   '/me',

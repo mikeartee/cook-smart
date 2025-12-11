@@ -658,7 +658,7 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         showsVerticalScrollIndicator={false}>
         {/* Recipe Image */}
         <RecipeImage
-          imageUrl={recipe.image}
+          imageUrl={recipe.image || recipe.imageUrl}
           style={styles.image}
           placeholderStyle={styles.placeholderImage}
         />

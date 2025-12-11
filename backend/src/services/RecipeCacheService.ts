@@ -74,7 +74,7 @@ class RecipeCacheService {
   ): Promise<CachedRecipe[]> {
     try {
       const result = await pool.query(
-        `SELECT * FROM recipe_cache 
+        `SELECT *, image_url as recipe_image FROM recipe_cache 
          WHERE season = $1 OR season = 'all'
          ORDER BY is_seasonal DESC, view_count DESC, trending_score DESC
          LIMIT $2`,

@@ -70,11 +70,8 @@ export default function SeasonalRecipesScreen({navigation}: any) {
     <TouchableOpacity
       style={styles.recipeCard}
       onPress={() => navigation.navigate('RecipeDetail', {recipeId: item.id})}>
-      {(item.recipe_image || item.image_url || item.image) && (
-        <Image
-          source={{uri: item.recipe_image || item.image_url || item.image}}
-          style={styles.recipeImage}
-        />
+      {item.image && (
+        <Image source={{uri: item.image}} style={styles.recipeImage} />
       )}
       <View style={styles.recipeContent}>
         <Text style={styles.recipeTitle}>{item.title}</Text>
