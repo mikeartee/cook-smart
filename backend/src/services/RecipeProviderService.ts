@@ -44,6 +44,46 @@ export class RecipeProviderService {
     limit: number = 10,
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
+    // EMERGENCY DEBUG: Force return test data to verify this method is being called
+    if (ingredients.includes('chicken')) {
+      console.log(
+        '[RecipeProviderService] 🚨 EMERGENCY DEBUG: RecipeProviderService.searchByIngredients called with chicken',
+      );
+      return [
+        {
+          id: 'provider-test-456',
+          title: 'TEST RECIPE - RecipeProviderService Working',
+          image: '',
+          servings: 4,
+          readyInMinutes: 30,
+          sourceUrl: 'https://test-provider.com',
+          summary:
+            'This is a test recipe to verify RecipeProviderService is working',
+          ingredients: [],
+          instructions: '',
+          cuisines: [],
+          dishTypes: ['test'],
+          diets: [],
+          provider: 'test-provider',
+          calories: 400,
+          protein: 30,
+          carbs: 35,
+          fat: 20,
+          matchPercentage: 85,
+          usedIngredientCount: 4,
+          missedIngredientCount: 1,
+          usedIngredients: [
+            {id: 1, name: 'chicken', amount: 1, unit: 'lb', image: ''},
+            {id: 2, name: 'rice', amount: 1, unit: 'cup', image: ''},
+          ],
+          missedIngredients: [
+            {id: 3, name: 'soy sauce', amount: 2, unit: 'tbsp', image: ''},
+          ],
+          likes: 0,
+        },
+      ];
+    }
+
     // Generate cache key including filters
     const cacheKey = this.generateCacheKey(ingredients, options);
 
