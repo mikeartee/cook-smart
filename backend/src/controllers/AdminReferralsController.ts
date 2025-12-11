@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import pool from '../config/database';
 import AdminAuditLogger from '../services/AdminAuditLogger';
 
@@ -19,7 +19,8 @@ export class AdminReferralsController {
 
       const totalReferrals = parseInt(stats.total_referrals || 0);
       const successfulReferrals = parseInt(stats.successful_referrals || 0);
-      const conversionRate = totalReferrals > 0 ? (successfulReferrals / totalReferrals) * 100 : 0;
+      const conversionRate =
+        totalReferrals > 0 ? (successfulReferrals / totalReferrals) * 100 : 0;
 
       res.json({
         overview: {
@@ -33,14 +34,31 @@ export class AdminReferralsController {
       });
     } catch (error) {
       console.error('Get referral overview error:', error);
-      res.status(500).json({ error: 'Failed to fetch referral overview' });
+      res.status(500).json({error: 'Failed to fetch referral overview'});
     }
   }
 
   async getTopReferrers(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 20;
-      const period = req.query.period as string || 'all_time';
+      const period = (req.query.period as string) || 'all_time';
+
+      // Check if user_referrals table exists
+      const tableCheckQuery = `
+        SELECT table_name FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'user_referrals'
+      `;
+      const tableCheck = await pool.query(tableCheckQuery);
+
+      if (tableCheck.rows.length === 0) {
+        // Table doesn't exist, return empty results
+        res.json({
+          topReferrers: [],
+          period,
+          message: 'Referral system not yet configured',
+        });
+        return;
+      }
 
       let dateFilter = '';
       if (period === 'this_month') {
@@ -82,7 +100,7 @@ export class AdminReferralsController {
       });
     } catch (error) {
       console.error('Get top referrers error:', error);
-      res.status(500).json({ error: 'Failed to fetch top referrers' });
+      res.status(500).json({error: 'Failed to fetch top referrers'});
     }
   }
 
@@ -105,24 +123,29 @@ export class AdminReferralsController {
           code: row.referral_code,
           usageCount: parseInt(row.usage_count),
           successfulCount: parseInt(row.successful_count),
-          conversionRate: parseInt(row.usage_count) > 0 
-            ? Math.round((parseInt(row.successful_count) / parseInt(row.usage_count)) * 100 * 100) / 100
-            : 0,
+          conversionRate:
+            parseInt(row.usage_count) > 0
+              ? Math.round(
+                  (parseInt(row.successful_count) / parseInt(row.usage_count)) *
+                    100 *
+                    100,
+                ) / 100
+              : 0,
         })),
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Get all codes error:', error);
-      res.status(500).json({ error: 'Failed to fetch referral codes' });
+      res.status(500).json({error: 'Failed to fetch referral codes'});
     }
   }
 
   async createCustomCode(req: Request, res: Response): Promise<void> {
     try {
-      const { code, userId } = req.body;
+      const {code, userId} = req.body;
 
       if (!code || !userId) {
-        res.status(400).json({ error: 'code and userId are required' });
+        res.status(400).json({error: 'code and userId are required'});
         return;
       }
 
@@ -131,7 +154,7 @@ export class AdminReferralsController {
         action: 'create_custom_referral_code',
         resourceType: 'referral',
         resourceId: code,
-        details: { userId },
+        details: {userId},
         ipAddress: req.ip,
         userAgent: req.get('user-agent'),
       });
@@ -143,16 +166,16 @@ export class AdminReferralsController {
       });
     } catch (error) {
       console.error('Create custom code error:', error);
-      res.status(500).json({ error: 'Failed to create custom referral code' });
+      res.status(500).json({error: 'Failed to create custom referral code'});
     }
   }
 
   async disableCode(req: Request, res: Response): Promise<void> {
     try {
-      const { code } = req.params;
+      const {code} = req.params;
 
       if (!code) {
-        res.status(400).json({ error: 'Referral code is required' });
+        res.status(400).json({error: 'Referral code is required'});
         return;
       }
 
@@ -172,7 +195,7 @@ export class AdminReferralsController {
       });
     } catch (error) {
       console.error('Disable code error:', error);
-      res.status(500).json({ error: 'Failed to disable referral code' });
+      res.status(500).json({error: 'Failed to disable referral code'});
     }
   }
 }
