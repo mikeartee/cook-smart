@@ -364,9 +364,9 @@ SELECT * FROM approved_admin_emails;
 **First, create the admin dashboard (if not already created):**
 
 ```bash
-# Create React app for admin dashboard
-npx create-react-app admin-dashboard --template typescript
-cd admin-dashboard
+# Admin dashboard is integrated into the main website
+# Located at: website/app/admin/
+# No separate deployment needed
 
 # Install dependencies
 npm install @mui/material @emotion/react @emotion/styled
@@ -380,9 +380,8 @@ npm install @types/react-router-dom
 ### Step 2: Build for Production
 
 ```bash
-# Build admin dashboard
-cd admin-dashboard
-npm run build
+# Admin dashboard builds with main website
+# No separate build step needed
 
 # Build folder will be created with static files
 ```
@@ -393,7 +392,7 @@ npm run build
 
 1. Go to [S3 Console](https://console.aws.amazon.com/s3/)
 2. Click "Create bucket"
-3. Bucket name: `cook-smart-admin-dashboard`
+3. Bucket name: `cooksmartapp.com` (admin dashboard integrated)
 4. Region: us-east-1 (same as your other resources)
 5. Uncheck "Block all public access"
 6. Click "Create bucket"
@@ -402,7 +401,7 @@ npm run build
 
 1. Click on your bucket
 2. Click "Upload"
-3. Drag and drop all files from `admin-dashboard/build/`
+3. Admin dashboard deploys automatically with website
 4. Click "Upload"
 
 **Enable static website hosting:**

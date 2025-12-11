@@ -2,7 +2,7 @@
 
 ## 📱 Install the APK
 
-**File**: `CookSmart-v1.0.20-admin-dashboard-live.apk`
+**File**: `CookSmart-v1.0.20-live.apk`
 
 1. Uninstall old version (if installed)
 2. Transfer APK to your phone

@@ -138,15 +138,11 @@ firebase appdistribution:distribute android\app\build\outputs\apk\release\app-re
 
 ### Step 3: Deploy Admin Dashboard (Optional - 1 hour)
 
-**3.1 Build Admin Dashboard**
+**3.1 Admin Dashboard**
 ```bash
-cd admin-dashboard
-npm run build
-```
-
-**3.2 Upload to S3**
-```bash
-aws s3 sync build/ s3://your-admin-dashboard-bucket/
+# Admin dashboard is integrated into website
+# Deploys automatically with website deployment
+# Access at: https://cooksmartapp.com/admin
 ```
 
 **3.3 Configure CloudFront**

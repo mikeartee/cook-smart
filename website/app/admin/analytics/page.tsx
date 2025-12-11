@@ -307,28 +307,21 @@ export default function AnalyticsPage(): React.ReactElement {
           <div className="grid gap-6 lg:grid-cols-2">
             <Card className="p-6">
               <h2 className="mb-4 text-xl font-bold">Top Recipes</h2>
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between border-b pb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-muted-foreground">{i}</span>
-                      <div>
-                        <p className="font-medium">Recipe Title {i}</p>
-                        <p className="text-sm text-muted-foreground">by Author Name</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-medium">
-                      {(1000 - i * 100).toLocaleString()} views
-                    </span>
-                  </div>
-                ))}
+              <div className="flex h-32 items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <p className="text-sm">Recipe analytics coming soon</p>
+                  <p className="text-xs mt-1">Integration with recipe tracking in progress</p>
+                </div>
               </div>
             </Card>
 
             <Card className="p-6">
               <h2 className="mb-4 text-xl font-bold">User Growth</h2>
               <div className="flex h-64 items-center justify-center text-muted-foreground">
-                Chart placeholder - integrate with charting library
+                <div className="text-center">
+                  <p className="text-sm">Growth chart coming soon</p>
+                  <p className="text-xs mt-1">Chart integration in development</p>
+                </div>
               </div>
             </Card>
           </div>

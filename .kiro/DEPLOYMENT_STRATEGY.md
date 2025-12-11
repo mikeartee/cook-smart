@@ -109,12 +109,11 @@ cd android
 
 ### Admin Dashboard Preparation
 
-**1. Create React App**
+**1. Admin Dashboard Integration**
 ```bash
-npx create-react-app admin-dashboard --template typescript
-cd admin-dashboard
-npm install @mui/material @emotion/react @emotion/styled
-npm install react-router-dom react-query axios recharts
+# Admin dashboard is integrated into Next.js website
+# Located at: website/app/admin/
+# Uses shadcn/ui components and Next.js App Router
 ```
 
 **2. Deploy Admin Dashboard**
@@ -161,9 +160,9 @@ heroku run npm run migrate
 
 **2. Deploy Admin Dashboard** (30 minutes)
 ```bash
-# Example: Vercel
-cd admin-dashboard
-vercel deploy --prod
+# Admin dashboard deploys with main website
+# AWS auto-deployment via GitHub push
+git push origin fresh-project-migration
 ```
 
 **3. Test Everything** (1 hour)

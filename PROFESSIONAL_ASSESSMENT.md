@@ -16,7 +16,7 @@ cook-smart/                    # Clean, organized root
 ├── 📱 android/               # React Native Android (production ready)
 ├── 🖥️  backend/              # Node.js API (clean, organized)
 ├── 🌐 website/               # Next.js website (professional)
-├── 👨‍💼 admin-dashboard/        # React admin panel (comprehensive)
+├── 🌐 website/app/admin/     # Admin dashboard (integrated)
 ├── 📚 docs/                  # All documentation (organized)
 ├── 🔧 infrastructure/        # AWS deployment configs
 ├── 📱 src/                   # React Native source (clean)

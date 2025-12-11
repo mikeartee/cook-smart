@@ -77,14 +77,14 @@ export default function CampaignsPage(): React.ReactElement {
         {campaigns.length === 0 ? (
           <Card className="p-8 text-center">
             <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="mb-2 text-lg font-semibold">No Email Campaigns Yet</h3>
+            <h3 className="mb-2 text-lg font-semibold">Email Campaigns - Coming Soon</h3>
             <p className="text-muted-foreground mb-4">
-              Email campaign functionality is not yet implemented. This feature will be available in
-              a future update.
+              Email marketing campaigns will be available in a future update. This feature is
+              currently in development.
             </p>
             <Button disabled>
               <Mail className="mr-2 h-4 w-4" />
-              Coming Soon
+              Feature In Development
             </Button>
           </Card>
         ) : (

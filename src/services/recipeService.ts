@@ -186,7 +186,7 @@ class RecipeService {
 
     console.log('Search ingredients used:', searchIngredients.slice(0, 10));
 
-    return sortedRecipes.map(recipe => ({
+    return sortedRecipes.map((recipe: Recipe) => ({
       ...recipe,
       searchIngredients, // Include for debugging
     }));

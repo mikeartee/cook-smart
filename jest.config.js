@@ -1,12 +1,7 @@
 module.exports = {
   preset: 'react-native',
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/backend/',
-    '/CookSmartNew/',
-    '/admin-dashboard/',
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/backend/', '/CookSmartNew/'],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },

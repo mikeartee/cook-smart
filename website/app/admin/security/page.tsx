@@ -128,9 +128,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="text-sm text-muted-foreground">2h ago</p>
               </div>
               <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
-              <p className="text-sm text-muted-foreground">
-                Action: Deactivated user john.doe@example.com
-              </p>
+              <p className="text-sm text-muted-foreground">Action: Deactivated user account</p>
             </div>
 
             <div className="border-b pb-3">
@@ -161,9 +159,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="text-sm text-muted-foreground">2d ago</p>
               </div>
               <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
-              <p className="text-sm text-muted-foreground">
-                Action: Granted admin access to jane.smith@example.com
-              </p>
+              <p className="text-sm text-muted-foreground">Action: Granted admin access to user</p>
             </div>
           </div>
         </Card>

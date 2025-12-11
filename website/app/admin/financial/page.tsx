@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Users, CreditCard, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import apiClient from '@/lib/api-client';
 
 interface FinancialData {
@@ -110,10 +110,12 @@ export default function FinancialPage(): React.ReactElement {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">MRR</p>
-              <p className="mt-2 text-3xl font-bold">$8,234</p>
-              <div className="mt-2 flex items-center gap-1 text-sm text-green-500">
+              <p className="mt-2 text-3xl font-bold">
+                {isLoading ? 'Loading...' : formatCurrency(financialData?.revenue.mrr || 0)}
+              </p>
+              <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                <span>+15.3%</span>
+                <span>Live Data</span>
               </div>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -175,36 +177,10 @@ export default function FinancialPage(): React.ReactElement {
 
         <Card className="p-6">
           <h2 className="mb-4 text-xl font-bold">Recent Transactions</h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div>
-                <p className="font-medium">john.doe@example.com</p>
-                <p className="text-sm text-muted-foreground">Premium Monthly</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold">$9.99</p>
-                <Badge variant="default">Success</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-b pb-3">
-              <div>
-                <p className="font-medium">jane.smith@example.com</p>
-                <p className="text-sm text-muted-foreground">Premium Yearly</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold">$99.99</p>
-                <Badge variant="default">Success</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">bob.wilson@example.com</p>
-                <p className="text-sm text-muted-foreground">Premium Monthly</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold">$9.99</p>
-                <Badge variant="destructive">Failed</Badge>
-              </div>
+          <div className="flex h-32 items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <p className="text-sm">Transaction history coming soon</p>
+              <p className="text-xs mt-1">Payment integration in development</p>
             </div>
           </div>
         </Card>
