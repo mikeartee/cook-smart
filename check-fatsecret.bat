@@ -1,3 +1,0 @@
-@echo off
-echo Testing FatSecret API...
-node test-fatsecret.js
