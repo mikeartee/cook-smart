@@ -59,8 +59,19 @@ class BarcodeService {
         }
       }
 
-      // Step 4: Manual entry required
-      return {found: false, manualEntryRequired: true};
+      // Step 4: Try UPC Database (free backup)
+      const upcResult = await this.tryUPCDatabase(barcode);
+      if (upcResult.found) {
+        console.log('[Barcode] Found via UPC Database');
+        return upcResult;
+      }
+
+      // Step 5: Manual entry with smart suggestions
+      return {
+        found: false,
+        manualEntryRequired: true,
+        suggestions: await this.getSmartSuggestions(barcode),
+      };
     } catch (error) {
       console.error('Barcode lookup error:', error);
       return {found: false, manualEntryRequired: true};
@@ -354,6 +365,53 @@ class BarcodeService {
     }
 
     return 'other';
+  }
+
+  private async getSmartSuggestions(barcode: string): Promise<string[]> {
+    // Analyze barcode patterns to suggest likely products
+    const prefix = barcode.substring(0, 3);
+
+    // Common barcode prefixes
+    const suggestions = [];
+    if (prefix >= '000' && prefix <= '019')
+      suggestions.push('US/Canada product');
+    if (prefix >= '020' && prefix <= '029')
+      suggestions.push('Store brand item');
+    if (prefix >= '030' && prefix <= '039') suggestions.push('Pharmaceutical');
+    if (prefix >= '200' && prefix <= '299')
+      suggestions.push('Local store item');
+
+    return suggestions;
+  }
+
+  private async tryUPCDatabase(barcode: string): Promise<BarcodeResult> {
+    try {
+      // UPC Database - free alternative
+      const response = await axios.get(
+        `https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`,
+        {timeout: 5000},
+      );
+
+      if (response.data.items && response.data.items.length > 0) {
+        const item = response.data.items[0];
+
+        return {
+          found: true,
+          product: {
+            name: item.title || 'Unknown Product',
+            brand: item.brand,
+            category: this.mapToCategory(item.category || ''),
+            barcode,
+            source: 'upcitemdb',
+          },
+        };
+      }
+
+      return {found: false};
+    } catch (error) {
+      console.error('UPC Database error:', error);
+      return {found: false};
+    }
   }
 
   // Usage tracking methods
