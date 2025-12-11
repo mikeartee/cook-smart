@@ -180,7 +180,7 @@ app.use('/api/v1/user-recipes', userRecipesApiRoutes);
 app.use('/api/v1/recipe-enhancements', recipeEnhancementsRoutes);
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/advanced-recipes', advancedRecipesRoutes);
-app.use('/api/v1/trending', trendingRecipesRoutes);
+app.use('/api/v1', trendingRecipesRoutes);
 app.use('/api/v1/recipe-analysis', recipeAnalysisRoutes);
 app.use('/api/v1/recipe-modification', recipeModificationRoutes);
 app.use('/api/v1/personalized', personalizedRecipesRoutes);
