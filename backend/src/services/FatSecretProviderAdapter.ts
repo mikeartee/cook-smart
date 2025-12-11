@@ -305,12 +305,12 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           ? parseFloat(recipe.carbohydrate)
           : undefined,
         fat: recipe.fat ? parseFloat(recipe.fat) : undefined,
-        // Add ingredient matching data
-        usedIngredientCount: matchingData.usedCount,
-        missedIngredientCount: matchingData.missedCount,
-        usedIngredients: matchingData.usedIngredients,
-        missedIngredients: matchingData.missedIngredients,
-        matchPercentage: matchingData.matchPercentage,
+        // Add ingredient matching data - ALWAYS include these fields
+        usedIngredientCount: matchingData.usedCount || 0,
+        missedIngredientCount: matchingData.missedCount || 0,
+        usedIngredients: matchingData.usedIngredients || [],
+        missedIngredients: matchingData.missedIngredients || [],
+        matchPercentage: matchingData.matchPercentage || 0,
         likes: 0, // FatSecret doesn't provide likes
       };
     });
@@ -445,13 +445,21 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       `[FatSecretAdapter] Final result: ${finalMatchCount}/${totalIngredients} = ${adjustedMatchPercentage}% match (trust-based algorithm)`,
     );
 
-    return {
-      usedCount: usedIngredients.length,
-      missedCount: missedIngredients.length,
-      usedIngredients,
-      missedIngredients,
-      matchPercentage: adjustedMatchPercentage,
+    const result = {
+      usedCount: usedIngredients.length || 0,
+      missedCount: missedIngredients.length || 0,
+      usedIngredients: usedIngredients || [],
+      missedIngredients: missedIngredients || [],
+      matchPercentage: adjustedMatchPercentage || 0,
     };
+
+    console.log(`[FatSecretAdapter] calculateIngredientMatching returning:`, {
+      usedCount: result.usedCount,
+      missedCount: result.missedCount,
+      matchPercentage: result.matchPercentage,
+    });
+
+    return result;
   }
 
   private isIngredientMentioned(
