@@ -115,15 +115,13 @@ class AdvancedRecipeService {
 
   async getSeasonalRecipes(season: string, limit = 20) {
     const response = await fetch(
-      `${API_URL}/recipes-cache/seasonal?season=${season}&limit=${limit}`,
+      `${API_URL}/seasonal-recipes?season=${season}&limit=${limit}`,
     );
     return response.json();
   }
 
   async getCurrentSeasonalRecipes(limit = 20) {
-    const response = await fetch(
-      `${API_URL}/recipes-cache/seasonal/current?limit=${limit}`,
-    );
+    const response = await fetch(`${API_URL}/seasonal/current?limit=${limit}`);
     return response.json();
   }
 }

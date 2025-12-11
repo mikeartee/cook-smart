@@ -111,9 +111,7 @@ class SocialService {
   }
 
   async getTrendingRecipes(limit = 20) {
-    const response = await fetch(
-      `${API_URL}/recipes-cache/trending?limit=${limit}`,
-    );
+    const response = await fetch(`${API_URL}/trending-recipes?limit=${limit}`);
     return response.json();
   }
 }
