@@ -73,18 +73,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
           console.log('[AUTH] Token found, attempting to validate...');
 
           try {
-            // Try to fetch current user info using the /me endpoint
-            const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
-            console.log('[AUTH] User info fetched:', response.user);
+            // Check if we're on admin pages - use admin me endpoint
+            const isAdminPage =
+              typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
-            const userData = {
-              id: response.user.id,
-              email: response.user.email,
-              name:
-                `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
-                'Admin User',
-              role: 'admin',
-            };
+            let response;
+            let userData;
+
+            if (isAdminPage) {
+              console.log('[AUTH] Using admin me endpoint...');
+              const adminResponse = await apiClient.get<{ admin: any }>('/api/v1/admin/auth/me');
+              console.log('[AUTH] Admin info fetched:', adminResponse.admin);
+
+              userData = {
+                id: adminResponse.admin.id.toString(),
+                email: adminResponse.admin.email,
+                name: adminResponse.admin.name || 'Admin User',
+                role: 'admin',
+              };
+            } else {
+              // Try to fetch current user info using the regular /me endpoint
+              response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
+              console.log('[AUTH] User info fetched:', response.user);
+
+              userData = {
+                id: response.user.id,
+                email: response.user.email,
+                name:
+                  `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
+                  'Admin User',
+                role: 'admin',
+              };
+            }
+
             console.log('[AUTH] Setting user state:', userData);
             setUser(userData);
           } catch (error) {
@@ -110,33 +131,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     try {
       setIsLoading(true);
       console.log('[AUTH] Starting login process...');
-      const response = await authApi.login(email, password);
+
+      // Check if we're on admin pages - use admin login endpoint
+      const isAdminPage =
+        typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
+      let response;
+      if (isAdminPage) {
+        console.log('[AUTH] Using admin login endpoint...');
+        response = await apiClient.post<{ token: string; admin: any }>('/api/v1/admin/auth/login', {
+          email,
+          password,
+        });
+        // Restructure admin response to match expected format
+        response = {
+          token: response.token,
+          user: response.admin,
+        };
+      } else {
+        response = await authApi.login(email, password);
+      }
       console.log('[AUTH] Login API response:', response);
 
       // Check if user has admin access
       const userData = response.user as any;
       console.log('[AUTH] User data:', userData);
-      console.log('[AUTH] Admin check:', {
-        is_admin: userData.is_admin,
-        is_co_founder: userData.is_co_founder,
-        is_creator: userData.is_creator,
-        hasAccess: userData.is_admin || userData.is_co_founder || userData.is_creator,
-      });
 
-      if (!userData.is_admin && !userData.is_co_founder && !userData.is_creator) {
-        console.error('[AUTH] User does not have admin access');
-        throw new Error('You do not have admin access');
+      if (isAdminPage) {
+        // For admin login, we already validated they're an admin by successful login
+        console.log('[AUTH] Admin login successful, user has admin access');
+      } else {
+        console.log('[AUTH] Admin check:', {
+          is_admin: userData.is_admin,
+          is_co_founder: userData.is_co_founder,
+          is_creator: userData.is_creator,
+          hasAccess: userData.is_admin || userData.is_co_founder || userData.is_creator,
+        });
+
+        if (!userData.is_admin && !userData.is_co_founder && !userData.is_creator) {
+          console.error('[AUTH] User does not have admin access');
+          throw new Error('You do not have admin access');
+        }
       }
 
       console.log('[AUTH] Setting auth token...');
       apiClient.setAuthToken(response.token);
 
-      const newUser = {
-        id: userData.id,
-        email: userData.email,
-        name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Admin User',
-        role: 'admin',
-      };
+      let newUser;
+      if (isAdminPage) {
+        newUser = {
+          id: userData.id.toString(),
+          email: userData.email,
+          name: userData.name || 'Admin User',
+          role: 'admin',
+        };
+      } else {
+        newUser = {
+          id: userData.id,
+          email: userData.email,
+          name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'Admin User',
+          role: 'admin',
+        };
+      }
       console.log('[AUTH] Setting user state:', newUser);
       setUser(newUser);
 
