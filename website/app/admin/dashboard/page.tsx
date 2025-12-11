@@ -143,14 +143,16 @@ export default function AdminDashboardPage(): React.ReactElement {
     );
   }
 
-  // Calculate growth percentages (mock for now, could be enhanced with historical data)
-  const userGrowth = analytics
-    ? `+${((analytics.users.thisMonth / analytics.users.total) * 100).toFixed(1)}%`
-    : '+0%';
+  // Calculate growth percentages - handle division by zero
+  const userGrowth =
+    analytics && analytics.users.total > 0
+      ? `+${((analytics.users.thisMonth / analytics.users.total) * 100).toFixed(1)}%`
+      : '+0%';
   const recipeGrowth = '+15.2%'; // Could be calculated from historical data
-  const engagementGrowth = analytics
-    ? `+${((analytics.engagement.dau / analytics.engagement.mau) * 100).toFixed(1)}%`
-    : '+0%';
+  const engagementGrowth =
+    analytics && analytics.engagement.mau > 0
+      ? `+${((analytics.engagement.dau / analytics.engagement.mau) * 100).toFixed(1)}%`
+      : '+0%';
   const revenueGrowth = analytics
     ? `+${(analytics.revenue.mrr > 0 ? 25.5 : 0).toFixed(1)}%`
     : '+0%';
