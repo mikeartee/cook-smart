@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import jwt from 'jsonwebtoken';
 import AdminUserModel from '../models/AdminUser';
 import ApprovedAdminEmailModel from '../models/ApprovedAdminEmail';
 import AdminActivityLogger from '../services/AdminActivityLogger';
 
-const JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET =
+  process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRES_IN = '8h';
 
 export class AdminAuthController {
@@ -14,39 +15,51 @@ export class AdminAuthController {
    */
   async signup(req: Request, res: Response): Promise<void> {
     try {
-      const { email, username, password, name } = req.body;
+      const {email, username, password, name} = req.body;
 
       // Validate required fields
       if (!email || !username || !password) {
-        res.status(400).json({ error: 'Email, username, and password are required' });
+        res
+          .status(400)
+          .json({error: 'Email, username, and password are required'});
         return;
       }
 
       // Check if email is approved
       const isApproved = await ApprovedAdminEmailModel.isApproved(email);
       if (!isApproved) {
-        res.status(403).json({ error: 'Email not authorized for admin access' });
+        res.status(403).json({error: 'Email not authorized for admin access'});
         return;
       }
 
       // Check if username or email already exists
       const existingByEmail = await AdminUserModel.findByEmail(email);
       if (existingByEmail) {
-        res.status(409).json({ error: 'Email already registered' });
+        res.status(409).json({error: 'Email already registered'});
         return;
       }
 
       const existingByUsername = await AdminUserModel.findByUsername(username);
       if (existingByUsername) {
-        res.status(409).json({ error: 'Username already taken' });
+        res.status(409).json({error: 'Username already taken'});
         return;
       }
 
       // Create admin user
-      const admin = await AdminUserModel.create({ email, username, password, name });
+      const admin = await AdminUserModel.create({
+        email,
+        username,
+        password,
+        name,
+      });
 
       // Log signup
-      await AdminActivityLogger.logSignup(email, true, req.ip, req.get('user-agent'));
+      await AdminActivityLogger.logSignup(
+        email,
+        true,
+        req.ip,
+        req.get('user-agent'),
+      );
 
       // TODO: Send verification email with token
       // For now, we'll auto-verify in development
@@ -55,7 +68,8 @@ export class AdminAuthController {
       }
 
       res.status(201).json({
-        message: 'Registration successful. Please check your email for verification.',
+        message:
+          'Registration successful. Please check your email for verification.',
         admin: {
           id: admin.id,
           email: admin.email,
@@ -65,7 +79,7 @@ export class AdminAuthController {
       });
     } catch (error) {
       console.error('Signup error:', error);
-      res.status(500).json({ error: 'Registration failed' });
+      res.status(500).json({error: 'Registration failed'});
     }
   }
 
@@ -75,24 +89,24 @@ export class AdminAuthController {
    */
   async verifyEmail(req: Request, res: Response): Promise<void> {
     try {
-      const { token } = req.body;
+      const {token} = req.body;
 
       if (!token) {
-        res.status(400).json({ error: 'Verification token is required' });
+        res.status(400).json({error: 'Verification token is required'});
         return;
       }
 
       const success = await AdminUserModel.verifyEmail(token);
 
       if (!success) {
-        res.status(400).json({ error: 'Invalid or expired verification token' });
+        res.status(400).json({error: 'Invalid or expired verification token'});
         return;
       }
 
-      res.json({ message: 'Email verified successfully' });
+      res.json({message: 'Email verified successfully'});
     } catch (error) {
       console.error('Email verification error:', error);
-      res.status(500).json({ error: 'Email verification failed' });
+      res.status(500).json({error: 'Email verification failed'});
     }
   }
 
@@ -102,34 +116,57 @@ export class AdminAuthController {
    */
   async login(req: Request, res: Response): Promise<void> {
     try {
-      const { username, password } = req.body;
+      const {username, email, password} = req.body;
+      const loginIdentifier = username || email;
 
-      if (!username || !password) {
-        res.status(400).json({ error: 'Username and password are required' });
+      if (!loginIdentifier || !password) {
+        res
+          .status(400)
+          .json({error: 'Username/email and password are required'});
         return;
       }
 
-      // Find admin by username
-      const admin = await AdminUserModel.findByUsername(username);
+      // Find admin by username or email
+      let admin = null;
+      if (loginIdentifier.includes('@')) {
+        // If it contains @, treat as email
+        admin = await AdminUserModel.findByEmail(loginIdentifier);
+      } else {
+        // Otherwise, treat as username
+        admin = await AdminUserModel.findByUsername(loginIdentifier);
+      }
 
       if (!admin) {
-        await AdminActivityLogger.logFailedLogin(username, req.ip, req.get('user-agent'));
-        res.status(401).json({ error: 'Invalid credentials' });
+        await AdminActivityLogger.logFailedLogin(
+          loginIdentifier,
+          req.ip,
+          req.get('user-agent'),
+        );
+        res.status(401).json({error: 'Invalid credentials'});
         return;
       }
 
       // Check if email is verified
       if (!admin.email_verified) {
-        res.status(403).json({ error: 'Email not verified. Please check your email.' });
+        res
+          .status(403)
+          .json({error: 'Email not verified. Please check your email.'});
         return;
       }
 
       // Verify password
-      const isValidPassword = await AdminUserModel.verifyPassword(password, admin.password_hash);
+      const isValidPassword = await AdminUserModel.verifyPassword(
+        password,
+        admin.password_hash,
+      );
 
       if (!isValidPassword) {
-        await AdminActivityLogger.logFailedLogin(username, req.ip, req.get('user-agent'));
-        res.status(401).json({ error: 'Invalid credentials' });
+        await AdminActivityLogger.logFailedLogin(
+          loginIdentifier,
+          req.ip,
+          req.get('user-agent'),
+        );
+        res.status(401).json({error: 'Invalid credentials'});
         return;
       }
 
@@ -137,10 +174,16 @@ export class AdminAuthController {
       await AdminUserModel.updateLastLogin(admin.id);
 
       // Log successful login
-      await AdminActivityLogger.logLogin(admin.id, req.ip, req.get('user-agent'));
+      await AdminActivityLogger.logLogin(
+        admin.id,
+        req.ip,
+        req.get('user-agent'),
+      );
 
       // Check if super admin
-      const isSuperAdmin = await ApprovedAdminEmailModel.isSuperAdmin(admin.email);
+      const isSuperAdmin = await ApprovedAdminEmailModel.isSuperAdmin(
+        admin.email,
+      );
 
       // Generate JWT token
       const token = jwt.sign(
@@ -151,7 +194,7 @@ export class AdminAuthController {
           is_super_admin: isSuperAdmin,
         },
         JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
+        {expiresIn: JWT_EXPIRES_IN},
       );
 
       res.json({
@@ -167,7 +210,7 @@ export class AdminAuthController {
       });
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({ error: 'Login failed' });
+      res.status(500).json({error: 'Login failed'});
     }
   }
 
@@ -178,7 +221,7 @@ export class AdminAuthController {
   async logout(req: Request, res: Response): Promise<void> {
     // With JWT, logout is handled client-side by removing the token
     // We just return a success message
-    res.json({ message: 'Logged out successfully' });
+    res.json({message: 'Logged out successfully'});
   }
 
   /**
@@ -190,18 +233,20 @@ export class AdminAuthController {
       const adminId = (req as any).admin?.id;
 
       if (!adminId) {
-        res.status(401).json({ error: 'Not authenticated' });
+        res.status(401).json({error: 'Not authenticated'});
         return;
       }
 
       const admin = await AdminUserModel.findById(adminId);
 
       if (!admin) {
-        res.status(404).json({ error: 'Admin not found' });
+        res.status(404).json({error: 'Admin not found'});
         return;
       }
 
-      const isSuperAdmin = await ApprovedAdminEmailModel.isSuperAdmin(admin.email);
+      const isSuperAdmin = await ApprovedAdminEmailModel.isSuperAdmin(
+        admin.email,
+      );
 
       res.json({
         admin: {
@@ -216,7 +261,7 @@ export class AdminAuthController {
       });
     } catch (error) {
       console.error('Get current admin error:', error);
-      res.status(500).json({ error: 'Failed to get admin info' });
+      res.status(500).json({error: 'Failed to get admin info'});
     }
   }
 
@@ -226,10 +271,10 @@ export class AdminAuthController {
    */
   async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
-      const { email } = req.body;
+      const {email} = req.body;
 
       if (!email) {
-        res.status(400).json({ error: 'Email is required' });
+        res.status(400).json({error: 'Email is required'});
         return;
       }
 
@@ -237,14 +282,16 @@ export class AdminAuthController {
 
       if (!admin) {
         // Don't reveal if email exists
-        res.json({ message: 'If the email exists, a password reset link has been sent.' });
+        res.json({
+          message: 'If the email exists, a password reset link has been sent.',
+        });
         return;
       }
 
       const resetToken = await AdminUserModel.setResetToken(email);
 
       if (!resetToken) {
-        res.status(500).json({ error: 'Failed to generate reset token' });
+        res.status(500).json({error: 'Failed to generate reset token'});
         return;
       }
 
@@ -254,10 +301,12 @@ export class AdminAuthController {
         console.log(`Password reset token for ${email}: ${resetToken}`);
       }
 
-      res.json({ message: 'If the email exists, a password reset link has been sent.' });
+      res.json({
+        message: 'If the email exists, a password reset link has been sent.',
+      });
     } catch (error) {
       console.error('Forgot password error:', error);
-      res.status(500).json({ error: 'Password reset request failed' });
+      res.status(500).json({error: 'Password reset request failed'});
     }
   }
 
@@ -267,29 +316,29 @@ export class AdminAuthController {
    */
   async resetPassword(req: Request, res: Response): Promise<void> {
     try {
-      const { token, newPassword } = req.body;
+      const {token, newPassword} = req.body;
 
       if (!token || !newPassword) {
-        res.status(400).json({ error: 'Token and new password are required' });
+        res.status(400).json({error: 'Token and new password are required'});
         return;
       }
 
       if (newPassword.length < 8) {
-        res.status(400).json({ error: 'Password must be at least 8 characters' });
+        res.status(400).json({error: 'Password must be at least 8 characters'});
         return;
       }
 
       const success = await AdminUserModel.resetPassword(token, newPassword);
 
       if (!success) {
-        res.status(400).json({ error: 'Invalid or expired reset token' });
+        res.status(400).json({error: 'Invalid or expired reset token'});
         return;
       }
 
-      res.json({ message: 'Password reset successfully' });
+      res.json({message: 'Password reset successfully'});
     } catch (error) {
       console.error('Reset password error:', error);
-      res.status(500).json({ error: 'Password reset failed' });
+      res.status(500).json({error: 'Password reset failed'});
     }
   }
 }
