@@ -7,6 +7,11 @@ const controller = new AdminCacheController();
 
 router.use(requireAdmin);
 
+// Get cache status overview
+router.get('/status', async (req: Request, res: Response) => {
+  await controller.getStats(req, res);
+});
+
 router.get('/stats', async (req: Request, res: Response) => {
   await controller.getStats(req, res);
 });

@@ -7,6 +7,11 @@ const controller = new AdminCostsController();
 
 router.use(requireAdmin);
 
+// Get costs overview
+router.get('/overview', async (req: Request, res: Response) => {
+  await controller.getCurrentCosts(req, res);
+});
+
 router.get('/current', async (req: Request, res: Response) => {
   await controller.getCurrentCosts(req, res);
 });

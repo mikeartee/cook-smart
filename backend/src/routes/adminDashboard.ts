@@ -4,6 +4,61 @@ import {requireAdmin} from '../middleware/adminAuth';
 
 const router = express.Router();
 
+// Get dashboard overview (alias for stats)
+router.get('/overview', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    // Get comprehensive dashboard overview
+    const userStatsQuery = `
+      SELECT
+        COUNT(*) as total_users,
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) as new_users_today,
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as new_users_week,
+        COUNT(*) FILTER (WHERE subscription_status = 'free' OR subscription_status IS NULL) as beta_users,
+        COUNT(*) FILTER (WHERE subscription_status = 'active' OR has_lifetime_subscription = true) as active_subscriptions,
+        COUNT(*) FILTER (WHERE last_login_at >= CURRENT_DATE) as daily_active_users,
+        COUNT(*) FILTER (WHERE last_login_at >= CURRENT_DATE - INTERVAL '30 days') as monthly_active_users
+      FROM users
+    `;
+
+    const userStats = await pool.query(userStatsQuery);
+    const userData = userStats.rows[0];
+
+    // Get system health
+    const healthQuery = `SELECT NOW() as server_time, version() as db_version`;
+    const healthStats = await pool.query(healthQuery);
+    const healthData = healthStats.rows[0];
+
+    res.json({
+      success: true,
+      overview: {
+        users: {
+          total: parseInt(userData.total_users || '0'),
+          newToday: parseInt(userData.new_users_today || '0'),
+          newThisWeek: parseInt(userData.new_users_week || '0'),
+          dailyActive: parseInt(userData.daily_active_users || '0'),
+          monthlyActive: parseInt(userData.monthly_active_users || '0'),
+        },
+        subscriptions: {
+          active: parseInt(userData.active_subscriptions || '0'),
+          beta: parseInt(userData.beta_users || '0'),
+        },
+        system: {
+          serverTime: healthData.server_time,
+          databaseVersion: healthData.db_version,
+          status: 'healthy'
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard overview:', error);
+    res.status(500).json({
+      error: 'Failed to fetch dashboard overview',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Get dashboard stats
 router.get('/stats', requireAdmin, async (req: Request, res: Response) => {
   try {
