@@ -38,6 +38,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
     try {
+      console.log(
+        '[FatSecretAdapter] ===== SEARCH BY INGREDIENTS CALLED =====',
+      );
       console.log('[FatSecretAdapter] Searching by ingredients:', {
         ingredients,
         limit,
@@ -163,11 +166,34 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
       // CRITICAL FIX: Always use formatRecipesWithMatching for all code paths
       console.log(
-        `[FatSecretAdapter] CALLING formatRecipesWithMatching with ${recipes.length} recipes and ${ingredients.length} ingredients`,
+        `[FatSecretAdapter] ===== MAIN PATH: CALLING formatRecipesWithMatching =====`,
       );
+      console.log(
+        `[FatSecretAdapter] Input: ${recipes.length} recipes, ${ingredients.length} ingredients`,
+      );
+      console.log(
+        `[FatSecretAdapter] First recipe before formatting: ${recipes[0]?.recipe_name}`,
+      );
+
       const formattedRecipes = this.formatRecipesWithMatching(
         recipes,
         ingredients,
+      );
+
+      console.log(
+        `[FatSecretAdapter] ===== AFTER formatRecipesWithMatching =====`,
+      );
+      console.log(
+        `[FatSecretAdapter] Formatted ${formattedRecipes.length} recipes`,
+      );
+      console.log(
+        `[FatSecretAdapter] First recipe after formatting: ${formattedRecipes[0]?.title}`,
+      );
+      console.log(
+        `[FatSecretAdapter] First recipe matchPercentage: ${formattedRecipes[0]?.matchPercentage}`,
+      );
+      console.log(
+        `[FatSecretAdapter] First recipe usedIngredientCount: ${formattedRecipes[0]?.usedIngredientCount}`,
       );
 
       // Sort by ingredient match percentage (highest first)
@@ -177,8 +203,12 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         return bMatch - aMatch;
       });
 
+      console.log(`[FatSecretAdapter] ===== FINAL RESULT =====`);
       console.log(
-        `[FatSecretAdapter] Formatted recipes - first recipe match: ${sortedRecipes[0]?.matchPercentage}%`,
+        `[FatSecretAdapter] Returning ${sortedRecipes.length} sorted recipes`,
+      );
+      console.log(
+        `[FatSecretAdapter] Top recipe match: ${sortedRecipes[0]?.matchPercentage}% (${sortedRecipes[0]?.usedIngredientCount} ingredients)`,
       );
 
       // Return top results
@@ -230,7 +260,13 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     userIngredients: string[],
   ): Recipe[] {
     console.log(
-      `[FatSecretAdapter] formatRecipesWithMatching called with ${recipes.length} recipes and ${userIngredients.length} ingredients`,
+      `[FatSecretAdapter] ===== formatRecipesWithMatching ENTRY =====`,
+    );
+    console.log(
+      `[FatSecretAdapter] Called with ${recipes.length} recipes and ${userIngredients.length} ingredients`,
+    );
+    console.log(
+      `[FatSecretAdapter] User ingredients: ${userIngredients.slice(0, 5).join(', ')}`,
     );
 
     return recipes.map((recipe: any): Recipe => {
