@@ -159,6 +159,51 @@ router.get('/recipe/:id', async (req, res): Promise<void> => {
   }
 });
 
+// Debug: Check recipe images
+router.get('/debug/images', async (req, res): Promise<void> => {
+  try {
+    console.log('[Debug] Checking recipe images...');
+
+    // Get a few recipes from FatSecret
+    const recipes = await FatSecretService.searchRecipesAdvanced({
+      query: 'chicken',
+      maxResults: 3,
+    });
+
+    const debugInfo = recipes.map(recipe => ({
+      recipe_id: recipe.recipe_id,
+      recipe_name: recipe.recipe_name,
+      recipe_image: recipe.recipe_image,
+      recipe_images: recipe.recipe_images,
+      all_fields: Object.keys(recipe),
+      image_fields: Object.keys(recipe)
+        .filter(
+          key =>
+            key.toLowerCase().includes('image') ||
+            key.toLowerCase().includes('photo'),
+        )
+        .reduce((acc, key) => {
+          acc[key] = recipe[key];
+          return acc;
+        }, {} as any),
+    }));
+
+    res.json({
+      success: true,
+      debug_info: debugInfo,
+      message: 'Check console logs for detailed recipe structure',
+    });
+
+    console.log(
+      '[Debug] Recipe image analysis:',
+      JSON.stringify(debugInfo, null, 2),
+    );
+  } catch (error) {
+    console.error('[Debug] Error:', error);
+    res.status(500).json({error: 'Debug failed'});
+  }
+});
+
 // Admin: Trigger cache refresh
 router.post(
   '/admin/refresh',
