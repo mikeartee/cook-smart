@@ -8,112 +8,7 @@ import {authenticateToken, AuthRequest} from '../middleware/auth';
 import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
-
-/**
- * Clean ingredient names from user input
- * Removes quantities, measurements, and extra descriptive text
- */
-function cleanIngredientName(rawName: string): string {
-  if (!rawName) return '';
-
-  let cleaned = rawName.toLowerCase().trim();
-
-  // Handle ingredients that start with punctuation or measurements
-  if (
-    cleaned.startsWith(',') ||
-    cleaned.startsWith('fl oz') ||
-    cleaned.startsWith('serving')
-  ) {
-    // Look for the actual ingredient name after the measurement/punctuation
-    const words = cleaned.split(/[,\s]+/).filter(word => word.length > 2);
-    const ingredientWords = words.filter(
-      word =>
-        ![
-          'cup',
-          'cups',
-          'tbsp',
-          'tsp',
-          'oz',
-          'fl',
-          'lb',
-          'lbs',
-          'g',
-          'kg',
-          'ml',
-          'l',
-          'serving',
-          'servings',
-          'piece',
-          'pieces',
-          'slice',
-          'slices',
-          'chopped',
-          'sliced',
-          'diced',
-          'minced',
-        ].includes(word) && !/^\d/.test(word), // Not starting with a number
-    );
-
-    if (ingredientWords.length > 0) {
-      return ingredientWords[0];
-    }
-  }
-
-  // Remove everything after first comma (descriptions)
-  cleaned = cleaned.split(',')[0].trim();
-
-  // Remove "NS as to" patterns
-  cleaned = cleaned.replace(/\bns as to\b.*$/i, '');
-
-  // Remove numbers and fractions
-  cleaned = cleaned.replace(/\b\d+[\s\w]*\b/g, ''); // Remove numbers with units
-  cleaned = cleaned.replace(/\b\d+\/\d+\b/g, ''); // Remove fractions
-  cleaned = cleaned.replace(/\b\d+\.\d+\b/g, ''); // Remove decimals
-
-  // Remove measurement units
-  const units = [
-    'cup',
-    'cups',
-    'tbsp',
-    'tsp',
-    'oz',
-    'fl oz',
-    'lb',
-    'lbs',
-    'g',
-    'kg',
-    'ml',
-    'l',
-    'serving',
-    'servings',
-    'piece',
-    'pieces',
-    'slice',
-    'slices',
-  ];
-  units.forEach(unit => {
-    cleaned = cleaned.replace(new RegExp(`\\b${unit}s?\\b`, 'gi'), '');
-  });
-
-  // Remove preparation methods
-  cleaned = cleaned.replace(
-    /\b(chopped|sliced|diced|minced|fresh|dried|ground)\b/gi,
-    '',
-  );
-
-  // Clean up whitespace and punctuation
-  cleaned = cleaned.replace(/[,;:()]/g, ' ');
-  cleaned = cleaned.replace(/\s+/g, ' ');
-  cleaned = cleaned.trim();
-
-  // Get the first meaningful word
-  const words = cleaned.split(' ').filter(word => word.length > 2);
-  if (words.length > 0) {
-    return words[0];
-  }
-
-  return cleaned;
-}
+import {IngredientStandardizationService} from '../services/IngredientStandardizationService';
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -204,10 +99,22 @@ router.get(
         return;
       }
 
-      let ingredientList = ingredients
+      // Standardize ingredients from query parameter
+      const rawIngredients = ingredients
         .split(',')
-        .map(i => cleanIngredientName(i.trim()))
-        .filter(i => i.length > 2);
+        .map(i => i.trim())
+        .filter(i => i.length > 0);
+      const standardizedFromQuery = await Promise.all(
+        rawIngredients.map(name =>
+          IngredientStandardizationService.getStandardizedNameForMatching(name),
+        ),
+      );
+
+      let ingredientList = standardizedFromQuery.filter(i => i.length > 2);
+
+      console.log(
+        `Query ingredients standardized: ${rawIngredients.join(',')} → ${ingredientList.join(',')}`,
+      );
 
       // If no ingredients provided, get user's ingredients from database
       if (ingredientList.length === 0 && req.user?.id) {
@@ -224,11 +131,31 @@ router.get(
             [req.user.id],
           );
 
-          const allUserIngredients = userIngredientsQuery.rows
+          // Get raw ingredient names and standardize them
+          const rawIngredientNames = userIngredientsQuery.rows
             .map(row => row.ingredient_name || row.name)
-            .filter(name => name && name.length > 0)
-            .map(name => cleanIngredientName(name))
-            .filter(name => name && name.length > 2);
+            .filter(name => name && name.length > 0);
+
+          console.log(
+            `Raw ingredients from DB: ${rawIngredientNames.slice(0, 3).join(', ')}`,
+          );
+
+          // Standardize ingredients for better matching
+          const standardizedIngredients = await Promise.all(
+            rawIngredientNames.map(name =>
+              IngredientStandardizationService.getStandardizedNameForMatching(
+                name,
+              ),
+            ),
+          );
+
+          const allUserIngredients = standardizedIngredients.filter(
+            name => name && name.length > 2,
+          );
+
+          console.log(
+            `Standardized ingredients: ${allUserIngredients.slice(0, 3).join(', ')}`,
+          );
 
           // For large inventories, prioritize common/versatile ingredients
           ingredientList = prioritizeIngredientsForSearch(allUserIngredients);
