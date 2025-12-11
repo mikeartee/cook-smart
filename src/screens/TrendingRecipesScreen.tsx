@@ -50,9 +50,11 @@ export default function TrendingRecipesScreen({navigation}: any) {
             recipeId: recipe.recipe_id || recipe.id,
           })
         }>
-        {(recipe.image_url || recipe.image) && (
+        {(recipe.recipe_image || recipe.image_url || recipe.image) && (
           <Image
-            source={{uri: recipe.image_url || recipe.image}}
+            source={{
+              uri: recipe.recipe_image || recipe.image_url || recipe.image,
+            }}
             style={styles.recipeImage}
           />
         )}

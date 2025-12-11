@@ -112,7 +112,19 @@ class SocialService {
 
   async getTrendingRecipes(limit = 20) {
     const response = await fetch(`${API_URL}/trending-recipes?limit=${limit}`);
-    return response.json();
+    const data = await response.json();
+
+    // Map recipe_image to image for consistency
+    if (data.recipes) {
+      data.recipes = data.recipes.map((recipe: any) => ({
+        ...recipe,
+        image: recipe.recipe_image || recipe.image_url || recipe.image || '',
+        title: recipe.recipe_name || recipe.title || 'Untitled Recipe',
+        id: recipe.recipe_id || recipe.id,
+      }));
+    }
+
+    return data;
   }
 }
 
