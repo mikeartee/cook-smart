@@ -8,6 +8,42 @@ export class AdminErrorsController {
    */
   async listErrors(req: Request, res: Response): Promise<void> {
     try {
+      // Check if error_logs table exists
+      const tableCheckQuery = `
+        SELECT table_name FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'error_logs'
+      `;
+      const tableCheck = await pool.query(tableCheckQuery);
+
+      if (tableCheck.rows.length === 0) {
+        // Table doesn't exist, return empty results
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 50;
+        
+        res.json({
+          errors: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            pages: 0,
+          },
+          statistics: {
+            total: 0,
+            bySeverity: {
+              critical: 0,
+              high: 0,
+              medium: 0,
+              low: 0,
+            },
+            unresolved: 0,
+            autoRepaired: 0,
+            resolutionRate: 0,
+          },
+          message: 'Error logging system not yet configured'
+        });
+        return;
+      }
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
       const severity = req.query.severity as string;
