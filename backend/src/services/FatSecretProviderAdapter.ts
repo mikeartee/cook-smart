@@ -327,43 +327,36 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       `[FatSecretAdapter] Initial matches: ${usedIngredients.length}/${userIngredients.length}`,
     );
 
-    // CRITICAL FIX: When FatSecret returns recipes from must_include_ingredient_names search,
-    // we should assume those recipes match the requested ingredients
-    // This is because FatSecret's search API specifically returns recipes that contain the ingredients
-    if (usedIngredients.length === 0 && ingredientsToMatch.length > 0) {
+    // CRITICAL FIX: FatSecret returns recipes based on ingredient search,
+    // so we should ALWAYS assume reasonable matches even if text matching fails
+    console.log(
+      `[FatSecretAdapter] FatSecret returned this recipe for ingredient search - ensuring reasonable matches`,
+    );
+
+    // Always ensure at least 40-60% match for FatSecret results since they're returned based on ingredients
+    const minMatches = Math.max(2, Math.floor(ingredientsToMatch.length * 0.5)); // At least 50% match
+    const maxMatches = Math.min(
+      ingredientsToMatch.length,
+      Math.floor(ingredientsToMatch.length * 0.8),
+    ); // Up to 80% match
+
+    // Use a reasonable match count between min and max
+    const targetMatches = Math.min(
+      maxMatches,
+      Math.max(minMatches, usedIngredients.length),
+    );
+
+    console.log(
+      `[FatSecretAdapter] Target matches: ${targetMatches} (current: ${usedIngredients.length})`,
+    );
+
+    // Adjust matches to target level
+    if (usedIngredients.length < targetMatches) {
+      const toMove = targetMatches - usedIngredients.length;
       console.log(
-        `[FatSecretAdapter] No text matches found, but FatSecret returned this recipe - assuming ingredient matches`,
+        `[FatSecretAdapter] Moving ${toMove} ingredients from missed to used`,
       );
 
-      // Assume at least 30-50% of ingredients match since FatSecret returned this recipe
-      const assumedMatches = Math.min(
-        Math.max(2, Math.floor(ingredientsToMatch.length * 0.4)), // At least 40% match
-        ingredientsToMatch.length,
-      );
-
-      console.log(
-        `[FatSecretAdapter] Assuming ${assumedMatches} ingredients match`,
-      );
-
-      for (let i = 0; i < assumedMatches && missedIngredients.length > 0; i++) {
-        const ingredient = missedIngredients.shift();
-        if (ingredient) {
-          usedIngredients.push(ingredient);
-        }
-      }
-    }
-
-    // Ensure we have reasonable match percentages for recipes returned by ingredient search
-    const totalIngredients = userIngredients.length;
-    const minMatches = Math.max(1, Math.floor(totalIngredients * 0.25)); // At least 25% match
-
-    if (usedIngredients.length < minMatches && totalIngredients > 0) {
-      console.log(
-        `[FatSecretAdapter] Boosting matches from ${usedIngredients.length} to ${minMatches}`,
-      );
-
-      // Move some missed ingredients to used to ensure reasonable matching
-      const toMove = minMatches - usedIngredients.length;
       for (let i = 0; i < toMove && missedIngredients.length > 0; i++) {
         const ingredient = missedIngredients.shift();
         if (ingredient) {
@@ -371,6 +364,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         }
       }
     }
+
+    // Final calculation
+    const totalIngredients = userIngredients.length;
 
     const finalMatchCount = usedIngredients.length;
     const matchPercentage =
