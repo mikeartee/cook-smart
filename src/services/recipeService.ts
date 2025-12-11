@@ -115,7 +115,15 @@ class RecipeService {
       throw new Error(data.error || 'Failed to search recipes');
     }
 
-    return data.recipes || [];
+    // Map recipe_image to image for consistency
+    const recipes = (data.recipes || []).map((recipe: any) => ({
+      ...recipe,
+      image: recipe.recipe_image || recipe.image_url || recipe.image || '',
+      imageUrl:
+        recipe.recipe_image || recipe.image_url || recipe.imageUrl || '',
+    }));
+
+    return recipes;
   }
 
   // Get recipe details
@@ -163,7 +171,22 @@ class RecipeService {
         throw new Error('Recipe not found');
       }
 
-      return data.recipe;
+      // Map recipe_image to image for consistency
+      const recipe = {
+        ...data.recipe,
+        image:
+          data.recipe.recipe_image ||
+          data.recipe.image_url ||
+          data.recipe.image ||
+          '',
+        imageUrl:
+          data.recipe.recipe_image ||
+          data.recipe.image_url ||
+          data.recipe.imageUrl ||
+          '',
+      };
+
+      return recipe;
     } catch (error) {
       console.error('[RecipeService] Error in getRecipeDetails:', error);
       throw error;
