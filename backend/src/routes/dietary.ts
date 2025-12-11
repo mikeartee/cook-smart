@@ -4,6 +4,23 @@ import {AllergyModel} from '../models/Allergy';
 
 const router = express.Router();
 
+// Default endpoint for /api/v1/dietary
+router.get('/', async (req, res) => {
+  try {
+    const [restrictions, allergies] = await Promise.all([
+      DietaryRestrictionModel.getAll(),
+      AllergyModel.getAll(),
+    ]);
+    res.json({
+      restrictions,
+      allergies,
+      message: 'Dietary preferences and allergies retrieved successfully',
+    });
+  } catch (_error) {
+    res.status(500).json({error: 'Failed to fetch dietary information'});
+  }
+});
+
 // Get all dietary restrictions
 router.get('/restrictions', async (req, res) => {
   try {
@@ -87,7 +104,12 @@ router.post('/allergies/user/:userId', async (req, res) => {
   try {
     const {userId} = req.params;
     const {allergyId, severityOverride, notes} = req.body;
-    console.log('Adding allergy:', {userId, allergyId, severityOverride, notes});
+    console.log('Adding allergy:', {
+      userId,
+      allergyId,
+      severityOverride,
+      notes,
+    });
     await AllergyModel.addUserAllergy(
       userId,
       allergyId,
@@ -123,7 +145,10 @@ router.post('/allergies/custom/:userId', async (req, res) => {
 router.delete('/restrictions/user/:userId/:restrictionId', async (req, res) => {
   try {
     const {userId, restrictionId} = req.params;
-    await DietaryRestrictionModel.removeUserRestriction(userId, parseInt(restrictionId));
+    await DietaryRestrictionModel.removeUserRestriction(
+      userId,
+      parseInt(restrictionId),
+    );
     res.json({success: true});
   } catch (_error) {
     res.status(500).json({error: 'Failed to remove restriction'});

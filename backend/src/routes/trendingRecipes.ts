@@ -7,6 +7,10 @@ const router = express.Router();
 // Get trending recipes - Always fresh from FatSecret
 // Cache in background to build database
 router.get('/trending', async (req, res) => {
+  // Disable HTTP caching
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     const limit = parseInt(req.query.limit as string) || 20;
 
@@ -36,6 +40,10 @@ router.get('/trending', async (req, res) => {
 // Get seasonal recipes - Always fresh from FatSecret
 // Cache in background to build database
 router.get('/seasonal', async (req, res) => {
+  // Disable HTTP caching
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
   try {
     const season = (req.query.season as string) || getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;

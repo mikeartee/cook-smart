@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   RefreshControl,
   Modal,
@@ -15,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
 import ingredientService from '../../services/ingredientService';
 import {Recipe} from '../../services/recipeService';
+import {RecipeImage} from '../../components/RecipeImage';
 
 interface RecipeSearchScreenProps {
   navigation: any;
@@ -148,19 +148,12 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       style={styles.recipeCard}
       onPress={() => navigation.navigate('RecipeDetail', {recipeId: item.id})}
       activeOpacity={0.7}>
-      {item.image ? (
-        <Image
-          source={{uri: item.image}}
-          style={styles.recipeImage}
-          onError={() =>
-            console.log('Recipe image failed to load:', item.image)
-          }
-        />
-      ) : (
-        <View style={[styles.recipeImage, styles.placeholderImage]}>
-          <Text style={styles.placeholderText}>🍽️</Text>
-        </View>
-      )}
+      <RecipeImage
+        imageUrl={item.image}
+        style={styles.recipeImage}
+        placeholderStyle={styles.placeholderImage}
+        showSubtext={false}
+      />
 
       {/* Nutrition Badge */}
       {item.calories && (

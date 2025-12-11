@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
   Alert,
   RefreshControl,
 } from 'react-native';
@@ -13,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useRecipes} from '../../contexts/RecipeContext';
 import {SavedRecipe} from '../../services/recipeService';
 import {addMealPlan} from '../../services/recipeEnhancementService';
+import {RecipeImage} from '../../components/RecipeImage';
 
 interface SavedRecipesScreenProps {
   navigation: any;
@@ -107,19 +107,12 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({
         style={[styles.recipeCard, isSelected && styles.recipeCardSelected]}
         onPress={() => handleRecipePress(item.recipe.id)}
         activeOpacity={0.7}>
-        {item.recipe.image ? (
-          <Image
-            source={{uri: item.recipe.image}}
-            style={styles.recipeImage}
-            onError={() =>
-              console.log('Recipe image failed to load:', item.recipe.image)
-            }
-          />
-        ) : (
-          <View style={[styles.recipeImage, styles.placeholderImage]}>
-            <Text style={styles.placeholderText}>🍽️</Text>
-          </View>
-        )}
+        <RecipeImage
+          imageUrl={item.recipe.image}
+          style={styles.recipeImage}
+          placeholderStyle={styles.placeholderImage}
+          showSubtext={false}
+        />
 
         {selectMode && isSelected && (
           <View style={styles.selectedBadge}>

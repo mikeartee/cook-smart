@@ -59,11 +59,11 @@ class FeedbackController {
 
       const user = (req as any).user;
 
-      // For public endpoint, user is optional (BETA feature)
-      // For authenticated endpoint, user is required
-      const isPublicEndpoint = req.path.includes('/public');
+      // For BETA: Allow feedback submission without authentication
+      // This allows users to submit feedback even if not logged in
+      const allowPublicFeedback = true; // BETA feature
 
-      if (!user && !isPublicEndpoint) {
+      if (!user && !allowPublicFeedback) {
         res.status(401).json({
           error: 'Unauthorized',
           message: 'User not authenticated',

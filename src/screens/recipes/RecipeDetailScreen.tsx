@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   ActivityIndicator,
   Linking,
@@ -29,6 +28,7 @@ import {
 import RecipeSocialActions from '../../components/RecipeSocialActions';
 import RecipeComments from '../../components/RecipeComments';
 import {NutritionFacts} from '../../components/NutritionFacts';
+import {RecipeImage} from '../../components/RecipeImage';
 
 interface RecipeDetailScreenProps {
   route: any;
@@ -657,20 +657,11 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
         {/* Recipe Image */}
-        {recipe.image ? (
-          <Image
-            source={{uri: recipe.image}}
-            style={styles.image}
-            onError={() =>
-              console.log('Recipe image failed to load:', recipe.image)
-            }
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Text style={styles.placeholderText}>🍽️</Text>
-            <Text style={styles.placeholderSubtext}>No Image Available</Text>
-          </View>
-        )}
+        <RecipeImage
+          imageUrl={recipe.image}
+          style={styles.image}
+          placeholderStyle={styles.placeholderImage}
+        />
 
         {/* Recipe Info */}
         <View style={styles.content}>
