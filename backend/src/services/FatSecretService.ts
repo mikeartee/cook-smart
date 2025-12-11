@@ -397,10 +397,6 @@ class FatSecretService {
       fat: Math.round(parseFloat(serving.fat) * multiplier * 10) / 10,
     };
   }
-
-  isConfigured(): boolean {
-    return Boolean(this.config.clientId && this.config.clientSecret);
-  }
 }
 
 export default new FatSecretService();

@@ -14,9 +14,16 @@ interface BarcodeResult {
       fat: number;
     };
     barcode: string;
-    source: 'fatsecret' | 'openfoodfacts' | 'nutritionix' | 'usda' | 'manual';
+    source:
+      | 'fatsecret'
+      | 'openfoodfacts'
+      | 'nutritionix'
+      | 'usda'
+      | 'manual'
+      | 'upcitemdb';
   };
   manualEntryRequired?: boolean;
+  suggestions?: any[];
 }
 
 class BarcodeService {

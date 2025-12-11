@@ -31,7 +31,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
     }
 
     // Return empty referrals for now to avoid database issues
-    const referrals = [];
+    const referrals: any[] = [];
     return res.json({
       referrals,
       totalReferrals: 0,
