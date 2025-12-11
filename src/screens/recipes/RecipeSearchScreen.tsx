@@ -148,7 +148,19 @@ export const RecipeSearchScreen: React.FC<RecipeSearchScreenProps> = ({
       style={styles.recipeCard}
       onPress={() => navigation.navigate('RecipeDetail', {recipeId: item.id})}
       activeOpacity={0.7}>
-      <Image source={{uri: item.image}} style={styles.recipeImage} />
+      {item.image ? (
+        <Image
+          source={{uri: item.image}}
+          style={styles.recipeImage}
+          onError={() =>
+            console.log('Recipe image failed to load:', item.image)
+          }
+        />
+      ) : (
+        <View style={[styles.recipeImage, styles.placeholderImage]}>
+          <Text style={styles.placeholderText}>🍽️</Text>
+        </View>
+      )}
 
       {/* Nutrition Badge */}
       {item.calories && (
@@ -514,6 +526,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     backgroundColor: '#E5E7EB',
+  },
+  placeholderImage: {
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 32,
   },
   nutritionBadge: {
     position: 'absolute',

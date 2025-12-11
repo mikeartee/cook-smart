@@ -15,6 +15,23 @@ import FatSecretService from './FatSecretService';
 class FatSecretProviderAdapter implements IRecipeProvider {
   private service = FatSecretService;
 
+  private getValidImageUrl(imageUrl: string | undefined): string {
+    // Return empty string if no image URL provided
+    if (!imageUrl || imageUrl.trim() === '') {
+      return '';
+    }
+
+    // Check if it's a valid URL format
+    try {
+      new URL(imageUrl);
+      return imageUrl;
+    } catch {
+      // If invalid URL, return empty string
+      console.log('[FatSecretAdapter] Invalid image URL:', imageUrl);
+      return '';
+    }
+  }
+
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
@@ -96,8 +113,17 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       const recipes = await this.service.searchRecipes(searchQuery, limit);
 
       return this.formatRecipes(recipes);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[FatSecretAdapter] Search error:', error);
+
+      // Check for IP blocking error
+      if (error.response?.data?.error?.code === 21) {
+        console.error(
+          '[FatSecretAdapter] IP BLOCKED by FatSecret:',
+          error.response.data.error.message,
+        );
+      }
+
       return [];
     }
   }
@@ -107,7 +133,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       (recipe: any): Recipe => ({
         id: recipe.recipe_id, // Keep as-is from FatSecret API
         title: recipe.recipe_name,
-        image: recipe.recipe_image || '',
+        image: this.getValidImageUrl(recipe.recipe_image),
         servings: parseInt(recipe.number_of_servings) || 4,
         readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
         sourceUrl: `https://www.fatsecret.com/recipes/${recipe.recipe_id}`,
@@ -178,7 +204,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
       return {
         id: recipe.recipe_id,
         title: recipe.recipe_name,
-        image: recipe.recipe_image || '',
+        image: this.getValidImageUrl(recipe.recipe_image),
         servings: parseInt(recipe.number_of_servings) || 4,
         readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
         sourceUrl: `https://www.fatsecret.com/recipes/${recipe.recipe_id}`,

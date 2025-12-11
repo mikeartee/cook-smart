@@ -657,7 +657,20 @@ export const RecipeDetailScreen: React.FC<RecipeDetailScreenProps> = ({
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
         {/* Recipe Image */}
-        <Image source={{uri: recipe.image}} style={styles.image} />
+        {recipe.image ? (
+          <Image
+            source={{uri: recipe.image}}
+            style={styles.image}
+            onError={() =>
+              console.log('Recipe image failed to load:', recipe.image)
+            }
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Text style={styles.placeholderText}>🍽️</Text>
+            <Text style={styles.placeholderSubtext}>No Image Available</Text>
+          </View>
+        )}
 
         {/* Recipe Info */}
         <View style={styles.content}>
@@ -980,6 +993,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     backgroundColor: '#E5E7EB',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: 250,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  placeholderSubtext: {
+    fontSize: 16,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   content: {
     padding: 16,

@@ -107,7 +107,19 @@ export const SavedRecipesScreen: React.FC<SavedRecipesScreenProps> = ({
         style={[styles.recipeCard, isSelected && styles.recipeCardSelected]}
         onPress={() => handleRecipePress(item.recipe.id)}
         activeOpacity={0.7}>
-        <Image source={{uri: item.recipe.image}} style={styles.recipeImage} />
+        {item.recipe.image ? (
+          <Image
+            source={{uri: item.recipe.image}}
+            style={styles.recipeImage}
+            onError={() =>
+              console.log('Recipe image failed to load:', item.recipe.image)
+            }
+          />
+        ) : (
+          <View style={[styles.recipeImage, styles.placeholderImage]}>
+            <Text style={styles.placeholderText}>🍽️</Text>
+          </View>
+        )}
 
         {selectMode && isSelected && (
           <View style={styles.selectedBadge}>
@@ -310,6 +322,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     backgroundColor: '#E5E7EB',
+  },
+  placeholderImage: {
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 32,
   },
   recipeInfo: {
     padding: 16,
