@@ -390,7 +390,7 @@ class AnalyticsServiceClass {
       daily_active AS (
         SELECT
           DATE(last_login_at) as date,
-          COUNT(DISTINCT user_id) as active_users
+          COUNT(DISTINCT id) as active_users
         FROM users
         WHERE last_login_at >= CURRENT_DATE - INTERVAL '${days} days'
         GROUP BY DATE(last_login_at)
@@ -461,36 +461,54 @@ class AnalyticsServiceClass {
    * Get feature usage statistics
    */
   async getFeatureUsage(): Promise<FeatureUsage[]> {
-    const queries = [
-      {
-        feature: 'Ingredients Added',
-        query: 'SELECT COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users FROM user_ingredients',
-      },
-      {
-        feature: 'Recipes Saved',
-        query: 'SELECT COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users FROM user_recipes',
-      },
-      {
-        feature: 'Recipe Searches',
-        query: 'SELECT COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users FROM recipe_cache WHERE user_id IS NOT NULL',
-      },
-      {
-        feature: 'Feedback Submitted',
-        query: 'SELECT COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users FROM feedback',
-      },
+    const features = [
+      { name: 'Total Users', table: 'users', userColumn: 'id' },
+      { name: 'Feedback Submitted', table: 'feedback', userColumn: 'user_id' },
+      { name: 'Recipe Searches', table: 'recipe_cache', userColumn: 'user_id' },
+      { name: 'Password Resets', table: 'password_reset_tokens', userColumn: 'user_id' }
     ];
 
-    const results = await Promise.all(
-      queries.map(async ({ feature, query }) => {
-        const result = await pool.query(query);
-        const row = result.rows[0];
-        return {
-          feature,
-          count: parseInt(row.count || 0),
-          uniqueUsers: parseInt(row.unique_users || 0),
-        };
-      })
-    );
+    const results = [];
+
+    for (const { name, table, userColumn } of features) {
+      try {
+        // Check if table exists
+        const tableCheck = await pool.query(`
+          SELECT table_name FROM information_schema.tables 
+          WHERE table_schema = 'public' AND table_name = $1
+        `, [table]);
+
+        if (tableCheck.rows.length > 0) {
+          // Table exists, get counts
+          const countQuery = userColumn 
+            ? `SELECT COUNT(*) as count, COUNT(DISTINCT ${userColumn}) as unique_users FROM ${table}`
+            : `SELECT COUNT(*) as count, COUNT(*) as unique_users FROM ${table}`;
+            
+          const result = await pool.query(countQuery);
+          const row = result.rows[0];
+          
+          results.push({
+            feature: name,
+            count: parseInt(row.count || 0),
+            uniqueUsers: parseInt(row.unique_users || 0),
+          });
+        } else {
+          // Table doesn't exist, return zeros
+          results.push({
+            feature: name,
+            count: 0,
+            uniqueUsers: 0,
+          });
+        }
+      } catch (error) {
+        console.error(`[Analytics] Error getting ${name} stats:`, error);
+        results.push({
+          feature: name,
+          count: 0,
+          uniqueUsers: 0,
+        });
+      }
+    }
 
     return results;
   }
