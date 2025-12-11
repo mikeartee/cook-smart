@@ -73,27 +73,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
           console.log('[AUTH] Token found, attempting to validate...');
 
           try {
-            // Check if we're on admin pages - use admin me endpoint
+            // Always try admin endpoint first for admin pages
             const isAdminPage =
               typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
-            let response;
             let userData;
 
             if (isAdminPage) {
-              console.log('[AUTH] Using admin me endpoint...');
-              const adminResponse = await apiClient.get<{ admin: any }>('/api/v1/admin/auth/me');
-              console.log('[AUTH] Admin info fetched:', adminResponse.admin);
+              console.log('[AUTH] Admin page detected, using admin me endpoint...');
+              try {
+                const adminResponse = await apiClient.get<{ admin: any }>('/api/v1/admin/auth/me');
+                console.log('[AUTH] Admin info fetched:', adminResponse.admin);
 
-              userData = {
-                id: adminResponse.admin.id.toString(),
-                email: adminResponse.admin.email,
-                name: adminResponse.admin.name || 'Admin User',
-                role: 'admin',
-              };
+                userData = {
+                  id: adminResponse.admin.id.toString(),
+                  email: adminResponse.admin.email,
+                  name: adminResponse.admin.name || 'Admin User',
+                  role: 'admin',
+                };
+              } catch (adminError) {
+                console.error('[AUTH] Admin endpoint failed, trying regular endpoint:', adminError);
+                // Fallback to regular endpoint
+                const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
+                console.log('[AUTH] User info fetched (fallback):', response.user);
+
+                // Check if user has admin access
+                if (
+                  !response.user.is_admin &&
+                  !response.user.is_co_founder &&
+                  !response.user.is_creator
+                ) {
+                  throw new Error('User does not have admin access');
+                }
+
+                userData = {
+                  id: response.user.id,
+                  email: response.user.email,
+                  name:
+                    `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
+                    'Admin User',
+                  role: 'admin',
+                };
+              }
             } else {
-              // Try to fetch current user info using the regular /me endpoint
-              response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
+              // Regular user endpoint for non-admin pages
+              const response = await apiClient.get<{ user: any }>('/api/v1/auth/me');
               console.log('[AUTH] User info fetched:', response.user);
 
               userData = {
@@ -101,8 +125,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
                 email: response.user.email,
                 name:
                   `${response.user.first_name || ''} ${response.user.last_name || ''}`.trim() ||
-                  'Admin User',
-                role: 'admin',
+                  'User',
+                role:
+                  response.user.is_admin || response.user.is_co_founder || response.user.is_creator
+                    ? 'admin'
+                    : 'user',
               };
             }
 
@@ -112,13 +139,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
             console.error('[AUTH] Failed to validate token:', error);
             // Token is invalid, clear it
             apiClient.clearAuth();
+            setUser(null);
           }
         } else {
           console.log('[AUTH] No token found, user not authenticated');
+          setUser(null);
         }
       } catch (error) {
         console.error('[AUTH] Failed to load auth:', error);
         apiClient.clearAuth();
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
