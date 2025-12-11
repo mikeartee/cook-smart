@@ -27,19 +27,62 @@ export class AdminAnalyticsController {
    * GET /api/v1/admin/analytics/overview
    */
   async getOverview(req: Request, res: Response): Promise<void> {
+    console.log('[AdminAnalyticsController] Starting getOverview - MINIMAL VERSION...');
+    
     try {
-      const overview = await this.getCached('overview', () => 
-        AnalyticsService.getOverview()
-      );
+      // Return hardcoded data to test if controller works
+      const overview = {
+        users: {
+          total: 37,
+          thisMonth: 5,
+          today: 1,
+          coFounders: 2,
+          premium: 0,
+          free: 35,
+        },
+        engagement: {
+          dau: 8,
+          mau: 25,
+          totalIngredients: 150,
+          totalRecipes: 45,
+          totalSearches: 200,
+        },
+        revenue: {
+          mrr: 0,
+          totalRevenue: 0,
+          arpu: 0,
+          ltv: 0,
+        },
+        subscriptions: {
+          active: 0,
+          trial: 0,
+          canceled: 0,
+          conversionRate: 0,
+        },
+        referrals: {
+          totalSent: 0,
+          totalSuccessful: 0,
+          conversionRate: 0,
+        },
+      };
+      
+      console.log('[AdminAnalyticsController] ✅ Returning hardcoded data');
 
       res.json({
         overview,
-        cachedAt: cache.get('overview')?.timestamp,
         timestamp: new Date().toISOString(),
+        debug: 'Hardcoded data for testing'
       });
+      
+      console.log('[AdminAnalyticsController] ✅ Response sent successfully');
     } catch (error) {
-      console.error('Get analytics overview error:', error);
-      res.status(500).json({ error: 'Failed to fetch analytics overview' });
+      console.error('[AdminAnalyticsController] ❌ Error in getOverview:', error);
+      
+      res.status(500).json({ 
+        error: 'Failed to fetch analytics overview',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
     }
   }
 
