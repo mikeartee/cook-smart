@@ -20,21 +20,18 @@ export class AdminRecipesController {
       const values: any[] = [];
       let paramCount = 1;
 
-      // Search by title or description
+      // Search by title only (description might not exist)
       if (search) {
-        conditions.push(`(
-          LOWER(ur.recipe_title) LIKE LOWER($${paramCount}) OR 
-          LOWER(ur.recipe_description) LIKE LOWER($${paramCount})
-        )`);
+        conditions.push(`LOWER(ur.recipe_title) LIKE LOWER($${paramCount})`);
         values.push(`%${search}%`);
         paramCount++;
       }
 
       // Filter by status (for now, all user recipes are considered 'published')
       if (status === 'draft') {
-        conditions.push(`ur.is_private = true`);
+        conditions.push(`COALESCE(ur.is_private, false) = true`);
       } else if (status === 'published') {
-        conditions.push(`ur.is_private = false`);
+        conditions.push(`COALESCE(ur.is_private, false) = false`);
       }
 
       const whereClause =
@@ -50,26 +47,23 @@ export class AdminRecipesController {
       const countResult = await pool.query(countQuery, values);
       const total = parseInt(countResult.rows[0].count);
 
-      // Get recipes with user info
+      // Get recipes with user info - using only basic columns that exist
       const query = `
         SELECT 
           ur.id,
           ur.recipe_title as title,
-          ur.recipe_description as description,
-          ur.recipe_image_url as "imageUrl",
-          ur.is_private,
+          COALESCE(ur.recipe_description, 'No description') as description,
+          COALESCE(ur.recipe_image_url, '') as "imageUrl",
+          COALESCE(ur.is_private, false) as is_private,
           ur.created_at as "createdAt",
-          ur.updated_at as "updatedAt",
+          COALESCE(ur.updated_at, ur.created_at) as "updatedAt",
           CASE 
-            WHEN ur.is_private = true THEN 'draft'
+            WHEN COALESCE(ur.is_private, false) = true THEN 'draft'
             ELSE 'published'
           END as status,
           false as "isFeatured",
-          u.id as "authorId",
-          COALESCE(
-            NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''),
-            u.email
-          ) as "authorName"
+          ur.user_id as "authorId",
+          COALESCE(u.email, 'Unknown User') as "authorName"
         FROM user_recipes ur
         LEFT JOIN users u ON ur.user_id = u.id
         ${whereClause}
