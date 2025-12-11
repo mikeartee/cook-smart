@@ -17,11 +17,20 @@ export function ProtectedRoute({
   const router = useRouter();
 
   useEffect(() => {
-    console.log('[PROTECTED] Route check:', { isLoading, isAuthenticated, user: !!user });
+    console.log('[PROTECTED] Route check:', {
+      isLoading,
+      isAuthenticated,
+      user: !!user,
+      userRole: user?.role,
+    });
 
+    // Only redirect if we're definitely not loading and not authenticated
     if (!isLoading && !isAuthenticated) {
       console.log('[PROTECTED] Not authenticated, redirecting to login');
-      router.push('/admin/login');
+      // Use a small delay to prevent race conditions
+      setTimeout(() => {
+        router.push('/admin/login');
+      }, 100);
     }
 
     if (!isLoading && isAuthenticated && requiredRole && user?.role !== requiredRole) {
@@ -30,6 +39,7 @@ export function ProtectedRoute({
     }
   }, [isAuthenticated, isLoading, requiredRole, user, router]);
 
+  // Show loading spinner while checking authentication
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -38,12 +48,22 @@ export function ProtectedRoute({
     );
   }
 
+  // Don't render anything if not authenticated (redirect will happen)
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
+  // Don't render if wrong role (redirect will happen)
   if (requiredRole && user?.role !== requiredRole) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return <>{children}</>;

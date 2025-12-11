@@ -40,10 +40,8 @@ export default function AdminLoginPage(): React.ReactElement {
       await login(email, password);
       console.log('[LOGIN] Login successful, navigating to dashboard...');
 
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        window.location.href = '/admin/dashboard';
-      }, 100);
+      // Force a full page navigation to ensure clean state
+      window.location.href = '/admin/dashboard';
     } catch (err: any) {
       console.error('[LOGIN] Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');

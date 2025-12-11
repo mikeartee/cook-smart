@@ -129,7 +129,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
 
   const login = useCallback(async (email: string, password: string): Promise<void> => {
     try {
-      setIsLoading(true);
       console.log('[AUTH] Starting login process...');
 
       // Check if we're on admin pages - use admin login endpoint
@@ -151,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
       } else {
         response = await authApi.login(email, password);
       }
-      console.log('[AUTH] Login API response:', response);
+      console.log('[AUTH] Login API response received');
 
       // Check if user has admin access
       const userData = response.user as any;
@@ -198,11 +197,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
 
       setLastActivity(Date.now());
       console.log('[AUTH] Login complete!');
+
+      // Return a promise that resolves after state is set
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 50);
+      });
     } catch (error) {
       console.error('[AUTH] Login failed:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
