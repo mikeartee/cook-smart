@@ -219,19 +219,15 @@ router.get(
         `[Recipe Search] Recipe has matching data: ${recipes[0]?.matchPercentage !== undefined}`,
       );
 
-      // Cache the new recipes (RecipeCacheService handles duplicate checking)
-      if (recipes.length > 0) {
-        console.log(`Caching ${recipes.length} recipes to database...`);
-        try {
-          for (const recipe of recipes) {
-            await RecipeCacheService.cacheRecipe(recipe, actualProvider);
-          }
-          console.log('✅ Recipes cached successfully');
-        } catch (cacheError) {
-          console.error('Failed to cache recipes:', cacheError);
-          // Continue anyway - user still gets their recipes
-        }
-      }
+      // CRITICAL FIX: DO NOT cache recipes with matching data
+      // Matching data is dynamic based on user's current ingredients
+      // Caching would strip out the matching fields we just calculated
+      console.log(
+        `🚫 Skipping cache for ingredient search to preserve matching data`,
+      );
+      console.log(
+        `✅ Returning ${recipes.length} recipes with fresh matching calculations`,
+      );
 
       // Award points for recipe search (only if user is authenticated)
       if (req.user?.id && recipes.length > 0) {
