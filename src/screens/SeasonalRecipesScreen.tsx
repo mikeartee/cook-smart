@@ -30,8 +30,8 @@ export default function SeasonalRecipesScreen({navigation}: any) {
         // Recipes from FatSecret cache have full details
         setRecipes(
           response.recipes.map((item: any) => ({
-            id: item.recipe_id, // Use FatSecret recipe_id for navigation
-            title: item.title,
+            id: item.recipe_id || item.id, // Use FatSecret recipe_id for navigation
+            title: item.title || item.recipe_name || 'Seasonal Recipe',
             image: item.image_url || item.image,
             readyInMinutes: item.ready_in_minutes || item.readyInMinutes,
             servings: item.servings,

@@ -13,7 +13,6 @@ import socialService from '../services/socialService';
 
 export default function TrendingRecipesScreen({navigation}: any) {
   const [trending, setTrending] = useState([]);
-  const [recipes, setRecipes] = useState<any>({});
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -24,14 +23,8 @@ export default function TrendingRecipesScreen({navigation}: any) {
     try {
       const response = await socialService.getTrendingRecipes();
       if (response.success && response.recipes) {
-        // The API returns recipes directly, not trending items
+        // The API returns recipes directly
         setTrending(response.recipes);
-        // Recipes already have full details from FatSecret
-        const recipesMap: any = {};
-        response.recipes.forEach((recipe: any) => {
-          recipesMap[recipe.recipe_id] = recipe;
-        });
-        setRecipes(recipesMap);
       }
     } catch (error) {
       console.error('Error loading trending:', error);
@@ -45,38 +38,46 @@ export default function TrendingRecipesScreen({navigation}: any) {
   };
 
   const renderTrending = ({item}: {item: any}) => {
-    const recipe = recipes[item.recipe_id];
+    // The API now returns recipes directly, not trending items with recipe references
+    const recipe = item;
     if (!recipe) return null;
 
     return (
       <TouchableOpacity
         style={styles.recipeCard}
         onPress={() =>
-          navigation.navigate('RecipeDetail', {recipeId: item.recipe_id})
+          navigation.navigate('RecipeDetail', {
+            recipeId: recipe.recipe_id || recipe.id,
+          })
         }>
-        {recipe.image && (
-          <Image source={{uri: recipe.image}} style={styles.recipeImage} />
+        {(recipe.image_url || recipe.image) && (
+          <Image
+            source={{uri: recipe.image_url || recipe.image}}
+            style={styles.recipeImage}
+          />
         )}
         <View style={styles.recipeContent}>
-          <Text style={styles.recipeTitle}>{recipe.title}</Text>
+          <Text style={styles.recipeTitle}>
+            {recipe.title || recipe.recipe_name || 'Untitled Recipe'}
+          </Text>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Icon name="favorite" size={16} color="#FF6B6B" />
-              <Text style={styles.statText}>{item.likes_count}</Text>
+              <Icon name="schedule" size={16} color="#10B981" />
+              <Text style={styles.statText}>
+                {recipe.ready_in_minutes || recipe.readyInMinutes || '--'} min
+              </Text>
             </View>
             <View style={styles.stat}>
-              <Icon name="comment" size={16} color="#10B981" />
-              <Text style={styles.statText}>{item.comments_count}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Icon name="share" size={16} color="#3B82F6" />
-              <Text style={styles.statText}>{item.shares_count}</Text>
+              <Icon name="restaurant" size={16} color="#3B82F6" />
+              <Text style={styles.statText}>
+                {recipe.servings || '--'} servings
+              </Text>
             </View>
           </View>
         </View>
         <View style={styles.scoreContainer}>
           <Icon name="trending-up" size={20} color="#10B981" />
-          <Text style={styles.scoreText}>{Math.round(item.score)}</Text>
+          <Text style={styles.scoreText}>Popular</Text>
         </View>
       </TouchableOpacity>
     );
@@ -87,7 +88,9 @@ export default function TrendingRecipesScreen({navigation}: any) {
       <FlatList
         data={trending}
         renderItem={renderTrending}
-        keyExtractor={(item: any) => item.recipe_id}
+        keyExtractor={(item: any) =>
+          item.recipe_id || item.id || Math.random().toString()
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
