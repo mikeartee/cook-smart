@@ -249,17 +249,23 @@ export function notFoundHandler(
     '/wp-admin',
     '/wp-login',
     '/wp-content',
-    '/admin',
     '/phpmyadmin',
     '/xmlrpc.php',
     '/.git',
   ];
 
+  // Check for WordPress admin paths specifically (not our API admin paths)
+  const isWordPressAdmin =
+    req.path === '/admin' ||
+    (req.path.startsWith('/admin/') && !req.path.startsWith('/api/'));
+
   // Check for PHP exploit attempts (all .php files are bot attacks - we don't use PHP)
   const isPhpExploit = req.path.endsWith('.php');
 
   const isBotTraffic =
-    isPhpExploit || botPaths.some(path => req.path.includes(path));
+    isPhpExploit ||
+    botPaths.some(path => req.path.includes(path)) ||
+    isWordPressAdmin;
 
   if (isBotTraffic) {
     // Track bot IPs for monitoring (could be used for future IP blocking)

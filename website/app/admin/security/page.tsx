@@ -24,8 +24,8 @@ export default function SecurityPage(): React.ReactElement {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Login Attempts</p>
-              <p className="mt-2 text-3xl font-bold">1,234</p>
-              <p className="mt-2 text-sm text-muted-foreground">Last 24h</p>
+              <p className="mt-2 text-3xl font-bold">-</p>
+              <p className="mt-2 text-sm text-muted-foreground">Not tracked yet</p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
               <Lock className="h-6 w-6 text-primary" />
@@ -37,8 +37,8 @@ export default function SecurityPage(): React.ReactElement {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Failed Logins</p>
-              <p className="mt-2 text-3xl font-bold">23</p>
-              <p className="mt-2 text-sm text-muted-foreground">Last 24h</p>
+              <p className="mt-2 text-3xl font-bold">-</p>
+              <p className="mt-2 text-sm text-muted-foreground">Not tracked yet</p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-destructive/10">
               <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -111,9 +111,7 @@ export default function SecurityPage(): React.ReactElement {
               </div>
               <div className="flex-1">
                 <p className="font-medium">Password changed</p>
-                <p className="text-sm text-muted-foreground">
-                  Admin user updated their password
-                </p>
+                <p className="text-sm text-muted-foreground">Admin user updated their password</p>
                 <p className="mt-1 text-xs text-muted-foreground">1 day ago</p>
               </div>
               <Badge variant="outline">Info</Badge>
@@ -129,9 +127,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="font-medium">User deactivated</p>
                 <p className="text-sm text-muted-foreground">2h ago</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Admin: admin@cooksmartapp.com
-              </p>
+              <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
               <p className="text-sm text-muted-foreground">
                 Action: Deactivated user john.doe@example.com
               </p>
@@ -142,9 +138,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="font-medium">Content moderated</p>
                 <p className="text-sm text-muted-foreground">4h ago</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Admin: admin@cooksmartapp.com
-              </p>
+              <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
               <p className="text-sm text-muted-foreground">
                 Action: Removed flagged recipe "Spicy Curry"
               </p>
@@ -155,9 +149,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="font-medium">Settings updated</p>
                 <p className="text-sm text-muted-foreground">1d ago</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Admin: admin@cooksmartapp.com
-              </p>
+              <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
               <p className="text-sm text-muted-foreground">
                 Action: Changed session timeout to 30 minutes
               </p>
@@ -168,9 +160,7 @@ export default function SecurityPage(): React.ReactElement {
                 <p className="font-medium">Admin access granted</p>
                 <p className="text-sm text-muted-foreground">2d ago</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Admin: admin@cooksmartapp.com
-              </p>
+              <p className="text-sm text-muted-foreground">Admin: admin@cooksmartapp.com</p>
               <p className="text-sm text-muted-foreground">
                 Action: Granted admin access to jane.smith@example.com
               </p>

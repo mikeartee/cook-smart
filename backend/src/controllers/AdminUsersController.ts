@@ -86,8 +86,25 @@ export class AdminUsersController {
       values.push(limit, offset);
       const result = await pool.query(query, values);
 
+      // Transform user data to match frontend expectations
+      const transformedUsers = result.rows.map(user => ({
+        ...user,
+        name:
+          `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+          user.email,
+        role: user.is_co_founder
+          ? 'Co-Founder'
+          : user.subscription_status === 'active'
+            ? 'Premium'
+            : 'Free',
+        isActive: !user.is_suspended,
+        createdAt: user.created_at,
+        lastLoginAt: user.last_login_at || user.created_at,
+      }));
+
       res.json({
-        users: result.rows,
+        users: transformedUsers,
+        total, // Frontend expects total at root level
         pagination: {
           page,
           limit,

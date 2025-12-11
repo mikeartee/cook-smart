@@ -1,11 +1,59 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Users, CreditCard, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import apiClient from '@/lib/api-client';
+
+interface FinancialData {
+  revenue: {
+    mrr: number;
+    totalRevenue: number;
+    arpu: number;
+    ltv: number;
+  };
+  subscriptions: {
+    active: number;
+    trial: number;
+    canceled: number;
+    conversionRate: number;
+  };
+}
 
 export default function FinancialPage(): React.ReactElement {
+  const [financialData, setFinancialData] = useState<FinancialData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFinancialData = async (): Promise<void> => {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.get<{ overview: FinancialData }>(
+          '/api/v1/admin/analytics/overview'
+        );
+        setFinancialData({
+          revenue: response.overview.revenue,
+          subscriptions: response.overview.subscriptions,
+        });
+      } catch (error) {
+        console.error('Failed to fetch financial data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFinancialData();
+  }, []);
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -24,10 +72,14 @@ export default function FinancialPage(): React.ReactElement {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-              <p className="mt-2 text-3xl font-bold">$24,543</p>
-              <div className="mt-2 flex items-center gap-1 text-sm text-green-500">
+              <p className="mt-2 text-3xl font-bold">
+                {isLoading
+                  ? 'Loading...'
+                  : formatCurrency(financialData?.revenue.totalRevenue || 0)}
+              </p>
+              <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                <span>+12.5%</span>
+                <span>Live Data</span>
               </div>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -40,10 +92,12 @@ export default function FinancialPage(): React.ReactElement {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Subscriptions</p>
-              <p className="mt-2 text-3xl font-bold">1,234</p>
-              <div className="mt-2 flex items-center gap-1 text-sm text-green-500">
+              <p className="mt-2 text-3xl font-bold">
+                {isLoading ? 'Loading...' : financialData?.subscriptions.active || 0}
+              </p>
+              <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
                 <TrendingUp className="h-4 w-4" />
-                <span>+8.2%</span>
+                <span>Live Data</span>
               </div>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">

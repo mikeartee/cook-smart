@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MessageSquare, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import apiClient from '@/lib/api-client';
+
+interface Feedback {
+  id: string;
+  message: string;
+  user_email: string;
+  status: string;
+  created_at: string;
+}
 
 interface Ticket {
   id: string;
@@ -18,40 +27,38 @@ interface Ticket {
   assignedTo: string | null;
 }
 
-const MOCK_TICKETS: Ticket[] = [
-  {
-    id: '1',
-    subject: 'Cannot upload recipe images',
-    user: 'john.doe@example.com',
-    status: 'open',
-    priority: 'high',
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    assignedTo: null,
-  },
-  {
-    id: '2',
-    subject: 'App crashes on meal planner',
-    user: 'jane.smith@example.com',
-    status: 'in_progress',
-    priority: 'urgent',
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    assignedTo: 'Admin User',
-  },
-  {
-    id: '3',
-    subject: 'Question about premium features',
-    user: 'bob.wilson@example.com',
-    status: 'open',
-    priority: 'medium',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    assignedTo: null,
-  },
-];
-
 export default function SupportPage(): React.ReactElement {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [tickets] = useState<Ticket[]>(MOCK_TICKETS);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [_isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeedback = async (): Promise<void> => {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.get<{ feedback: Feedback[] }>('/api/v1/admin/feedback');
+        setFeedback(response.feedback || []);
+      } catch (error) {
+        console.error('Failed to fetch feedback:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, []);
+
+  // Convert feedback to ticket format for display
+  const tickets: Ticket[] = feedback.map((item) => ({
+    id: item.id,
+    subject: item.message.substring(0, 50) + (item.message.length > 50 ? '...' : ''),
+    user: item.user_email || 'Anonymous',
+    status: 'open' as const,
+    priority: 'medium' as const,
+    createdAt: new Date(item.created_at),
+    assignedTo: null,
+  }));
 
   const filteredTickets = tickets.filter((ticket) => {
     if (statusFilter !== 'all' && ticket.status !== statusFilter) return false;
