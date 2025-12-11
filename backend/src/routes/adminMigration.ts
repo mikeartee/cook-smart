@@ -20,7 +20,7 @@ router.post('/run', async (req: Request, res: Response) => {
     // Read the migration SQL file
     const migrationPath = path.join(
       __dirname,
-      '../../migrations/create_all_required_tables.sql',
+      '../../migrations/create_missing_tables_only.sql',
     );
 
     if (!fs.existsSync(migrationPath)) {
