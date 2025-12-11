@@ -82,12 +82,21 @@ export class RecipeProviderService {
         const startTime = Date.now();
 
         try {
+          console.log(
+            `🔍 Calling ${this.primaryProvider.getProviderName()}.searchByIngredients with:`,
+            {ingredients: ingredients.slice(0, 5), limit, options},
+          );
+
           const results = await this.primaryProvider.searchByIngredients(
             ingredients,
             limit,
             options,
           );
           const responseTime = Date.now() - startTime;
+
+          console.log(
+            `📊 ${this.primaryProvider.getProviderName()} returned ${results?.length || 0} results in ${responseTime}ms`,
+          );
 
           // Log successful API call (non-blocking)
           try {
@@ -222,9 +231,14 @@ export class RecipeProviderService {
       }
     }
 
-    // Step 4: Return cached results if all providers fail
-    console.log(`⚠️  All providers failed, returning cached results only`);
-    return await this.getCachedResultsOnly(cacheKey);
+    // Step 4: For ingredient searches, DO NOT return cached results
+    // This prevents returning old Spoonacular data when we need fresh matching calculations
+    console.log(`⚠️  All providers failed for ingredient search`);
+    console.log(
+      `🚫  NOT returning cached results to avoid stale matching data`,
+    );
+    console.log(`✅  Returning empty array to force fresh data only`);
+    return [];
   }
 
   /**
