@@ -9,6 +9,66 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 
+/**
+ * Clean ingredient names from user input
+ * Removes quantities, measurements, and extra descriptive text
+ */
+function cleanIngredientName(rawName: string): string {
+  if (!rawName) return '';
+
+  let cleaned = rawName.toLowerCase().trim();
+
+  // Remove common quantity patterns
+  cleaned = cleaned.replace(/^\d+[\s\w]*\s+/, ''); // Remove leading numbers and units
+  cleaned = cleaned.replace(/\b\d+[\s\w]*$/, ''); // Remove trailing numbers and units
+  cleaned = cleaned.replace(/\b\d+\/\d+\b/g, ''); // Remove fractions like 1/2
+  cleaned = cleaned.replace(/\b\d+\.\d+\b/g, ''); // Remove decimals like 1.5
+
+  // Remove common measurement units
+  const units = [
+    'cup',
+    'cups',
+    'tbsp',
+    'tsp',
+    'oz',
+    'fl oz',
+    'lb',
+    'lbs',
+    'g',
+    'kg',
+    'ml',
+    'l',
+    'serving',
+    'servings',
+    'piece',
+    'pieces',
+    'slice',
+    'slices',
+  ];
+  units.forEach(unit => {
+    cleaned = cleaned.replace(new RegExp(`\\b${unit}s?\\b`, 'g'), '');
+  });
+
+  // Remove descriptive text patterns
+  cleaned = cleaned.replace(/,.*$/, ''); // Remove everything after first comma
+  cleaned = cleaned.replace(/\(.*?\)/g, ''); // Remove parenthetical content
+  cleaned = cleaned.replace(/\bns as to\b.*$/i, ''); // Remove "NS as to..." patterns
+  cleaned = cleaned.replace(/\bchopped\b|\bsliced\b|\bdiced\b|\bminced\b/g, ''); // Remove preparation methods
+
+  // Clean up whitespace and punctuation
+  cleaned = cleaned.replace(/[,;:]/g, ' '); // Replace punctuation with spaces
+  cleaned = cleaned.replace(/\s+/g, ' '); // Collapse multiple spaces
+  cleaned = cleaned.trim();
+
+  // Extract the main ingredient (first meaningful word)
+  const words = cleaned.split(' ').filter(word => word.length > 2);
+  if (words.length > 0) {
+    return words[0];
+  }
+
+  return cleaned;
+}
+
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
   // Common versatile ingredients that work well in searches
@@ -100,8 +160,8 @@ router.get(
 
       let ingredientList = ingredients
         .split(',')
-        .map(i => i.trim())
-        .filter(i => i.length > 0);
+        .map(i => cleanIngredientName(i.trim()))
+        .filter(i => i.length > 2);
 
       // If no ingredients provided, get user's ingredients from database
       if (ingredientList.length === 0 && req.user?.id) {
@@ -120,7 +180,9 @@ router.get(
 
           const allUserIngredients = userIngredientsQuery.rows
             .map(row => row.ingredient_name || row.name)
-            .filter(name => name && name.length > 0);
+            .filter(name => name && name.length > 0)
+            .map(name => cleanIngredientName(name))
+            .filter(name => name && name.length > 2);
 
           // For large inventories, prioritize common/versatile ingredients
           ingredientList = prioritizeIngredientsForSearch(allUserIngredients);
