@@ -110,7 +110,9 @@ class FatSecretProviderAdapter implements IRecipeProvider {
   }
 
   private formatRecipes(recipes: any[]): Recipe[] {
-    console.log(`[FatSecretAdapter] Formatting ${recipes.length} recipes`);
+    console.log(
+      `[FatSecretAdapter] DEPLOYMENT TEST v3 - Formatting ${recipes.length} recipes`,
+    );
 
     return recipes.map(
       (recipe: any): Recipe => ({
@@ -126,7 +128,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         cuisines: [],
         dishTypes: [recipe.recipe_types || 'main course'],
         diets: [],
-        provider: 'fatsecret',
+        provider: 'fatsecret-v3-test',
         // Add FatSecret nutrition data
         calories: recipe.calories ? parseInt(recipe.calories) : undefined,
         protein: recipe.protein ? parseFloat(recipe.protein) : undefined,
