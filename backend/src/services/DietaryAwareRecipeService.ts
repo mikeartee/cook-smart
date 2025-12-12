@@ -100,6 +100,18 @@ export class DietaryAwareRecipeService {
         }));
       }
 
+      // SMART DIETARY ANALYSIS: Fetch detailed ingredients for proper analysis
+      console.log(
+        `[DietaryAware] User has dietary restrictions - fetching detailed ingredients for analysis`,
+      );
+
+      return await this.processRecipesWithDetailedIngredients(
+        recipes,
+        restrictions,
+        allergies,
+        options,
+      );
+
       console.log(
         `[DietaryAware] Processing ${recipes.length} recipes for user ${options.userId}`,
       );
@@ -170,15 +182,20 @@ export class DietaryAwareRecipeService {
     allergies: any[],
     showSubstitutions: boolean,
     _userId: string,
+    analysis?: any,
   ): Promise<DietaryAwareRecipe> {
     try {
-      // Analyze recipe for conflicts
-      const analysis = await RecipeFilterService.analyzeRecipe(
-        _userId,
-        recipe.ingredients || [],
-      );
+      // Use provided analysis or fallback to basic analysis
+      const recipeAnalysis =
+        analysis ||
+        (await RecipeFilterService.analyzeRecipe(
+          _userId,
+          recipe.ingredients || [],
+          recipe.title,
+          recipe.summary,
+        ));
 
-      const hasConflicts = analysis.conflicts.length > 0;
+      const hasConflicts = recipeAnalysis.conflicts.length > 0;
 
       if (!hasConflicts) {
         // Recipe is safe for user
@@ -190,10 +207,10 @@ export class DietaryAwareRecipeService {
 
       // Recipe has conflicts
       const dietaryIssues = {
-        restrictions: analysis.conflicts
+        restrictions: recipeAnalysis.conflicts
           .filter((c: any) => c.type === 'dietary')
           .map((c: any) => c.restriction),
-        allergies: analysis.conflicts
+        allergies: recipeAnalysis.conflicts
           .filter((c: any) => c.type === 'allergy')
           .map((c: any) => c.restriction),
       };
@@ -208,12 +225,12 @@ export class DietaryAwareRecipeService {
       }
 
       // Generate substitutions for conflicting ingredients
-      const allConflictingIngredients = analysis.conflicts.flatMap(
+      const allConflictingIngredients = recipeAnalysis.conflicts.flatMap(
         (c: any) => c.conflictingIngredients,
       );
       const substitutions = IngredientSubstitutionService.getSubstitutions(
         allConflictingIngredients,
-        analysis.conflicts.some((c: any) => c.type === 'allergy')
+        recipeAnalysis.conflicts.some((c: any) => c.type === 'allergy')
           ? 'allergy'
           : 'dietary',
       );
@@ -260,6 +277,118 @@ export class DietaryAwareRecipeService {
         dietaryStatus: 'safe',
       };
     }
+  }
+
+  /**
+   * Process recipes with detailed ingredients fetched from FatSecret
+   */
+  private static async processRecipesWithDetailedIngredients(
+    recipes: any[],
+    restrictions: any[],
+    allergies: any[],
+    options: DietarySearchOptions,
+  ): Promise<DietaryAwareRecipe[]> {
+    const FatSecretService = require('./FatSecretService').default;
+    const processedRecipes: DietaryAwareRecipe[] = [];
+
+    // Process recipes in batches to avoid overwhelming the API
+    const batchSize = 5; // Process 5 recipes at a time
+
+    for (let i = 0; i < recipes.length; i += batchSize) {
+      const batch = recipes.slice(i, i + batchSize);
+      console.log(
+        `[DietaryAware] Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(recipes.length / batchSize)}`,
+      );
+
+      const batchPromises = batch.map(async (recipe: any) => {
+        try {
+          // Fetch detailed ingredients from FatSecret
+          console.log(
+            `[DietaryAware] Fetching ingredients for "${recipe.title}"`,
+          );
+          const detailedRecipe = await FatSecretService.getRecipeDetails(
+            recipe.id,
+          );
+
+          let ingredientsList: string[] = [];
+
+          if (detailedRecipe?.ingredients?.ingredient) {
+            const ingredients = Array.isArray(
+              detailedRecipe.ingredients.ingredient,
+            )
+              ? detailedRecipe.ingredients.ingredient
+              : [detailedRecipe.ingredients.ingredient];
+
+            ingredientsList = ingredients.map((ing: any) => {
+              const description =
+                ing.ingredient_description || ing.food_name || '';
+              return description.toLowerCase();
+            });
+
+            console.log(
+              `[DietaryAware] Found ${ingredientsList.length} ingredients for "${recipe.title}"`,
+            );
+          } else {
+            console.log(
+              `[DietaryAware] No detailed ingredients found for "${recipe.title}" - using title analysis`,
+            );
+            // Fallback to title analysis if no ingredients available
+            ingredientsList = [
+              recipe.title.toLowerCase(),
+              recipe.summary?.toLowerCase() || '',
+            ];
+          }
+
+          // Now do proper dietary analysis with actual ingredients
+          const analysis = await RecipeFilterService.analyzeRecipe(
+            options.userId,
+            ingredientsList,
+            recipe.title,
+            recipe.summary,
+          );
+
+          return await this.processRecipeForDietaryCompliance(
+            recipe,
+            restrictions,
+            allergies,
+            options.showConflictingRecipes,
+            options.userId,
+            analysis,
+          );
+        } catch (error) {
+          console.error(
+            `[DietaryAware] Error processing recipe "${recipe.title}":`,
+            error,
+          );
+          // Fallback: mark as safe if we can't analyze
+          return {
+            ...recipe,
+            dietaryStatus: 'safe' as const,
+          };
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+
+      // Filter out conflicting recipes if user chose to hide them
+      for (const processed of batchResults) {
+        if (
+          !options.showConflictingRecipes &&
+          processed.dietaryStatus === 'conflict'
+        ) {
+          console.log(
+            `[DietaryAware] Skipping conflicting recipe: "${processed.title}"`,
+          );
+          continue;
+        }
+        processedRecipes.push(processed);
+      }
+    }
+
+    console.log(
+      `[DietaryAware] Completed processing ${processedRecipes.length} recipes with detailed analysis`,
+    );
+    return processedRecipes;
   }
 
   /**
