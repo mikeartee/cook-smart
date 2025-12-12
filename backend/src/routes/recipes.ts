@@ -241,7 +241,7 @@ router.get(
             await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
               recipes,
               {
-                userId: parseInt(req.user.id),
+                userId: req.user.id, // Keep as string, don't convert to number
                 showConflictingRecipes,
                 maxCalories: searchOptions.maxCalories,
                 mealType: searchOptions.mealType,

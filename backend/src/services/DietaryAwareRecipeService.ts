@@ -49,7 +49,7 @@ export interface DietaryAwareRecipe {
 }
 
 export interface DietarySearchOptions {
-  userId: number;
+  userId: string; // Changed from number to string to match actual user IDs
   showConflictingRecipes: boolean; // true = show with substitutions, false = hide
   maxCalories?: number;
   mealType?: string;
@@ -81,8 +81,8 @@ export class DietaryAwareRecipeService {
 
       // Get user's dietary restrictions and allergies
       const [restrictions, allergies] = await Promise.all([
-        DietaryRestrictionModel.getUserRestrictions(options.userId.toString()),
-        AllergyModel.getUserAllergies(options.userId.toString()),
+        DietaryRestrictionModel.getUserRestrictions(options.userId),
+        AllergyModel.getUserAllergies(options.userId),
       ]);
 
       console.log(
@@ -169,12 +169,12 @@ export class DietaryAwareRecipeService {
     restrictions: any[],
     allergies: any[],
     showSubstitutions: boolean,
-    _userId: number,
+    _userId: string,
   ): Promise<DietaryAwareRecipe> {
     try {
       // Analyze recipe for conflicts
       const analysis = await RecipeFilterService.analyzeRecipe(
-        _userId.toString(),
+        _userId,
         recipe.ingredients || [],
       );
 
@@ -265,7 +265,7 @@ export class DietaryAwareRecipeService {
   /**
    * Get user's dietary preference for showing conflicting recipes
    */
-  static async getUserDietaryPreference(_userId: number): Promise<boolean> {
+  static async getUserDietaryPreference(_userId: string): Promise<boolean> {
     try {
       // Check if user has a preference stored
       // For now, default to showing substitutions (true)
