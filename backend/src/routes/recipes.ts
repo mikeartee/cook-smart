@@ -284,6 +284,8 @@ router.get(
         provider: actualProvider, // Use actual provider instead of hardcoded
         searchedIngredients: ingredientList.slice(0, 10), // For debugging
         dietaryFiltering: dietaryFilteringApplied, // Indicate if dietary filtering was actually applied
+        testFlag: 'DIETARY_PROCESSING_ACTIVE', // Test flag to confirm this code path
+        timestamp: new Date().toISOString(), // Timestamp to confirm fresh response
         message:
           processedRecipes.length === 0
             ? 'No recipes found. Try different ingredients or adjust dietary preferences.'
