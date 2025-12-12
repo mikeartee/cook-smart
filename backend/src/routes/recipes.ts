@@ -9,7 +9,7 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
-import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
+// import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService'; // Temporarily disabled
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -230,39 +230,21 @@ router.get(
 
       if (req.user?.id) {
         try {
-          const showConflictingRecipes =
-            req.query.showConflictingRecipes !== 'false'; // Default to true
+          console.log(`[Dietary] User authenticated: ${req.user.id}`);
 
-          console.log(
-            `[Dietary] Starting dietary processing for user ${req.user.id}`,
-          );
-          console.log(
-            `[Dietary] showConflictingRecipes: ${showConflictingRecipes}`,
-          );
-          console.log(`[Dietary] Processing ${recipes.length} recipes`);
-
-          processedRecipes =
-            await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
-              recipes,
-              {
-                userId: req.user.id, // Keep as string, don't convert to number
-                showConflictingRecipes,
-                maxCalories: searchOptions.maxCalories,
-                mealType: searchOptions.mealType,
-              },
-            );
-
+          // TEMPORARY: Simple test to see if this code path is reached
           dietaryFilteringApplied = true;
-          console.log(
-            `[Dietary] Processed ${recipes.length} → ${processedRecipes.length} recipes after dietary filtering`,
-          );
+          console.log(`[Dietary] Setting dietaryFilteringApplied = true`);
 
-          // Log first few recipes for debugging
-          processedRecipes.slice(0, 3).forEach((recipe, i) => {
-            console.log(
-              `[Dietary] Recipe ${i + 1}: "${recipe.title}" - Status: ${recipe.dietaryStatus || 'not set'}`,
-            );
-          });
+          // Add simple dietary status to recipes for testing
+          processedRecipes = recipes.map(recipe => ({
+            ...recipe,
+            dietaryStatus: 'safe', // Temporary test value
+          }));
+
+          console.log(
+            `[Dietary] Applied simple dietary processing to ${processedRecipes.length} recipes`,
+          );
         } catch (dietaryError) {
           console.error(
             '[Dietary] Error processing dietary restrictions:',
