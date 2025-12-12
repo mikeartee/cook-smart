@@ -2,18 +2,39 @@ import express from 'express';
 import RecipeCacheService from '../services/RecipeCacheService';
 import FatSecretService from '../services/FatSecretService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
+import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
+
+// Optional authentication middleware - works for both authenticated and anonymous users
+const optionalAuth = (
+  req: AuthRequest,
+  res: express.Response,
+  next: express.NextFunction,
+) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (token) {
+    // If token provided, try to authenticate
+    authenticateToken(req, res, _err => {
+      // Continue regardless of authentication result
+      next();
+    });
+  } else {
+    // No token provided, continue as anonymous user
+    next();
+  }
+};
 
 const router = express.Router();
 
-// Get trending recipes - Always fresh from FatSecret
+// Get trending recipes - Always fresh from FatSecret with dietary filtering
 // Cache in background to build database
-router.get('/trending-recipes', async (req, res) => {
+router.get('/trending-recipes', optionalAuth, async (req: AuthRequest, res) => {
   // Disable HTTP caching
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   try {
     const limit = parseInt(req.query.limit as string) || 20;
+    const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
 
     console.log('[Trending] Fetching trending recipes from FatSecret...');
 
@@ -33,11 +54,40 @@ router.get('/trending-recipes', async (req, res) => {
       }
     }
 
+    let processedRecipes = allRecipes.slice(0, limit);
+    let dietaryFilteringApplied = false;
+
+    // Apply dietary filtering if user is authenticated
+    if (req.user?.id) {
+      try {
+        console.log(
+          `[Trending] Applying dietary filtering for user ${req.user.id}`,
+        );
+        processedRecipes =
+          await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
+            processedRecipes,
+            {
+              userId: req.user.id,
+              showConflictingRecipes,
+            },
+          );
+        dietaryFilteringApplied = true;
+        console.log(
+          `[Trending] Dietary filtering applied: ${processedRecipes.length} recipes after filtering`,
+        );
+      } catch (dietaryError) {
+        console.error('[Trending] Dietary filtering error:', dietaryError);
+        // Continue with unfiltered recipes if dietary processing fails
+      }
+    }
+
     res.json({
       success: true,
-      recipes: allRecipes.slice(0, limit),
-      count: allRecipes.length,
+      recipes: processedRecipes,
+      count: processedRecipes.length,
       source: 'fatsecret',
+      dietaryFiltering: dietaryFilteringApplied,
+      note: 'Trending recipes with dietary awareness',
     });
   } catch (error) {
     console.error('[Trending] Error:', error);
@@ -45,9 +95,9 @@ router.get('/trending-recipes', async (req, res) => {
   }
 });
 
-// Get seasonal recipes - Always fresh from FatSecret
+// Get seasonal recipes - Always fresh from FatSecret with dietary filtering
 // Cache in background to build database
-router.get('/seasonal-recipes', async (req, res) => {
+router.get('/seasonal-recipes', optionalAuth, async (req: AuthRequest, res) => {
   // Disable HTTP caching
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.set('Pragma', 'no-cache');
@@ -55,6 +105,7 @@ router.get('/seasonal-recipes', async (req, res) => {
   try {
     const season = (req.query.season as string) || getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
+    const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
 
     console.log(`[Seasonal] Fetching ${season} recipes from FatSecret...`);
 
@@ -69,12 +120,41 @@ router.get('/seasonal-recipes', async (req, res) => {
       await RecipeCacheService.cacheRecipe(recipe, 'fatsecret', season, true);
     }
 
+    let processedRecipes = recipes;
+    let dietaryFilteringApplied = false;
+
+    // Apply dietary filtering if user is authenticated
+    if (req.user?.id) {
+      try {
+        console.log(
+          `[Seasonal] Applying dietary filtering for user ${req.user.id}`,
+        );
+        processedRecipes =
+          await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
+            recipes,
+            {
+              userId: req.user.id,
+              showConflictingRecipes,
+            },
+          );
+        dietaryFilteringApplied = true;
+        console.log(
+          `[Seasonal] Dietary filtering applied: ${processedRecipes.length} recipes after filtering`,
+        );
+      } catch (dietaryError) {
+        console.error('[Seasonal] Dietary filtering error:', dietaryError);
+        // Continue with unfiltered recipes if dietary processing fails
+      }
+    }
+
     res.json({
       success: true,
       season,
-      recipes,
-      count: recipes.length,
+      recipes: processedRecipes,
+      count: processedRecipes.length,
       source: 'fatsecret',
+      dietaryFiltering: dietaryFilteringApplied,
+      note: 'Seasonal recipes with dietary awareness',
     });
   } catch (error) {
     console.error('[Seasonal] Error:', error);
@@ -82,12 +162,13 @@ router.get('/seasonal-recipes', async (req, res) => {
   }
 });
 
-// Get seasonal recipes for current season - Always fresh from FatSecret
+// Get seasonal recipes for current season - Always fresh from FatSecret with dietary filtering
 // Cache in background to build database
-router.get('/seasonal/current', async (req, res) => {
+router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const season = getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
+    const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
 
     console.log(
       `[Seasonal Current] Fetching fresh from FatSecret for ${season} (building database)...`,
@@ -96,7 +177,35 @@ router.get('/seasonal/current', async (req, res) => {
     // Always fetch fresh from FatSecret
     await RecipeCacheService.fetchSeasonalRecipes(season, 50);
 
-    const recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    let recipes = await RecipeCacheService.getSeasonalRecipes(season, limit);
+    let dietaryFilteringApplied = false;
+
+    // Apply dietary filtering if user is authenticated
+    if (req.user?.id) {
+      try {
+        console.log(
+          `[Seasonal Current] Applying dietary filtering for user ${req.user.id}`,
+        );
+        recipes =
+          await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
+            recipes,
+            {
+              userId: req.user.id,
+              showConflictingRecipes,
+            },
+          );
+        dietaryFilteringApplied = true;
+        console.log(
+          `[Seasonal Current] Dietary filtering applied: ${recipes.length} recipes after filtering`,
+        );
+      } catch (dietaryError) {
+        console.error(
+          '[Seasonal Current] Dietary filtering error:',
+          dietaryError,
+        );
+        // Continue with unfiltered recipes if dietary processing fails
+      }
+    }
 
     res.json({
       success: true,
@@ -104,7 +213,8 @@ router.get('/seasonal/current', async (req, res) => {
       recipes,
       count: recipes.length,
       source: 'fatsecret',
-      note: 'Building recipe database - always fetching fresh',
+      dietaryFiltering: dietaryFilteringApplied,
+      note: 'Building recipe database - always fetching fresh with dietary awareness',
     });
   } catch (error) {
     console.error('[Seasonal Current] Error:', error);
