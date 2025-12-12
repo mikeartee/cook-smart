@@ -317,6 +317,25 @@ router.get(
   },
 );
 
+// 🔍 DEBUG ENDPOINT FOR DIETARY PROCESSING (must be before /:id route)
+router.get(
+  '/debug-auth',
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    res.json({
+      debug: {
+        userExists: !!req.user,
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        userType: typeof req.user,
+        hasId: req.user?.id !== undefined,
+        idValue: req.user?.id,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  },
+);
+
 // Get recipe details by ID
 router.get(
   '/:id',
@@ -393,25 +412,6 @@ router.get('/deployment-check', async (req: Request, res: Response) => {
     deploymentId: Date.now(),
   });
 });
-
-// 🔍 DEBUG ENDPOINT FOR DIETARY PROCESSING
-router.get(
-  '/debug-auth',
-  authenticateToken,
-  async (req: AuthRequest, res: Response) => {
-    res.json({
-      debug: {
-        userExists: !!req.user,
-        userId: req.user?.id,
-        userEmail: req.user?.email,
-        userType: typeof req.user,
-        hasId: req.user?.id !== undefined,
-        idValue: req.user?.id,
-      },
-      timestamp: new Date().toISOString(),
-    });
-  },
-);
 
 // Get cache statistics (admin endpoint)
 router.get('/admin/cache-stats', async (req: Request, res: Response) => {
