@@ -117,19 +117,21 @@ router.get(
       }
 
       // Standardize ingredients from query parameter
-      const rawIngredients = ingredients
+      const rawIngredients = (ingredients as string)
         .split(',')
-        .map(i => i.trim())
-        .filter(i => i.length > 0);
+        .map((i: string) => i.trim())
+        .filter((i: string) => i.length > 0);
       const standardizedFromQuery = await Promise.all(
-        rawIngredients.map(name =>
+        rawIngredients.map((name: string) =>
           ComprehensiveIngredientStandardizer.getStandardizedNameForMatching(
             name,
           ),
         ),
       );
 
-      let ingredientList = standardizedFromQuery.filter(i => i.length > 2);
+      let ingredientList = standardizedFromQuery.filter(
+        (i: string) => i.length > 2,
+      );
 
       console.log(
         `Query ingredients standardized: ${rawIngredients.join(',')} → ${ingredientList.join(',')}`,

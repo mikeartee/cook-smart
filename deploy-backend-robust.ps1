@@ -106,8 +106,17 @@ if (-not $InstallResult) {
     Write-Host "❌ npm install failed. Continuing anyway..." -ForegroundColor Yellow
 }
 
-# Step 4: Restart Backend Service
-Write-Host "`n🔄 Step 4: Restarting Backend Service"
+# Step 4: Build TypeScript
+Write-Host "`n🔨 Step 4: Building TypeScript"
+$BuildResult = Invoke-SSHCommand -Command "cd /home/ubuntu/cook-smart/backend/backend && npm run build" -Description "Building TypeScript to JavaScript" -TimeoutSeconds 30
+
+if (-not $BuildResult) {
+    Write-Host "❌ TypeScript build failed" -ForegroundColor Red
+    exit 1
+}
+
+# Step 5: Restart Backend Service
+Write-Host "`n🔄 Step 5: Restarting Backend Service"
 $RestartResult = Invoke-SSHCommand -Command "cd /home/ubuntu/cook-smart/backend/backend && pm2 restart cook-smart-backend" -Description "Restarting backend service" -TimeoutSeconds 15
 
 if (-not $RestartResult) {
@@ -115,12 +124,12 @@ if (-not $RestartResult) {
     exit 1
 }
 
-# Step 5: Check Service Status
-Write-Host "`n📊 Step 5: Checking Service Status"
+# Step 6: Check Service Status
+Write-Host "`n📊 Step 6: Checking Service Status"
 $StatusResult = Invoke-SSHCommand -Command "pm2 status cook-smart-backend" -Description "Checking service status" -TimeoutSeconds 10
 
-# Step 6: Test API Endpoint
-Write-Host "`n🌐 Step 6: Testing API Endpoint"
+# Step 7: Test API Endpoint
+Write-Host "`n🌐 Step 7: Testing API Endpoint"
 try {
     $ApiResponse = Invoke-RestMethod -Uri "https://api.cooksmartapp.com/health" -TimeoutSec 10
     Write-Host "✅ API endpoint is responding: $($ApiResponse.status)" -ForegroundColor Green
@@ -134,10 +143,11 @@ Write-Host "===================" -ForegroundColor Green
 Write-Host "SSH Connection: $(if($TestResult){'✅ Success'}else{'❌ Failed'})"
 Write-Host "Git Pull: $(if($PullResult){'✅ Success'}else{'⚠️ Warning'})"
 Write-Host "NPM Install: $(if($InstallResult){'✅ Success'}else{'⚠️ Warning'})"
+Write-Host "TypeScript Build: $(if($BuildResult){'✅ Success'}else{'❌ Failed'})"
 Write-Host "PM2 Restart: $(if($RestartResult){'✅ Success'}else{'❌ Failed'})"
 Write-Host "Service Status: $(if($StatusResult){'✅ Checked'}else{'⚠️ Warning'})"
 
-if ($TestResult -and $RestartResult) {
+if ($TestResult -and $BuildResult -and $RestartResult) {
     Write-Host "`n✅ Deployment completed successfully!" -ForegroundColor Green
     Write-Host "The recipe matching fix should now be active." -ForegroundColor Green
 } else {
