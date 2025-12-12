@@ -1,8 +1,8 @@
 /**
- * FatSecret Provider Adapter - SIMPLIFIED
+ * FatSecret Provider Adapter - WITH INGREDIENT MATCHING
  *
  * Simple adapter that uses FatSecret's ingredient filtering.
- * No complex matching calculations - FatSecret does the work for us.
+ * Now includes ingredient matching calculations for user ingredients.
  */
 
 import {
@@ -11,6 +11,7 @@ import {
   RecipeDetails,
 } from '../interfaces/IRecipeProvider';
 import FatSecretService from './FatSecretService';
+import {RecipeMatchingService} from './RecipeMatchingService';
 
 class FatSecretProviderAdapter implements IRecipeProvider {
   private service = FatSecretService;
@@ -32,7 +33,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
-    options?: {maxCalories?: number; mealType?: string},
+    options?: {maxCalories?: number; mealType?: string; userId?: string},
   ): Promise<Recipe[]> {
     try {
       console.log('[FatSecretAdapter] Searching by ingredients:', {
@@ -99,10 +100,37 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         console.log(
           `[FatSecretAdapter] Fallback search returned ${fallbackRecipes.length} recipes`,
         );
-        return this.formatRecipes(fallbackRecipes.slice(0, limit));
+
+        const formattedFallbackRecipes = this.formatRecipes(
+          fallbackRecipes.slice(0, limit),
+        );
+
+        // Add ingredient matching data for fallback recipes too
+        if (ingredients && ingredients.length > 0) {
+          console.log(
+            '[FatSecretAdapter] Adding ingredient matching data to fallback recipes...',
+          );
+          return await RecipeMatchingService.formatRecipesWithMatching(
+            formattedFallbackRecipes,
+            ingredients,
+          );
+        }
+
+        return formattedFallbackRecipes;
       }
 
-      return this.formatRecipes(recipes.slice(0, limit));
+      const formattedRecipes = this.formatRecipes(recipes.slice(0, limit));
+
+      // Add ingredient matching data if user ingredients provided
+      if (ingredients && ingredients.length > 0) {
+        console.log('[FatSecretAdapter] Adding ingredient matching data...');
+        return await RecipeMatchingService.formatRecipesWithMatching(
+          formattedRecipes,
+          ingredients,
+        );
+      }
+
+      return formattedRecipes;
     } catch (error: any) {
       console.error('[FatSecretAdapter] Search error:', error);
       return [];
