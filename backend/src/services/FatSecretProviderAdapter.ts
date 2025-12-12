@@ -130,6 +130,20 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     return null;
   }
 
+  private removeMetricFromDescription(description: string): string {
+    if (!description) return description;
+
+    // Remove metric measurements from description to avoid duplication
+    // Pattern: number + metric unit
+    const metricPattern =
+      /\b\d+(?:\.\d+)?\s*(g|grams?|kg|kilograms?|ml|milliliters?|l|liters?|cl|centiliters?)\b/gi;
+
+    return description
+      .replace(metricPattern, '') // Remove metric measurements
+      .replace(/\s+/g, ' ') // Clean up extra spaces
+      .trim();
+  }
+
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
@@ -293,11 +307,14 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           let amount = ing.number_of_units || '';
           let unit = ing.measurement_description || '';
 
-          // Convert metric units to US units
+          // Convert metric units to US units and clean up the description
           const convertedUnit = this.convertToUSUnits(amount, unit);
           if (convertedUnit) {
             amount = convertedUnit.amount;
             unit = convertedUnit.unit;
+
+            // Clean metric units from description to avoid duplication
+            description = this.removeMetricFromDescription(description);
           }
 
           ingredients.push(`${amount} ${unit} ${description}`.trim());
