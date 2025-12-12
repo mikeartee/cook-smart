@@ -28,8 +28,20 @@ export class RecipeMatchingService {
         ...recipe,
         matchPercentage: 0,
         usedIngredientCount: 0,
-        usedIngredients: [],
-        missedIngredients: [],
+        usedIngredients: [] as Array<{
+          id: number;
+          name: string;
+          amount: number;
+          unit: string;
+          image: string;
+        }>,
+        missedIngredients: [] as Array<{
+          id: number;
+          name: string;
+          amount: number;
+          unit: string;
+          image: string;
+        }>,
       }));
     }
 
@@ -77,8 +89,20 @@ export class RecipeMatchingService {
           ...recipe,
           matchPercentage: 0,
           usedIngredientCount: 0,
-          usedIngredients: [],
-          missedIngredients: [],
+          usedIngredients: [] as Array<{
+            id: number;
+            name: string;
+            amount: number;
+            unit: string;
+            image: string;
+          }>,
+          missedIngredients: [] as Array<{
+            id: number;
+            name: string;
+            amount: number;
+            unit: string;
+            image: string;
+          }>,
         });
       }
     }
