@@ -84,6 +84,22 @@ router.get(
   authenticateToken,
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
+    console.log('🔥 RECIPE SEARCH ENDPOINT HIT - THIS IS THE RIGHT PLACE!');
+    console.log(`🔥 Request URL: ${req.originalUrl}`);
+    console.log(`🔥 Request method: ${req.method}`);
+    console.log(`🔥 User ID: ${req.user?.id}`);
+    console.log(`🔥 Ingredients param: ${req.query.ingredients}`);
+
+    // TEMPORARY TEST: Return immediately to confirm this endpoint is hit
+    res.json({
+      TEST_RESPONSE: 'FROM_CORRECT_ENDPOINT',
+      endpoint: '/api/v1/recipes/search',
+      userId: req.user?.id,
+      ingredients: req.query.ingredients,
+      timestamp: new Date().toISOString(),
+    });
+    return;
+
     // Disable HTTP caching for recipe searches to ensure filters work correctly
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
