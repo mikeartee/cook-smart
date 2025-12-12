@@ -61,6 +61,8 @@ const LoginScreen: React.FC = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
             />
           </View>
 
@@ -79,6 +81,8 @@ const LoginScreen: React.FC = () => {
               placeholder="Enter your password"
               placeholderTextColor="#9CA3AF"
               secureTextEntry
+              autoComplete="password"
+              textContentType="password"
             />
           </View>
 

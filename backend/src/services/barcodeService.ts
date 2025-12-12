@@ -20,7 +20,8 @@ interface BarcodeResult {
       | 'nutritionix'
       | 'usda'
       | 'manual'
-      | 'upcitemdb';
+      | 'upcitemdb'
+      | 'barcodespider';
   };
   manualEntryRequired?: boolean;
   suggestions?: any[];
@@ -32,24 +33,34 @@ class BarcodeService {
 
   async lookupBarcode(barcode: string): Promise<BarcodeResult> {
     try {
-      // Step 1: Try FatSecret (Premier Free - best quality, comprehensive data)
-      if (FatSecretService.isConfigured()) {
-        const fatSecretResult = await this.tryFatSecret(barcode);
-        if (fatSecretResult.found) {
-          console.log('[Barcode] Found via FatSecret');
-          return fatSecretResult;
-        }
-      }
+      console.log(`[Barcode] Starting lookup for: ${barcode}`);
 
-      // Step 2: Try Open Food Facts (FREE, international coverage)
+      // Step 1: Try Open Food Facts FIRST (FREE, reliable, no IP restrictions)
       const openFoodResult = await this.tryOpenFoodFacts(barcode);
       if (openFoodResult.found && this.isGoodQuality(openFoodResult)) {
-        console.log('[Barcode] Found via Open Food Facts');
+        console.log('[Barcode] Found via Open Food Facts (primary)');
         return openFoodResult;
       }
 
-      // Step 3: Try Nutritionix (500 free/month, then $0.002/request)
-      if (this.nutritionixUsageCount < this.NUTRITIONIX_LIMIT) {
+      // Step 2: Try additional barcode databases for better coverage
+      const barcodeSpiderResult = await this.tryBarcodeSpider(barcode);
+      if (barcodeSpiderResult.found) {
+        console.log('[Barcode] Found via Barcode Spider');
+        return barcodeSpiderResult;
+      }
+
+      // Step 3: Try UPC Database (free backup)
+      const upcResult = await this.tryUPCDatabase(barcode);
+      if (upcResult.found) {
+        console.log('[Barcode] Found via UPC Database');
+        return upcResult;
+      }
+
+      // Step 4: Try Nutritionix if configured (skip if placeholder keys)
+      if (
+        this.isNutritionixConfigured() &&
+        this.nutritionixUsageCount < this.NUTRITIONIX_LIMIT
+      ) {
         const nutritionixResult = await this.tryNutritionix(barcode);
         if (nutritionixResult.found) {
           this.nutritionixUsageCount++;
@@ -58,22 +69,32 @@ class BarcodeService {
         }
       }
 
-      // Step 3: Enhance with USDA data if we have product name
+      // Step 5: Try FatSecret (may be blocked by IP restrictions)
+      if (FatSecretService.isConfigured()) {
+        const fatSecretResult = await this.tryFatSecret(barcode);
+        if (fatSecretResult.found) {
+          console.log('[Barcode] Found via FatSecret');
+          return fatSecretResult;
+        }
+      }
+
+      // Step 6: Enhance Open Food Facts result with USDA data if available
       if (openFoodResult.product?.name) {
         const enhancedResult = await this.enhanceWithUSDA(openFoodResult);
         if (enhancedResult.found) {
+          console.log('[Barcode] Enhanced with USDA data');
           return enhancedResult;
         }
       }
 
-      // Step 4: Try UPC Database (free backup)
-      const upcResult = await this.tryUPCDatabase(barcode);
-      if (upcResult.found) {
-        console.log('[Barcode] Found via UPC Database');
-        return upcResult;
+      // Step 7: Return Open Food Facts result even if low quality
+      if (openFoodResult.found) {
+        console.log('[Barcode] Returning low-quality Open Food Facts result');
+        return openFoodResult;
       }
 
-      // Step 5: Manual entry with smart suggestions
+      // Step 8: Manual entry with smart suggestions
+      console.log('[Barcode] No results found, requiring manual entry');
       return {
         found: false,
         manualEntryRequired: true,
@@ -97,7 +118,9 @@ class BarcodeService {
           : food.servings.serving;
 
         const nutrition = FatSecretService.formatNutritionPer100g(serving);
-        const category = this.mapToCategory(food.food_type || '');
+        const category = this.mapToCategory(
+          food.food_type || food.food_name || '',
+        );
 
         return {
           found: true,
@@ -115,7 +138,14 @@ class BarcodeService {
       console.log(`[FatSecret] No food data found for barcode: ${barcode}`);
       return {found: false};
     } catch (error) {
-      console.error('[FatSecret] Barcode lookup error:', error);
+      // FatSecret may be blocked by IP restrictions on AWS
+      if (error.message?.includes('Invalid IP address')) {
+        console.warn(
+          '[FatSecret] IP address blocked - this is expected on AWS',
+        );
+      } else {
+        console.error('[FatSecret] Barcode lookup error:', error);
+      }
       return {found: false};
     }
   }
@@ -130,18 +160,23 @@ class BarcodeService {
       if (response.data.status === 1 && response.data.product) {
         const product = response.data.product;
 
-        // Get English category name, fallback to 'other' if mapping fails
-        const mappedCategory = this.mapToCategory(
-          product.categories || product.categories_tags?.join(',') || '',
-        );
+        // Get product name and use it for category mapping
+        const productName =
+          product.product_name || product.product_name_en || 'Unknown Product';
+
+        // Use both categories and product name for better mapping
+        const categoryInfo = [
+          product.categories || '',
+          product.categories_tags?.join(',') || '',
+          productName,
+        ].join(' ');
+
+        const mappedCategory = this.mapToCategory(categoryInfo);
 
         return {
           found: true,
           product: {
-            name:
-              product.product_name ||
-              product.product_name_en ||
-              'Unknown Product',
+            name: productName,
             brand: product.brands,
             category: mappedCategory,
             nutrition_per_100g: this.extractNutrition(product.nutriments),
@@ -153,9 +188,22 @@ class BarcodeService {
 
       return {found: false};
     } catch (error) {
-      console.error('Open Food Facts error:', error);
+      console.error('[OpenFoodFacts] API error:', error);
       return {found: false};
     }
+  }
+
+  private isNutritionixConfigured(): boolean {
+    const appId = process.env.NUTRITIONIX_APP_ID;
+    const apiKey = process.env.NUTRITIONIX_API_KEY;
+
+    // Check if we have real credentials (not placeholders)
+    return Boolean(
+      appId &&
+      apiKey &&
+      appId !== 'your_nutritionix_app_id' &&
+      apiKey !== 'your_nutritionix_api_key',
+    );
   }
 
   private async tryNutritionix(barcode: string): Promise<BarcodeResult> {
@@ -180,7 +228,9 @@ class BarcodeService {
           product: {
             name: food.food_name,
             brand: food.brand_name,
-            category: this.mapToCategory(food.tags?.food_group),
+            category: this.mapToCategory(
+              food.tags?.food_group || food.food_name,
+            ),
             nutrition_per_100g: {
               calories: Math.round(
                 (food.nf_calories / food.serving_weight_grams) * 100,
@@ -208,7 +258,13 @@ class BarcodeService {
 
       return {found: false};
     } catch (error) {
-      console.error('Nutritionix error:', error);
+      if (error.response?.status === 401) {
+        console.warn(
+          '[Nutritionix] Invalid API credentials - using placeholder keys',
+        );
+      } else {
+        console.error('[Nutritionix] API error:', error.message);
+      }
       return {found: false};
     }
   }
@@ -294,81 +350,195 @@ class BarcodeService {
 
     const categoryStr = categories.toLowerCase();
 
-    // Proteins (English and Spanish)
+    // Proteins (comprehensive list)
     if (
       categoryStr.includes('meat') ||
+      categoryStr.includes('beef') ||
+      categoryStr.includes('pork') ||
+      categoryStr.includes('chicken') ||
+      categoryStr.includes('turkey') ||
       categoryStr.includes('poultry') ||
       categoryStr.includes('fish') ||
+      categoryStr.includes('salmon') ||
+      categoryStr.includes('tuna') ||
       categoryStr.includes('seafood') ||
+      categoryStr.includes('shrimp') ||
+      categoryStr.includes('crab') ||
+      categoryStr.includes('lobster') ||
+      categoryStr.includes('eggs') ||
+      categoryStr.includes('protein') ||
       categoryStr.includes('carne') ||
       categoryStr.includes('pescado') ||
-      categoryStr.includes('protein')
+      categoryStr.includes('pollo') ||
+      categoryStr.includes('huevos')
     ) {
       return 'proteins';
     }
 
-    // Vegetables (English and Spanish)
+    // Vegetables (comprehensive list)
     if (
       categoryStr.includes('vegetable') ||
       categoryStr.includes('produce') ||
+      categoryStr.includes('lettuce') ||
+      categoryStr.includes('spinach') ||
+      categoryStr.includes('broccoli') ||
+      categoryStr.includes('carrot') ||
+      categoryStr.includes('onion') ||
+      categoryStr.includes('tomato') ||
+      categoryStr.includes('pepper') ||
+      categoryStr.includes('cucumber') ||
+      categoryStr.includes('celery') ||
+      categoryStr.includes('cabbage') ||
+      categoryStr.includes('kale') ||
       categoryStr.includes('vegetal') ||
-      categoryStr.includes('verdura')
+      categoryStr.includes('verdura') ||
+      categoryStr.includes('lechuga') ||
+      categoryStr.includes('zanahoria')
     ) {
       return 'vegetables';
     }
 
-    // Fruits (English and Spanish)
-    if (categoryStr.includes('fruit') || categoryStr.includes('fruta')) {
+    // Fruits (comprehensive list)
+    if (
+      categoryStr.includes('fruit') ||
+      categoryStr.includes('apple') ||
+      categoryStr.includes('banana') ||
+      categoryStr.includes('orange') ||
+      categoryStr.includes('grape') ||
+      categoryStr.includes('berry') ||
+      categoryStr.includes('strawberry') ||
+      categoryStr.includes('blueberry') ||
+      categoryStr.includes('cherry') ||
+      categoryStr.includes('peach') ||
+      categoryStr.includes('pear') ||
+      categoryStr.includes('mango') ||
+      categoryStr.includes('pineapple') ||
+      categoryStr.includes('fruta') ||
+      categoryStr.includes('manzana') ||
+      categoryStr.includes('naranja')
+    ) {
       return 'fruits';
     }
 
-    // Dairy (English and Spanish)
+    // Dairy (comprehensive list)
     if (
       categoryStr.includes('dairy') ||
       categoryStr.includes('milk') ||
       categoryStr.includes('cheese') ||
       categoryStr.includes('yogurt') ||
+      categoryStr.includes('butter') ||
+      categoryStr.includes('cream') ||
+      categoryStr.includes('ice cream') ||
+      categoryStr.includes('sour cream') ||
+      categoryStr.includes('cottage cheese') ||
       categoryStr.includes('lácteo') ||
       categoryStr.includes('lacteo') ||
       categoryStr.includes('leche') ||
-      categoryStr.includes('queso')
+      categoryStr.includes('queso') ||
+      categoryStr.includes('mantequilla')
     ) {
       return 'dairy';
     }
 
-    // Grains (English and Spanish)
+    // Grains (comprehensive list)
     if (
       categoryStr.includes('grain') ||
       categoryStr.includes('bread') ||
       categoryStr.includes('cereal') ||
+      categoryStr.includes('cheerios') ||
       categoryStr.includes('pasta') ||
+      categoryStr.includes('rice') ||
+      categoryStr.includes('wheat') ||
+      categoryStr.includes('oats') ||
+      categoryStr.includes('quinoa') ||
+      categoryStr.includes('barley') ||
+      categoryStr.includes('flour') ||
+      categoryStr.includes('noodle') ||
+      categoryStr.includes('bagel') ||
+      categoryStr.includes('muffin') ||
+      categoryStr.includes('crackers') ||
+      categoryStr.includes('tortilla') ||
+      categoryStr.includes('chips') ||
+      categoryStr.includes('corn') ||
       categoryStr.includes('grano') ||
       categoryStr.includes('pan') ||
       categoryStr.includes('arroz') ||
-      categoryStr.includes('rice')
+      categoryStr.includes('avena') ||
+      categoryStr.includes('harina') ||
+      categoryStr.includes('maíz')
     ) {
       return 'grains';
     }
 
-    // Spices (English and Spanish)
+    // Spices & Condiments (comprehensive list)
     if (
       categoryStr.includes('spice') ||
       categoryStr.includes('herb') ||
       categoryStr.includes('seasoning') ||
+      categoryStr.includes('salt') ||
+      categoryStr.includes('pepper') ||
+      categoryStr.includes('garlic') ||
+      categoryStr.includes('onion powder') ||
+      categoryStr.includes('paprika') ||
+      categoryStr.includes('cumin') ||
+      categoryStr.includes('oregano') ||
+      categoryStr.includes('basil') ||
+      categoryStr.includes('thyme') ||
+      categoryStr.includes('rosemary') ||
+      categoryStr.includes('sauce') ||
+      categoryStr.includes('ketchup') ||
+      categoryStr.includes('mustard') ||
+      categoryStr.includes('mayo') ||
+      categoryStr.includes('dressing') ||
+      categoryStr.includes('vinegar') ||
+      categoryStr.includes('oil') ||
       categoryStr.includes('especia') ||
-      categoryStr.includes('condimento')
+      categoryStr.includes('condimento') ||
+      categoryStr.includes('sal') ||
+      categoryStr.includes('pimienta') ||
+      categoryStr.includes('ajo') ||
+      categoryStr.includes('aceite')
     ) {
       return 'spices';
     }
 
-    // Plant-based foods (English and Spanish)
+    // Beverages
     if (
-      categoryStr.includes('plant-based') ||
-      categoryStr.includes('plant based') ||
-      categoryStr.includes('alimento') ||
-      categoryStr.includes('bebida')
+      categoryStr.includes('beverage') ||
+      categoryStr.includes('drink') ||
+      categoryStr.includes('juice') ||
+      categoryStr.includes('soda') ||
+      categoryStr.includes('water') ||
+      categoryStr.includes('coffee') ||
+      categoryStr.includes('tea') ||
+      categoryStr.includes('beer') ||
+      categoryStr.includes('wine') ||
+      categoryStr.includes('energy drink') ||
+      categoryStr.includes('bebida') ||
+      categoryStr.includes('jugo') ||
+      categoryStr.includes('agua') ||
+      categoryStr.includes('café') ||
+      categoryStr.includes('té')
     ) {
-      return 'vegetables'; // Default plant-based to vegetables
+      return 'other'; // Beverages go to 'other' category
+    }
+
+    // Snacks & Processed Foods
+    if (
+      categoryStr.includes('snack') ||
+      categoryStr.includes('chip') ||
+      categoryStr.includes('cookie') ||
+      categoryStr.includes('candy') ||
+      categoryStr.includes('chocolate') ||
+      categoryStr.includes('nuts') ||
+      categoryStr.includes('crackers') ||
+      categoryStr.includes('popcorn') ||
+      categoryStr.includes('pretzel') ||
+      categoryStr.includes('galleta') ||
+      categoryStr.includes('dulce') ||
+      categoryStr.includes('nueces')
+    ) {
+      return 'other';
     }
 
     return 'other';
@@ -391,6 +561,40 @@ class BarcodeService {
     return suggestions;
   }
 
+  private async tryBarcodeSpider(barcode: string): Promise<BarcodeResult> {
+    try {
+      // Barcode Spider - free barcode lookup service
+      const response = await axios.get(
+        `https://api.barcodespider.com/v1/lookup?token=free&upc=${barcode}`,
+        {timeout: 5000},
+      );
+
+      if (
+        response.data &&
+        response.data.item_response &&
+        response.data.item_response.code === 200
+      ) {
+        const item = response.data.item_response.item;
+
+        return {
+          found: true,
+          product: {
+            name: item.title || 'Unknown Product',
+            brand: item.brand,
+            category: this.mapToCategory(item.category || item.title || ''),
+            barcode,
+            source: 'barcodespider',
+          },
+        };
+      }
+
+      return {found: false};
+    } catch (error) {
+      console.error('[BarcodeSpider] API error:', error);
+      return {found: false};
+    }
+  }
+
   private async tryUPCDatabase(barcode: string): Promise<BarcodeResult> {
     try {
       // UPC Database - free alternative
@@ -407,7 +611,7 @@ class BarcodeService {
           product: {
             name: item.title || 'Unknown Product',
             brand: item.brand,
-            category: this.mapToCategory(item.category || ''),
+            category: this.mapToCategory(item.category || item.title || ''),
             barcode,
             source: 'upcitemdb',
           },
@@ -416,7 +620,7 @@ class BarcodeService {
 
       return {found: false};
     } catch (error) {
-      console.error('UPC Database error:', error);
+      console.error('[UPCDatabase] API error:', error);
       return {found: false};
     }
   }

@@ -100,6 +100,8 @@ const SignupScreen: React.FC = () => {
                 placeholder="First name"
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
+                autoComplete="given-name"
+                textContentType="givenName"
               />
             </View>
             <View style={[styles.inputContainer, styles.halfWidth]}>
@@ -111,6 +113,8 @@ const SignupScreen: React.FC = () => {
                 placeholder="Last name"
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
+                autoComplete="family-name"
+                textContentType="familyName"
               />
             </View>
           </View>
@@ -126,6 +130,8 @@ const SignupScreen: React.FC = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
             />
           </View>
 
@@ -138,6 +144,8 @@ const SignupScreen: React.FC = () => {
               placeholder="At least 8 characters"
               placeholderTextColor="#9CA3AF"
               secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
             />
           </View>
 
@@ -150,6 +158,8 @@ const SignupScreen: React.FC = () => {
               placeholder="Confirm your password"
               placeholderTextColor="#9CA3AF"
               secureTextEntry
+              autoComplete="new-password"
+              textContentType="newPassword"
             />
           </View>
 
