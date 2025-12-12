@@ -7,6 +7,7 @@ import {
   Alert,
   Modal,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -221,66 +222,73 @@ export const AddIngredientScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
 
-            <PhotoPicker onPhotoSelected={setPhoto} currentPhoto={photo} />
+            <ScrollView
+              style={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled">
+              <PhotoPicker onPhotoSelected={setPhoto} currentPhoto={photo} />
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Ingredient Name *</Text>
-              <TextInput
-                style={styles.input}
-                value={customName}
-                onChangeText={setCustomName}
-                placeholder="e.g., Organic Honey"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Ingredient Name *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={customName}
+                  onChangeText={setCustomName}
+                  placeholder="e.g., Organic Honey"
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Category</Text>
-              <View style={styles.categoryGrid}>
-                {categories.map(cat => (
-                  <TouchableOpacity
-                    key={cat}
-                    style={[
-                      styles.categoryChip,
-                      customCategory === cat && styles.categoryChipActive,
-                    ]}
-                    onPress={() => setCustomCategory(cat)}>
-                    <Text
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Category</Text>
+                <View style={styles.categoryGrid}>
+                  {categories.map(cat => (
+                    <TouchableOpacity
+                      key={cat}
                       style={[
-                        styles.categoryChipText,
-                        customCategory === cat && styles.categoryChipTextActive,
-                      ]}>
-                      {cat}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <View style={[styles.formGroup, styles.flex1]}>
-                <Text style={styles.label}>Quantity</Text>
-                <TextInput
-                  style={styles.input}
-                  value={quantity}
-                  onChangeText={setQuantity}
-                  keyboardType="numeric"
-                  placeholder="1"
-                  placeholderTextColor="#9CA3AF"
-                />
+                        styles.categoryChip,
+                        customCategory === cat && styles.categoryChipActive,
+                      ]}
+                      onPress={() => setCustomCategory(cat)}>
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          customCategory === cat &&
+                            styles.categoryChipTextActive,
+                        ]}>
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
 
-              <View style={[styles.formGroup, styles.flex1, styles.marginLeft]}>
-                <Text style={styles.label}>Unit</Text>
-                <TextInput
-                  style={styles.input}
-                  value={unit}
-                  onChangeText={setUnit}
-                  placeholder="unit"
-                  placeholderTextColor="#9CA3AF"
-                />
+              <View style={styles.row}>
+                <View style={[styles.formGroup, styles.flex1]}>
+                  <Text style={styles.label}>Quantity</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={quantity}
+                    onChangeText={setQuantity}
+                    keyboardType="numeric"
+                    placeholder="1"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+
+                <View
+                  style={[styles.formGroup, styles.flex1, styles.marginLeft]}>
+                  <Text style={styles.label}>Unit</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={unit}
+                    onChangeText={setUnit}
+                    placeholder="unit"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
               </View>
-            </View>
+            </ScrollView>
 
             <TouchableOpacity
               style={styles.saveButton}
@@ -392,7 +400,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '80%',
+    maxHeight: '85%',
+    minHeight: '60%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -404,6 +413,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#374151',
+  },
+  scrollContent: {
+    flex: 1,
+    marginBottom: 16,
   },
   formGroup: {
     marginBottom: 20,

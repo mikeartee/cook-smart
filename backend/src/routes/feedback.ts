@@ -11,9 +11,10 @@ router.post(
   FeedbackController.submitFeedback.bind(FeedbackController),
 );
 
-// Submit feedback (no auth required for BETA)
+// Submit feedback (auth required to get user info)
 router.post(
   '/',
+  authenticateToken,
   FeedbackController.validateFeedback,
   FeedbackController.submitFeedback.bind(FeedbackController),
 );

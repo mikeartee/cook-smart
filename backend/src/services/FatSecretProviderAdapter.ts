@@ -30,6 +30,106 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     }
   }
 
+  private convertToUSUnits(
+    amount: string,
+    unit: string,
+  ): {amount: string; unit: string} | null {
+    if (!amount || !unit) return null;
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) return null;
+
+    const unitLower = unit.toLowerCase().trim();
+
+    // Metric to US conversions
+    const conversions: {[key: string]: {factor: number; newUnit: string}} = {
+      // Weight conversions
+      gram: {factor: 0.035274, newUnit: 'oz'},
+      grams: {factor: 0.035274, newUnit: 'oz'},
+      g: {factor: 0.035274, newUnit: 'oz'},
+      kilogram: {factor: 2.20462, newUnit: 'lb'},
+      kilograms: {factor: 2.20462, newUnit: 'lb'},
+      kg: {factor: 2.20462, newUnit: 'lb'},
+
+      // Volume conversions
+      milliliter: {factor: 0.202884, newUnit: 'tsp'}, // ml to tsp (more useful for cooking)
+      milliliters: {factor: 0.202884, newUnit: 'tsp'},
+      ml: {factor: 0.202884, newUnit: 'tsp'},
+      liter: {factor: 4.22675, newUnit: 'cup'}, // liters to cups
+      liters: {factor: 4.22675, newUnit: 'cup'},
+      l: {factor: 4.22675, newUnit: 'cup'},
+
+      // Common cooking conversions
+      centiliter: {factor: 0.67628, newUnit: 'tbsp'}, // cl to tbsp
+      centiliters: {factor: 0.67628, newUnit: 'tbsp'},
+      cl: {factor: 0.67628, newUnit: 'tbsp'},
+    };
+
+    const conversion = conversions[unitLower];
+    if (conversion) {
+      const convertedAmount = numAmount * conversion.factor;
+
+      // Round to reasonable precision
+      let roundedAmount: string;
+      if (convertedAmount < 1) {
+        roundedAmount = convertedAmount.toFixed(2);
+      } else if (convertedAmount < 10) {
+        roundedAmount = convertedAmount.toFixed(1);
+      } else {
+        roundedAmount = Math.round(convertedAmount).toString();
+      }
+
+      // Convert decimal amounts to fractions for common cooking measurements
+      if (
+        conversion.newUnit === 'cup' ||
+        conversion.newUnit === 'tbsp' ||
+        conversion.newUnit === 'tsp'
+      ) {
+        const fractionAmount = this.convertToFraction(
+          parseFloat(roundedAmount),
+        );
+        if (fractionAmount) {
+          roundedAmount = fractionAmount;
+        }
+      }
+
+      return {
+        amount: roundedAmount,
+        unit: conversion.newUnit,
+      };
+    }
+
+    return null;
+  }
+
+  private convertToFraction(decimal: number): string | null {
+    // Common cooking fractions
+    const fractions = [
+      {decimal: 0.125, fraction: '1/8'},
+      {decimal: 0.25, fraction: '1/4'},
+      {decimal: 0.33, fraction: '1/3'},
+      {decimal: 0.5, fraction: '1/2'},
+      {decimal: 0.67, fraction: '2/3'},
+      {decimal: 0.75, fraction: '3/4'},
+    ];
+
+    const wholePart = Math.floor(decimal);
+    const fractionalPart = decimal - wholePart;
+
+    // Find closest fraction
+    for (const frac of fractions) {
+      if (Math.abs(fractionalPart - frac.decimal) < 0.05) {
+        if (wholePart > 0) {
+          return `${wholePart} ${frac.fraction}`;
+        } else {
+          return frac.fraction;
+        }
+      }
+    }
+
+    return null;
+  }
+
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
@@ -137,7 +237,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     }
   }
 
-  private formatRecipes(recipes: any[]): Recipe[] {
+  public formatRecipes(recipes: any[]): Recipe[] {
     console.log(
       `[FatSecretAdapter] DEPLOYMENT TEST v3 - Formatting ${recipes.length} recipes`,
     );
@@ -181,7 +281,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         return null;
       }
 
-      // Parse ingredients as strings
+      // Parse ingredients as strings with US unit conversion
       const ingredients: string[] = [];
       if (recipe.ingredients?.ingredient) {
         const ingredientList = Array.isArray(recipe.ingredients.ingredient)
@@ -190,8 +290,16 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
         for (const ing of ingredientList) {
           const description = ing.ingredient_description || ing.food_name || '';
-          const amount = ing.number_of_units || '';
-          const unit = ing.measurement_description || '';
+          let amount = ing.number_of_units || '';
+          let unit = ing.measurement_description || '';
+
+          // Convert metric units to US units
+          const convertedUnit = this.convertToUSUnits(amount, unit);
+          if (convertedUnit) {
+            amount = convertedUnit.amount;
+            unit = convertedUnit.unit;
+          }
+
           ingredients.push(`${amount} ${unit} ${description}`.trim());
         }
       }
