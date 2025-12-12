@@ -225,6 +225,7 @@ router.get(
       let dietaryFilteringApplied = false;
 
       console.log(`[DEBUG] req.user exists: ${!!req.user}`);
+      console.log(`[DEBUG] req.user:`, JSON.stringify(req.user, null, 2));
       console.log(`[DEBUG] req.user.id: ${req.user?.id}`);
 
       if (req.user?.id) {
