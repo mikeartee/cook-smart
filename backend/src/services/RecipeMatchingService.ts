@@ -8,21 +8,6 @@
 import {Recipe} from '../interfaces/IRecipeProvider';
 import {ComprehensiveIngredientStandardizer} from './ComprehensiveIngredientStandardizer';
 
-export interface MatchingData {
-  matchPercentage: number;
-  usedIngredientCount: number;
-  usedIngredients: string[];
-  missedIngredients: string[];
-  totalIngredients: number;
-}
-
-export interface RecipeWithMatching extends Recipe {
-  matchPercentage: number;
-  usedIngredientCount: number;
-  usedIngredients: string[];
-  missedIngredients: string[];
-}
-
 export class RecipeMatchingService {
   /**
    * Add ingredient matching data to recipes
@@ -30,7 +15,7 @@ export class RecipeMatchingService {
   static async formatRecipesWithMatching(
     recipes: Recipe[],
     userIngredients: string[],
-  ): Promise<RecipeWithMatching[]> {
+  ): Promise<Recipe[]> {
     console.log(
       `[RecipeMatching] Processing ${recipes.length} recipes with ${userIngredients.length} user ingredients`,
     );
@@ -61,7 +46,7 @@ export class RecipeMatchingService {
       `[RecipeMatching] Standardized user ingredients: ${standardizedUserIngredients.slice(0, 3).join(', ')}...`,
     );
 
-    const recipesWithMatching: RecipeWithMatching[] = [];
+    const recipesWithMatching: Recipe[] = [];
 
     for (const recipe of recipes) {
       try {
@@ -72,7 +57,10 @@ export class RecipeMatchingService {
 
         recipesWithMatching.push({
           ...recipe,
-          ...matchingData,
+          matchPercentage: matchingData.matchPercentage,
+          usedIngredientCount: matchingData.usedIngredientCount,
+          usedIngredients: matchingData.usedIngredients,
+          missedIngredients: matchingData.missedIngredients,
         });
 
         console.log(
@@ -107,7 +95,25 @@ export class RecipeMatchingService {
   private static async calculateRecipeMatch(
     recipe: Recipe,
     userIngredients: string[],
-  ): Promise<MatchingData> {
+  ): Promise<{
+    matchPercentage: number;
+    usedIngredientCount: number;
+    usedIngredients: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      image: string;
+    }>;
+    missedIngredients: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      image: string;
+    }>;
+    totalIngredients: number;
+  }> {
     // For FatSecret recipes, we need to extract ingredients from the recipe
     // Since FatSecret search results don't include ingredients, we'll use a simplified approach
 
@@ -182,27 +188,61 @@ export class RecipeMatchingService {
       return {
         matchPercentage: 25, // Default reasonable match for unknown ingredients
         usedIngredientCount: 1,
-        usedIngredients: userIngredients.slice(0, 1),
-        missedIngredients: [`${estimatedIngredients - 1} other ingredients`],
+        usedIngredients: userIngredients.slice(0, 1).map((name, index) => ({
+          id: index + 1,
+          name,
+          amount: 1,
+          unit: 'serving',
+          image: '',
+        })),
+        missedIngredients: [
+          {
+            id: 999,
+            name: `${estimatedIngredients - 1} other ingredients`,
+            amount: 1,
+            unit: 'serving',
+            image: '',
+          },
+        ],
         totalIngredients: estimatedIngredients,
       };
     }
 
     // Calculate matches between detected ingredients and user ingredients
-    const usedIngredients: string[] = [];
-    const missedIngredients: string[] = [];
+    const usedIngredients: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      image: string;
+    }> = [];
+    const missedIngredients: Array<{
+      id: number;
+      name: string;
+      amount: number;
+      unit: string;
+      image: string;
+    }> = [];
 
-    for (const detectedIngredient of detectedIngredients) {
+    detectedIngredients.forEach((detectedIngredient, index) => {
       const isAvailable = userIngredients.some(userIngredient =>
         this.ingredientsMatch(userIngredient, detectedIngredient),
       );
 
+      const ingredientObj = {
+        id: index + 1,
+        name: detectedIngredient,
+        amount: 1,
+        unit: 'serving',
+        image: '',
+      };
+
       if (isAvailable) {
-        usedIngredients.push(detectedIngredient);
+        usedIngredients.push(ingredientObj);
       } else {
-        missedIngredients.push(detectedIngredient);
+        missedIngredients.push(ingredientObj);
       }
-    }
+    });
 
     const totalIngredients = detectedIngredients.length;
     const matchPercentage =
