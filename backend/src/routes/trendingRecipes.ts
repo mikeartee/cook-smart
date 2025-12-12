@@ -4,6 +4,7 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import {RecipeProviderService} from '../services/RecipeProviderService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
+import {RecipeScalingService} from '../services/RecipeScalingService';
 
 // Optional authentication middleware - works for both authenticated and anonymous users
 const optionalAuth = (
@@ -35,6 +36,7 @@ router.get('/trending-recipes', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 20;
     const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
+    const servings = req.query.servings;
 
     console.log(
       '[Trending] Using RecipeProviderService for trending recipes...',
@@ -118,13 +120,39 @@ router.get('/trending-recipes', optionalAuth, async (req: AuthRequest, res) => {
       dietaryFilteringApplied = false;
     }
 
+    // SERVING SCALING: Apply serving adjustments if requested
+    let finalRecipes = processedRecipes;
+    let servingScalingApplied = false;
+
+    if (servings && typeof servings === 'string') {
+      const validation = RecipeScalingService.validateServingSize(servings);
+      if (validation.isValid) {
+        console.log(
+          `[Trending] Scaling recipes to ${validation.servings} servings`,
+        );
+        finalRecipes = processedRecipes.map(recipe =>
+          RecipeScalingService.scaleRecipe(recipe, validation.servings!),
+        ) as any[];
+        servingScalingApplied = true;
+        console.log(
+          `[Trending] Applied serving scaling to ${finalRecipes.length} recipes`,
+        );
+      } else {
+        console.warn(`[Trending] Invalid serving size: ${validation.error}`);
+      }
+    }
+
     res.json({
       success: true,
-      recipes: processedRecipes,
-      count: processedRecipes.length,
+      recipes: finalRecipes,
+      count: finalRecipes.length,
       source: 'fatsecret',
       dietaryFiltering: dietaryFilteringApplied,
-      note: 'Trending recipes with full dietary awareness',
+      servingScaling: servingScalingApplied,
+      targetServings: servingScalingApplied
+        ? parseInt(servings as string)
+        : undefined,
+      note: 'Trending recipes with full dietary awareness and serving scaling',
       version: 'v2-RecipeProviderService', // Debug: verify new code is running
     });
   } catch (error) {
@@ -143,6 +171,7 @@ router.get('/seasonal-recipes', optionalAuth, async (req: AuthRequest, res) => {
     const season = (req.query.season as string) || getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
     const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
+    const servings = req.query.servings;
 
     console.log(
       `[Seasonal] Using RecipeProviderService for ${season} recipes...`,
@@ -217,14 +246,40 @@ router.get('/seasonal-recipes', optionalAuth, async (req: AuthRequest, res) => {
       dietaryFilteringApplied = false;
     }
 
+    // SERVING SCALING: Apply serving adjustments if requested
+    let finalRecipes = processedRecipes;
+    let servingScalingApplied = false;
+
+    if (servings && typeof servings === 'string') {
+      const validation = RecipeScalingService.validateServingSize(servings);
+      if (validation.isValid) {
+        console.log(
+          `[Seasonal] Scaling recipes to ${validation.servings} servings`,
+        );
+        finalRecipes = processedRecipes.map(recipe =>
+          RecipeScalingService.scaleRecipe(recipe, validation.servings!),
+        ) as any[];
+        servingScalingApplied = true;
+        console.log(
+          `[Seasonal] Applied serving scaling to ${finalRecipes.length} recipes`,
+        );
+      } else {
+        console.warn(`[Seasonal] Invalid serving size: ${validation.error}`);
+      }
+    }
+
     res.json({
       success: true,
       season,
-      recipes: processedRecipes,
-      count: processedRecipes.length,
+      recipes: finalRecipes,
+      count: finalRecipes.length,
       source: 'fatsecret',
       dietaryFiltering: dietaryFilteringApplied,
-      note: 'Seasonal recipes with full dietary awareness',
+      servingScaling: servingScalingApplied,
+      targetServings: servingScalingApplied
+        ? parseInt(servings as string)
+        : undefined,
+      note: 'Seasonal recipes with full dietary awareness and serving scaling',
     });
   } catch (error) {
     console.error('[Seasonal] Error:', error);
@@ -238,6 +293,7 @@ router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
     const season = getCurrentSeason();
     const limit = parseInt(req.query.limit as string) || 20;
     const showConflictingRecipes = req.query.showConflictingRecipes !== 'false';
+    const servings = req.query.servings;
 
     console.log(
       `[Seasonal Current] Using RecipeProviderService for ${season} (current season)...`,
@@ -312,14 +368,42 @@ router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
       dietaryFilteringApplied = false;
     }
 
+    // SERVING SCALING: Apply serving adjustments if requested
+    let finalRecipes = processedRecipes;
+    let servingScalingApplied = false;
+
+    if (servings && typeof servings === 'string') {
+      const validation = RecipeScalingService.validateServingSize(servings);
+      if (validation.isValid) {
+        console.log(
+          `[Seasonal Current] Scaling recipes to ${validation.servings} servings`,
+        );
+        finalRecipes = processedRecipes.map(recipe =>
+          RecipeScalingService.scaleRecipe(recipe, validation.servings!),
+        ) as any[];
+        servingScalingApplied = true;
+        console.log(
+          `[Seasonal Current] Applied serving scaling to ${finalRecipes.length} recipes`,
+        );
+      } else {
+        console.warn(
+          `[Seasonal Current] Invalid serving size: ${validation.error}`,
+        );
+      }
+    }
+
     res.json({
       success: true,
       season,
-      recipes: processedRecipes,
-      count: processedRecipes.length,
+      recipes: finalRecipes,
+      count: finalRecipes.length,
       source: 'fatsecret',
       dietaryFiltering: dietaryFilteringApplied,
-      note: 'Current season recipes with full dietary awareness',
+      servingScaling: servingScalingApplied,
+      targetServings: servingScalingApplied
+        ? parseInt(servings as string)
+        : undefined,
+      note: 'Current season recipes with full dietary awareness and serving scaling',
     });
   } catch (error) {
     console.error('[Seasonal Current] Error:', error);

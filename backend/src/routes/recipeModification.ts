@@ -3,6 +3,7 @@ import {authenticateToken, AuthRequest} from '../middleware/auth';
 import RecipeCacheService from '../services/RecipeCacheService';
 import {RecipeFilterService} from '../services/RecipeFilterService';
 import {IngredientSubstitutionService} from '../services/IngredientSubstitutionService';
+import {RecipeScalingService} from '../services/RecipeScalingService';
 
 const router = express.Router();
 
@@ -194,5 +195,80 @@ function generateNotes(conflicts: any[], substitutions: any[]): string[] {
 
   return notes;
 }
+
+// Scale recipe to different serving size
+router.get('/:id/scale/:servings', async (req, res): Promise<void> => {
+  try {
+    const recipeId = req.params.id;
+    const targetServings = req.params.servings;
+
+    // Validate serving size
+    const validation = RecipeScalingService.validateServingSize(targetServings);
+    if (!validation.isValid) {
+      res.status(400).json({error: validation.error});
+      return;
+    }
+
+    // Get recipe
+    const recipe = await RecipeCacheService.getRecipeById(recipeId);
+    if (!recipe) {
+      res.status(404).json({error: 'Recipe not found'});
+      return;
+    }
+
+    // Scale the recipe
+    const scaledRecipe = RecipeScalingService.scaleRecipe(
+      recipe,
+      validation.servings!,
+    );
+
+    res.json({
+      success: true,
+      recipe: scaledRecipe,
+      scaling: {
+        originalServings: recipe.servings || 4,
+        targetServings: validation.servings!,
+        scaleFactor: scaledRecipe.scaleFactor,
+      },
+      servingSizeOptions: RecipeScalingService.getServingSizeOptions(
+        recipe.servings || 4,
+      ),
+    });
+  } catch (error) {
+    console.error('[Recipe Scaling] Error:', error);
+    res.status(500).json({error: 'Failed to scale recipe'});
+  }
+});
+
+// Get serving size options for a recipe
+router.get('/:id/serving-options', async (req, res): Promise<void> => {
+  try {
+    const recipeId = req.params.id;
+
+    // Get recipe to determine original serving size
+    const recipe = await RecipeCacheService.getRecipeById(recipeId);
+    if (!recipe) {
+      res.status(404).json({error: 'Recipe not found'});
+      return;
+    }
+
+    const options = RecipeScalingService.getServingSizeOptions(
+      recipe.servings || 4,
+    );
+
+    res.json({
+      success: true,
+      originalServings: recipe.servings || 4,
+      options: options.map(servings => ({
+        servings,
+        label: `${servings} ${servings === 1 ? 'serving' : 'servings'}`,
+        scaleFactor: servings / (recipe.servings || 4),
+      })),
+    });
+  } catch (error) {
+    console.error('[Recipe Serving Options] Error:', error);
+    res.status(500).json({error: 'Failed to get serving options'});
+  }
+});
 
 export default router;

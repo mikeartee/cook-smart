@@ -10,6 +10,7 @@ import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
 import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
+import {RecipeScalingService} from '../services/RecipeScalingService';
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -90,7 +91,7 @@ router.get(
     res.set('Expires', '0');
 
     try {
-      const {ingredients, maxCalories, mealType} = req.query;
+      const {ingredients, maxCalories, mealType, servings} = req.query;
 
       if (!ingredients || typeof ingredients !== 'string') {
         res.status(400).json({
@@ -274,6 +275,30 @@ router.get(
         }
       }
 
+      // SERVING SCALING: Apply serving adjustments if requested
+      let finalRecipes = processedRecipes;
+      let servingScalingApplied = false;
+
+      if (servings && typeof servings === 'string') {
+        const validation = RecipeScalingService.validateServingSize(servings);
+        if (validation.isValid) {
+          console.log(
+            `[Recipe Search] Scaling recipes to ${validation.servings} servings`,
+          );
+          finalRecipes = processedRecipes.map(recipe =>
+            RecipeScalingService.scaleRecipe(recipe, validation.servings!),
+          ) as any[];
+          servingScalingApplied = true;
+          console.log(
+            `[Recipe Search] Applied serving scaling to ${finalRecipes.length} recipes`,
+          );
+        } else {
+          console.warn(
+            `[Recipe Search] Invalid serving size: ${validation.error}`,
+          );
+        }
+      }
+
       // CRITICAL FIX: DO NOT cache recipes with matching data
       // Matching data is dynamic based on user's current ingredients
       // Caching would strip out the matching fields we just calculated
@@ -281,7 +306,7 @@ router.get(
         `🚫 Skipping cache for ingredient search to preserve matching data`,
       );
       console.log(
-        `✅ Returning ${processedRecipes.length} recipes with fresh matching calculations and dietary awareness`,
+        `✅ Returning ${finalRecipes.length} recipes with fresh matching calculations and dietary awareness`,
       );
 
       // Award points for recipe search (only if user is authenticated)
@@ -299,15 +324,19 @@ router.get(
       }
 
       res.json({
-        recipes: processedRecipes,
-        count: processedRecipes.length,
+        recipes: finalRecipes,
+        count: finalRecipes.length,
         provider: actualProvider, // Use actual provider instead of hardcoded
         searchedIngredients: ingredientList.slice(0, 10), // For debugging
         dietaryFiltering: dietaryFilteringApplied, // Indicate if dietary filtering was actually applied
+        servingScaling: servingScalingApplied, // Indicate if serving scaling was applied
+        targetServings: servingScalingApplied
+          ? parseInt(servings as string)
+          : undefined,
         testFlag: 'DIETARY_PROCESSING_ACTIVE', // Test flag to confirm this code path
         timestamp: new Date().toISOString(), // Timestamp to confirm fresh response
         message:
-          processedRecipes.length === 0
+          finalRecipes.length === 0
             ? 'No recipes found. Try different ingredients or adjust dietary preferences.'
             : undefined,
       });
