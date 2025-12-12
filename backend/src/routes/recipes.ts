@@ -9,6 +9,7 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
+import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -219,6 +220,54 @@ router.get(
         `[Recipe Search] Recipe has matching data: ${recipes[0]?.matchPercentage !== undefined}`,
       );
 
+      // DIETARY AWARENESS: Process recipes with user's dietary restrictions
+      let processedRecipes = recipes;
+      let dietaryFilteringApplied = false;
+
+      if (req.user?.id) {
+        try {
+          const showConflictingRecipes =
+            req.query.showConflictingRecipes !== 'false'; // Default to true
+
+          console.log(
+            `[Dietary] Starting dietary processing for user ${req.user.id}`,
+          );
+          console.log(
+            `[Dietary] showConflictingRecipes: ${showConflictingRecipes}`,
+          );
+          console.log(`[Dietary] Processing ${recipes.length} recipes`);
+
+          processedRecipes =
+            await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
+              recipes,
+              {
+                userId: parseInt(req.user.id),
+                showConflictingRecipes,
+                maxCalories: searchOptions.maxCalories,
+                mealType: searchOptions.mealType,
+              },
+            );
+
+          dietaryFilteringApplied = true;
+          console.log(
+            `[Dietary] Processed ${recipes.length} → ${processedRecipes.length} recipes after dietary filtering`,
+          );
+
+          // Log first few recipes for debugging
+          processedRecipes.slice(0, 3).forEach((recipe, i) => {
+            console.log(
+              `[Dietary] Recipe ${i + 1}: "${recipe.title}" - Status: ${recipe.dietaryStatus || 'not set'}`,
+            );
+          });
+        } catch (dietaryError) {
+          console.error(
+            '[Dietary] Error processing dietary restrictions:',
+            dietaryError,
+          );
+          // Continue with original recipes if dietary processing fails
+        }
+      }
+
       // CRITICAL FIX: DO NOT cache recipes with matching data
       // Matching data is dynamic based on user's current ingredients
       // Caching would strip out the matching fields we just calculated
@@ -226,7 +275,7 @@ router.get(
         `🚫 Skipping cache for ingredient search to preserve matching data`,
       );
       console.log(
-        `✅ Returning ${recipes.length} recipes with fresh matching calculations`,
+        `✅ Returning ${processedRecipes.length} recipes with fresh matching calculations and dietary awareness`,
       );
 
       // Award points for recipe search (only if user is authenticated)
@@ -244,13 +293,14 @@ router.get(
       }
 
       res.json({
-        recipes,
-        count: recipes.length,
+        recipes: processedRecipes,
+        count: processedRecipes.length,
         provider: actualProvider, // Use actual provider instead of hardcoded
         searchedIngredients: ingredientList.slice(0, 10), // For debugging
+        dietaryFiltering: dietaryFilteringApplied, // Indicate if dietary filtering was actually applied
         message:
-          recipes.length === 0
-            ? 'No recipes found. Try different ingredients.'
+          processedRecipes.length === 0
+            ? 'No recipes found. Try different ingredients or adjust dietary preferences.'
             : undefined,
       });
     } catch (error) {
