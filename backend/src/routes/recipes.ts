@@ -9,7 +9,7 @@ import FatSecretAdapter from '../services/FatSecretProviderAdapter';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
-// import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService'; // Temporarily disabled
+import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
 
 // Prioritize ingredients for search when user has large inventory
 function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
@@ -84,22 +84,6 @@ router.get(
   authenticateToken,
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
-    console.log('🔥 RECIPE SEARCH ENDPOINT HIT - THIS IS THE RIGHT PLACE!');
-    console.log(`🔥 Request URL: ${req.originalUrl}`);
-    console.log(`🔥 Request method: ${req.method}`);
-    console.log(`🔥 User ID: ${req.user?.id}`);
-    console.log(`🔥 Ingredients param: ${req.query.ingredients}`);
-
-    // TEMPORARY TEST: Return immediately to confirm this endpoint is hit
-    res.json({
-      TEST_RESPONSE: 'FROM_CORRECT_ENDPOINT',
-      endpoint: '/api/v1/recipes/search',
-      userId: req.user?.id,
-      ingredients: req.query.ingredients,
-      timestamp: new Date().toISOString(),
-    });
-    return;
-
     // Disable HTTP caching for recipe searches to ensure filters work correctly
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
@@ -248,21 +232,39 @@ router.get(
 
       if (req.user?.id) {
         try {
-          console.log(`[Dietary] User authenticated: ${req.user.id}`);
-
-          // TEMPORARY: Simple test to see if this code path is reached
-          dietaryFilteringApplied = true;
-          console.log(`[Dietary] Setting dietaryFilteringApplied = true`);
-
-          // Add simple dietary status to recipes for testing
-          processedRecipes = recipes.map(recipe => ({
-            ...recipe,
-            dietaryStatus: 'safe', // Temporary test value
-          }));
+          const showConflictingRecipes =
+            req.query.showConflictingRecipes !== 'false'; // Default to true
 
           console.log(
-            `[Dietary] Applied simple dietary processing to ${processedRecipes.length} recipes`,
+            `[Dietary] Starting dietary processing for user ${req.user.id}`,
           );
+          console.log(
+            `[Dietary] showConflictingRecipes: ${showConflictingRecipes}`,
+          );
+          console.log(`[Dietary] Processing ${recipes.length} recipes`);
+
+          processedRecipes =
+            await DietaryAwareRecipeService.processRecipesWithDietaryAwareness(
+              recipes,
+              {
+                userId: req.user.id, // Keep as string, don't convert to number
+                showConflictingRecipes,
+                maxCalories: searchOptions.maxCalories,
+                mealType: searchOptions.mealType,
+              },
+            );
+
+          dietaryFilteringApplied = true;
+          console.log(
+            `[Dietary] Processed ${recipes.length} → ${processedRecipes.length} recipes after dietary filtering`,
+          );
+
+          // Log first few recipes for debugging
+          processedRecipes.slice(0, 3).forEach((recipe: any, i) => {
+            console.log(
+              `[Dietary] Recipe ${i + 1}: "${recipe.title}" - Status: ${recipe.dietaryStatus || 'not set'}`,
+            );
+          });
         } catch (dietaryError) {
           console.error(
             '[Dietary] Error processing dietary restrictions:',
