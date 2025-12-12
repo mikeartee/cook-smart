@@ -303,7 +303,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           : [recipe.ingredients.ingredient];
 
         for (const ing of ingredientList) {
-          const description = ing.ingredient_description || ing.food_name || '';
+          let description = ing.ingredient_description || ing.food_name || '';
           let amount = ing.number_of_units || '';
           let unit = ing.measurement_description || '';
 
