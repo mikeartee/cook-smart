@@ -394,6 +394,25 @@ router.get('/deployment-check', async (req: Request, res: Response) => {
   });
 });
 
+// 🔍 DEBUG ENDPOINT FOR DIETARY PROCESSING
+router.get(
+  '/debug-auth',
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    res.json({
+      debug: {
+        userExists: !!req.user,
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        userType: typeof req.user,
+        hasId: req.user?.id !== undefined,
+        idValue: req.user?.id,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  },
+);
+
 // Get cache statistics (admin endpoint)
 router.get('/admin/cache-stats', async (req: Request, res: Response) => {
   try {
