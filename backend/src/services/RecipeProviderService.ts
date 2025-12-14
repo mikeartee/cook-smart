@@ -278,6 +278,13 @@ export class RecipeProviderService {
           const details = await provider.getRecipeDetails(recipeId);
 
           if (details) {
+            // 🖼️ IMAGE PRESERVATION: If details don't have image, log for debugging
+            if (!details.image || details.image.trim() === '') {
+              console.log(
+                `⚠️  Recipe ${recipeId} missing image, provider should handle fallback`,
+              );
+            }
+
             await RecipeCacheModel.cacheRecipe(recipeId, details);
             console.log(
               `✅ Recipe ${recipeId} fetched from ${provider.getProviderName()}`,

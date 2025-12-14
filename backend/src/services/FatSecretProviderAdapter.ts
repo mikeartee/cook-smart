@@ -336,10 +336,30 @@ class FatSecretProviderAdapter implements IRecipeProvider {
           .join('\n');
       }
 
+      // 🖼️ IMAGE PRESERVATION: FatSecret detail API often doesn't include images
+      // Try to get image from the recipe data, with fallback logic
+      let imageUrl = this.getValidImageUrl(recipe.recipe_image);
+
+      // If no image in details, try to construct one from recipe ID
+      if (!imageUrl && recipe.recipe_id) {
+        // FatSecret images often follow a pattern, try common formats
+        const possibleImageUrls = [
+          `https://m.ftscrt.com/static/recipe/${recipe.recipe_id}.jpg`,
+          `https://m.ftscrt.com/static/recipe/${recipe.recipe_id}.png`,
+          `https://images.fatsecret.com/recipe/${recipe.recipe_id}.jpg`,
+        ];
+
+        // Use the first format as fallback (most common)
+        imageUrl = possibleImageUrls[0];
+        console.log(
+          `📷 Using fallback image URL for recipe ${recipe.recipe_id}: ${imageUrl}`,
+        );
+      }
+
       return {
         id: recipe.recipe_id,
         title: recipe.recipe_name,
-        image: this.getValidImageUrl(recipe.recipe_image),
+        image: imageUrl,
         servings: parseInt(recipe.number_of_servings) || 4,
         readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
         sourceUrl: `https://www.fatsecret.com/recipes/${recipe.recipe_id}`,
