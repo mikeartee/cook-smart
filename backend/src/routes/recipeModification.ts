@@ -211,7 +211,7 @@ router.get('/:id/scale/:servings', async (req, res): Promise<void> => {
     }
 
     // Get recipe from FatSecret directly (more reliable than cache)
-    let recipe;
+    let recipe: any = null;
     try {
       recipe = await RecipeCacheService.getRecipeById(recipeId);
       if (!recipe) {
@@ -281,7 +281,7 @@ router.get('/:id/serving-options', async (req, res): Promise<void> => {
     const recipeId = req.params.id;
 
     // Get recipe to determine original serving size
-    let recipe;
+    let recipe: any = null;
     try {
       recipe = await RecipeCacheService.getRecipeById(recipeId);
       if (!recipe) {
