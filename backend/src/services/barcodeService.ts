@@ -125,7 +125,7 @@ class BarcodeService {
         return {
           found: true,
           product: {
-            name: food.food_name,
+            name: this.convertMetricInProductName(food.food_name),
             brand: food.brand_name,
             category,
             nutrition_per_100g: nutrition,
@@ -139,7 +139,10 @@ class BarcodeService {
       return {found: false};
     } catch (error) {
       // FatSecret may be blocked by IP restrictions on AWS
-      if (error.message?.includes('Invalid IP address')) {
+      if (
+        error instanceof Error &&
+        error.message?.includes('Invalid IP address')
+      ) {
         console.warn(
           '[FatSecret] IP address blocked - this is expected on AWS',
         );
@@ -176,7 +179,7 @@ class BarcodeService {
         return {
           found: true,
           product: {
-            name: productName,
+            name: this.convertMetricInProductName(productName),
             brand: product.brands,
             category: mappedCategory,
             nutrition_per_100g: this.extractNutrition(product.nutriments),
@@ -226,7 +229,7 @@ class BarcodeService {
         return {
           found: true,
           product: {
-            name: food.food_name,
+            name: this.convertMetricInProductName(food.food_name),
             brand: food.brand_name,
             category: this.mapToCategory(
               food.tags?.food_group || food.food_name,
@@ -258,12 +261,15 @@ class BarcodeService {
 
       return {found: false};
     } catch (error) {
-      if (error.response?.status === 401) {
+      if (error instanceof Error && (error as any).response?.status === 401) {
         console.warn(
           '[Nutritionix] Invalid API credentials - using placeholder keys',
         );
       } else {
-        console.error('[Nutritionix] API error:', error.message);
+        console.error(
+          '[Nutritionix] API error:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
       }
       return {found: false};
     }
@@ -343,6 +349,118 @@ class BarcodeService {
   private findNutrient(nutrients: any[], nutrientId: number): number {
     const nutrient = nutrients.find(n => n.nutrientId === nutrientId);
     return nutrient ? nutrient.value : 0;
+  }
+
+  private convertToUSUnits(
+    amount: string,
+    unit: string,
+  ): {amount: string; unit: string} | null {
+    if (!amount || !unit) return null;
+
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) return null;
+
+    const unitLower = unit.toLowerCase().trim();
+
+    // Metric to US conversions
+    const conversions: {[key: string]: {factor: number; newUnit: string}} = {
+      // Weight conversions
+      gram: {factor: 0.035274, newUnit: 'oz'},
+      grams: {factor: 0.035274, newUnit: 'oz'},
+      g: {factor: 0.035274, newUnit: 'oz'},
+      kilogram: {factor: 2.20462, newUnit: 'lb'},
+      kilograms: {factor: 2.20462, newUnit: 'lb'},
+      kg: {factor: 2.20462, newUnit: 'lb'},
+
+      // Volume conversions
+      milliliter: {factor: 0.033814, newUnit: 'fl oz'}, // ml to fl oz
+      milliliters: {factor: 0.033814, newUnit: 'fl oz'},
+      ml: {factor: 0.033814, newUnit: 'fl oz'},
+      liter: {factor: 33.814, newUnit: 'fl oz'}, // liters to fl oz
+      liters: {factor: 33.814, newUnit: 'fl oz'},
+      l: {factor: 33.814, newUnit: 'fl oz'},
+
+      // Common cooking conversions
+      centiliter: {factor: 0.338, newUnit: 'fl oz'}, // cl to fl oz
+      centiliters: {factor: 0.338, newUnit: 'fl oz'},
+      cl: {factor: 0.338, newUnit: 'fl oz'},
+    };
+
+    const conversion = conversions[unitLower];
+    if (conversion) {
+      const convertedAmount = numAmount * conversion.factor;
+
+      // Round to reasonable precision
+      let roundedAmount: string;
+      if (convertedAmount < 1) {
+        roundedAmount = convertedAmount.toFixed(2);
+      } else if (convertedAmount < 10) {
+        roundedAmount = convertedAmount.toFixed(1);
+      } else {
+        roundedAmount = Math.round(convertedAmount).toString();
+      }
+
+      return {
+        amount: roundedAmount,
+        unit: conversion.newUnit,
+      };
+    }
+
+    return null;
+  }
+
+  private convertMetricInProductName(name: string): string {
+    if (!name) return name;
+
+    // Convert metric units in product names to US equivalents
+    let convertedName = name;
+
+    // Volume conversions (ml, l, cl)
+    convertedName = convertedName.replace(
+      /(\d+(?:\.\d+)?)\s*ml\b/gi,
+      (match, amount) => {
+        const flOz = (parseFloat(amount) * 0.033814).toFixed(1);
+        return `${flOz} fl oz`;
+      },
+    );
+
+    convertedName = convertedName.replace(
+      /(\d+(?:\.\d+)?)\s*l\b/gi,
+      (match, amount) => {
+        const flOz = (parseFloat(amount) * 33.814).toFixed(1);
+        return `${flOz} fl oz`;
+      },
+    );
+
+    convertedName = convertedName.replace(
+      /(\d+(?:\.\d+)?)\s*cl\b/gi,
+      (match, amount) => {
+        const flOz = (parseFloat(amount) * 0.338).toFixed(1);
+        return `${flOz} fl oz`;
+      },
+    );
+
+    // Weight conversions (g, kg)
+    convertedName = convertedName.replace(
+      /(\d+(?:\.\d+)?)\s*g\b/gi,
+      (match, amount) => {
+        const oz = (parseFloat(amount) * 0.035274).toFixed(1);
+        return `${oz} oz`;
+      },
+    );
+
+    convertedName = convertedName.replace(
+      /(\d+(?:\.\d+)?)\s*kg\b/gi,
+      (match, amount) => {
+        const lb = (parseFloat(amount) * 2.20462).toFixed(1);
+        return `${lb} lb`;
+      },
+    );
+
+    // Clean up decimal places (remove .0)
+    convertedName = convertedName.replace(/(\d+)\.0\s+(fl oz|oz|lb)/g, '$1 $2');
+
+    return convertedName;
   }
 
   private mapToCategory(categories: string): string {
@@ -579,7 +697,9 @@ class BarcodeService {
         return {
           found: true,
           product: {
-            name: item.title || 'Unknown Product',
+            name: this.convertMetricInProductName(
+              item.title || 'Unknown Product',
+            ),
             brand: item.brand,
             category: this.mapToCategory(item.category || item.title || ''),
             barcode,
@@ -609,7 +729,9 @@ class BarcodeService {
         return {
           found: true,
           product: {
-            name: item.title || 'Unknown Product',
+            name: this.convertMetricInProductName(
+              item.title || 'Unknown Product',
+            ),
             brand: item.brand,
             category: this.mapToCategory(item.category || item.title || ''),
             barcode,
