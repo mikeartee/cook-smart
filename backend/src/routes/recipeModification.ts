@@ -252,10 +252,19 @@ router.get('/:id/scale/:servings', async (req, res): Promise<void> => {
     }
 
     // Scale the recipe
-    const scaledRecipe = RecipeScalingService.scaleRecipe(
-      recipe,
-      validation.servings!,
-    );
+    let scaledRecipe;
+    try {
+      scaledRecipe = RecipeScalingService.scaleRecipe(
+        recipe,
+        validation.servings!,
+      );
+    } catch (scalingError) {
+      console.error('[Recipe Scaling] Scaling service error:', scalingError);
+      res
+        .status(500)
+        .json({error: 'Failed to scale recipe - scaling service error'});
+      return;
+    }
 
     res.json({
       success: true,
