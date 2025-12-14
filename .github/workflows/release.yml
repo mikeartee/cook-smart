@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build backend
+      run: |
+        cd backend
+        npm ci
+        npm run build
+    
+    - name: Build mobile app
+      run: |
+        cd android
+        ./gradlew assembleRelease --no-daemon
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Generate changelog from git commits
+        git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD > RELEASE_CHANGELOG.md
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Cook Smart v${{ steps.changelog.outputs.version }}
+        body_path: RELEASE_CHANGELOG.md
+        draft: false
+        prerelease: false
+    
+    - name: Upload APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: android/app/build/outputs/apk/release/app-release.apk
+        asset_name: cook-smart-v${{ steps.changelog.outputs.version }}.apk
+        asset_content_type: application/vnd.android.package-archive
+    
+    - name: Deploy to Production
+      run: |
+        # Deploy backend to production server
+        echo "Deploying to production..."
+        # Add your deployment script here
+    
+    - name: Notify Discord
+      uses: Ilshidur/action-discord@master
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      with:
+        args: '🚀 Cook Smart v${{ steps.changelog.outputs.version }} has been released! Download: https://github.com/tootallgames2020/cook-smart/releases/tag/v${{ steps.changelog.outputs.version }}'
