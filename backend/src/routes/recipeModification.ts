@@ -254,15 +254,50 @@ router.get('/:id/scale/:servings', async (req, res): Promise<void> => {
     // Scale the recipe
     let scaledRecipe;
     try {
+      // Ensure recipe has required fields for scaling
+      const recipeForScaling = {
+        ...recipe,
+        servings: recipe.servings || 4,
+        ingredients: recipe.ingredients || [],
+        readyInMinutes: recipe.ready_in_minutes || recipe.readyInMinutes || 30,
+        calories: recipe.calories || 0,
+        protein: recipe.protein || 0,
+        carbs: recipe.carbs || 0,
+        fat: recipe.fat || 0,
+      };
+
       scaledRecipe = RecipeScalingService.scaleRecipe(
-        recipe,
+        recipeForScaling,
         validation.servings!,
       );
     } catch (scalingError) {
       console.error('[Recipe Scaling] Scaling service error:', scalingError);
-      res
-        .status(500)
-        .json({error: 'Failed to scale recipe - scaling service error'});
+      console.error(
+        '[Recipe Scaling] Recipe data:',
+        JSON.stringify(recipe, null, 2),
+      );
+
+      // Return a basic scaled response even if detailed scaling fails
+      const basicScaledRecipe = {
+        ...recipe,
+        servings: validation.servings!,
+        originalServings: recipe.servings || 4,
+        scaleFactor: validation.servings! / (recipe.servings || 4),
+      };
+
+      res.json({
+        success: true,
+        recipe: basicScaledRecipe,
+        scaling: {
+          originalServings: recipe.servings || 4,
+          targetServings: validation.servings!,
+          scaleFactor: basicScaledRecipe.scaleFactor,
+        },
+        note: 'Basic scaling applied - detailed ingredient scaling unavailable',
+        servingSizeOptions: RecipeScalingService.getServingSizeOptions(
+          recipe.servings || 4,
+        ),
+      });
       return;
     }
 

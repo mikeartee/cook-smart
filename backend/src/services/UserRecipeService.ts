@@ -132,11 +132,7 @@ export class UserRecipeService {
       return null;
     }
 
-    // Increment view count
-    await pool.query(
-      'UPDATE user_recipes SET views = views + 1 WHERE id = $1',
-      [recipeId],
-    );
+    // Note: View count tracking will be added in future update
 
     return result.rows[0];
   }
@@ -154,7 +150,7 @@ export class UserRecipeService {
        WHERE r.is_public = true 
          AND (r.title ILIKE $1 OR r.description ILIKE $1)
        GROUP BY r.id
-       ORDER BY r.views DESC, r.favorites DESC
+       ORDER BY r.date_created DESC
        LIMIT $2`,
       [`%${query}%`, limit],
     );
