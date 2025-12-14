@@ -2,8 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+// Load secure environment configuration
+const {loadEnvironment} = require('../load-env');
+loadEnvironment();
 import {errorMiddleware, notFoundHandler} from './middleware/errorMiddleware';
 import {requestLogger} from './middleware/logger';
 import AutoRepairSystem from './services/AutoRepairSystem';

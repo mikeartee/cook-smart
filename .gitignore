@@ -92,6 +92,12 @@ secrets.json
 secrets/
 *.pem
 
+# Secure environment files (contain real secrets)
+backend/.env.secure
+.env.secure
+*.env.local
+*.env.production
+
 # Backend environment files
 backend/.env
 backend/.env.production
