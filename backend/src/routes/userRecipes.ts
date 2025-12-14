@@ -22,7 +22,20 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-// Get user's recipes
+// Get user's recipes (base route)
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = parseInt(req.user!.id as string);
+    const recipes = await UserRecipeService.getUserRecipes(userId);
+
+    res.json({success: true, recipes});
+  } catch (error) {
+    console.error('Error getting recipes:', error);
+    res.status(500).json({error: 'Failed to get recipes'});
+  }
+});
+
+// Get user's recipes (alternative route)
 router.get('/my-recipes', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = parseInt(req.user!.id as string);

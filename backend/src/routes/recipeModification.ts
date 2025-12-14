@@ -4,6 +4,7 @@ import RecipeCacheService from '../services/RecipeCacheService';
 import {RecipeFilterService} from '../services/RecipeFilterService';
 import {IngredientSubstitutionService} from '../services/IngredientSubstitutionService';
 import {RecipeScalingService} from '../services/RecipeScalingService';
+import FatSecretService from '../services/FatSecretService';
 
 const router = express.Router();
 
@@ -209,8 +210,42 @@ router.get('/:id/scale/:servings', async (req, res): Promise<void> => {
       return;
     }
 
-    // Get recipe
-    const recipe = await RecipeCacheService.getRecipeById(recipeId);
+    // Get recipe from FatSecret directly (more reliable than cache)
+    let recipe;
+    try {
+      recipe = await RecipeCacheService.getRecipeById(recipeId);
+      if (!recipe) {
+        // Fallback: try to get from FatSecret directly
+        const fatSecretRecipe =
+          await FatSecretService.getRecipeDetails(recipeId);
+        if (fatSecretRecipe) {
+          recipe = {
+            id: parseInt(recipeId),
+            recipe_id: recipeId,
+            title: fatSecretRecipe.recipe_name,
+            servings: parseInt(fatSecretRecipe.number_of_servings) || 4,
+            ready_in_minutes: parseInt(fatSecretRecipe.cooking_time_min) || 30,
+            ingredients: fatSecretRecipe.ingredients || {},
+            instructions: fatSecretRecipe.directions || {},
+            // Add other required fields with defaults
+            source: 'fatsecret',
+            description: fatSecretRecipe.recipe_description || '',
+            image_url: fatSecretRecipe.recipe_image || '',
+            nutrition: {},
+            dietary_info: {},
+            meal_type: '',
+            cuisine: '',
+            season: '',
+            view_count: 0,
+            save_count: 0,
+            trending_score: 0,
+          };
+        }
+      }
+    } catch (error) {
+      console.error('[Recipe Scaling] Error fetching recipe:', error);
+    }
+
     if (!recipe) {
       res.status(404).json({error: 'Recipe not found'});
       return;
@@ -246,7 +281,23 @@ router.get('/:id/serving-options', async (req, res): Promise<void> => {
     const recipeId = req.params.id;
 
     // Get recipe to determine original serving size
-    const recipe = await RecipeCacheService.getRecipeById(recipeId);
+    let recipe;
+    try {
+      recipe = await RecipeCacheService.getRecipeById(recipeId);
+      if (!recipe) {
+        // Fallback: try to get from FatSecret directly
+        const fatSecretRecipe =
+          await FatSecretService.getRecipeDetails(recipeId);
+        if (fatSecretRecipe) {
+          recipe = {
+            servings: parseInt(fatSecretRecipe.number_of_servings) || 4,
+          };
+        }
+      }
+    } catch (error) {
+      console.error('[Recipe Serving Options] Error fetching recipe:', error);
+    }
+
     if (!recipe) {
       res.status(404).json({error: 'Recipe not found'});
       return;

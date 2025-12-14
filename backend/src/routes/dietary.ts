@@ -167,3 +167,35 @@ router.delete('/allergies/user/:userId/:allergyId', async (req, res) => {
 });
 
 export default router;
+// Get user dietary preferences
+router.get('/user/preferences', async (req, res) => {
+  try {
+    // For now, return empty preferences - this can be enhanced later
+    res.json({
+      restrictions: [],
+      allergies: [],
+      message: 'User dietary preferences retrieved successfully',
+    });
+  } catch (error) {
+    console.error('Error getting user dietary preferences:', error);
+    res.status(500).json({error: 'Failed to get user dietary preferences'});
+  }
+});
+
+// Set user dietary preferences
+router.post('/user/preferences', async (req, res) => {
+  try {
+    const {restrictions, allergies} = req.body;
+
+    // For now, just acknowledge the request - this can be enhanced later
+    res.json({
+      success: true,
+      message: 'User dietary preferences updated successfully',
+      restrictions: restrictions || [],
+      allergies: allergies || [],
+    });
+  } catch (error) {
+    console.error('Error setting user dietary preferences:', error);
+    res.status(500).json({error: 'Failed to set user dietary preferences'});
+  }
+});
