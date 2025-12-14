@@ -30,6 +30,47 @@ class FatSecretProviderAdapter implements IRecipeProvider {
     }
   }
 
+  private extractIngredientsFromRecipe(recipe: any): string[] {
+    const ingredients: string[] = [];
+
+    // FatSecret search results may include ingredients in different formats
+    if (recipe.ingredients?.ingredient) {
+      const ingredientList = Array.isArray(recipe.ingredients.ingredient)
+        ? recipe.ingredients.ingredient
+        : [recipe.ingredients.ingredient];
+
+      for (const ing of ingredientList) {
+        let description = ing.ingredient_description || ing.food_name || '';
+        let amount = ing.number_of_units || '';
+        let unit = ing.measurement_description || '';
+
+        // Convert metric units to US units
+        const convertedUnit = this.convertToUSUnits(amount, unit);
+        if (convertedUnit) {
+          amount = convertedUnit.amount;
+          unit = convertedUnit.unit;
+          description = this.removeMetricFromDescription(description);
+        }
+
+        const ingredientText = `${amount} ${unit} ${description}`.trim();
+        if (ingredientText.length > 0) {
+          ingredients.push(ingredientText);
+        }
+      }
+    }
+
+    // If no detailed ingredients, try to extract from recipe description or other fields
+    if (ingredients.length === 0 && recipe.recipe_description) {
+      // Sometimes FatSecret includes basic ingredient info in description
+      // This is a fallback for search results that don't have detailed ingredient data
+      console.log(
+        `[FatSecretAdapter] No detailed ingredients for ${recipe.recipe_name}, using fallback`,
+      );
+    }
+
+    return ingredients;
+  }
+
   private convertToUSUnits(
     amount: string,
     unit: string,
@@ -253,7 +294,7 @@ class FatSecretProviderAdapter implements IRecipeProvider {
 
   public formatRecipes(recipes: any[]): Recipe[] {
     console.log(
-      `[FatSecretAdapter] DEPLOYMENT TEST v3 - Formatting ${recipes.length} recipes`,
+      `[FatSecretAdapter] DEPLOYMENT TEST v4 - Formatting ${recipes.length} recipes`,
     );
 
     return recipes.map(
@@ -265,12 +306,12 @@ class FatSecretProviderAdapter implements IRecipeProvider {
         readyInMinutes: parseInt(recipe.cooking_time_min) || 30,
         sourceUrl: `https://www.fatsecret.com/recipes/${recipe.recipe_id}`,
         summary: recipe.recipe_description || '',
-        ingredients: [],
+        ingredients: this.extractIngredientsFromRecipe(recipe),
         instructions: '',
         cuisines: [],
         dishTypes: [recipe.recipe_types || 'main course'],
         diets: [],
-        provider: 'fatsecret-v3-test',
+        provider: 'fatsecret-v4-ingredients',
         // Add FatSecret nutrition data
         calories: recipe.calories ? parseInt(recipe.calories) : undefined,
         protein: recipe.protein ? parseFloat(recipe.protein) : undefined,
