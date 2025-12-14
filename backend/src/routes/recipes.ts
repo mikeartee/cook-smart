@@ -79,10 +79,23 @@ const recipeProviderService = new RecipeProviderService([
 
 const router = Router();
 
+// Optional authentication middleware
+const optionalAuth = (req: any, res: Response, next: any) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (token) {
+    // If token provided, authenticate
+    authenticateToken(req, res, next);
+  } else {
+    // If no token, continue without user
+    req.user = null;
+    next();
+  }
+};
+
 // Search recipes by ingredients
 router.get(
   '/search',
-  authenticateToken,
+  optionalAuth,
   [query('ingredients').isString().notEmpty()],
   async (req: AuthRequest, res: Response) => {
     // Disable HTTP caching for recipe searches to ensure filters work correctly

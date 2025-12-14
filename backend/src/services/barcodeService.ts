@@ -425,7 +425,7 @@ class BarcodeService {
     );
 
     convertedName = convertedName.replace(
-      /(\d+(?:\.\d+)?)\s*l\b/gi,
+      /(\d+(?:\.\d+)?)\s*(?:l\b|liter\b|liters?\b)/gi,
       (match, amount) => {
         const flOz = (parseFloat(amount) * 33.814).toFixed(1);
         return `${flOz} fl oz`;

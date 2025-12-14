@@ -32,6 +32,7 @@ export const AddIngredientScreen: React.FC = () => {
     null,
   );
   const [_hasCameraAvailable, setHasCameraAvailable] = useState(true);
+  const [_isLoading, setIsLoading] = useState(false);
 
   // Custom ingredient form state
   const [customName, setCustomName] = useState('');
@@ -45,14 +46,10 @@ export const AddIngredientScreen: React.FC = () => {
     checkCameraAvailability();
   }, []);
 
-  // Pre-populate form when product is scanned
+  // Auto-add scanned product to inventory with confirmation
   useEffect(() => {
     if (scannedProduct) {
-      setCustomName(scannedProduct.name);
-      setCustomCategory(scannedProduct.category || 'Other');
-      setQuantity('1');
-      setUnit('item');
-      setShowCustomModal(true);
+      handleAutoAddScannedProduct(scannedProduct);
     }
   }, [scannedProduct]);
 
@@ -96,6 +93,156 @@ export const AddIngredientScreen: React.FC = () => {
 
   const handleBarcodeScanned = (productData: ScannedProduct) => {
     setScannedProduct(productData);
+  };
+
+  const handleAutoAddScannedProduct = async (productData: ScannedProduct) => {
+    try {
+      // Smart unit detection based on product type
+      const smartUnit = getSmartUnit(
+        productData.category || 'other',
+        productData.name,
+      );
+      const defaultQuantity = getDefaultQuantity(
+        productData.category || 'other',
+      );
+
+      // Show confirmation dialog with auto-populated data
+      Alert.alert(
+        'Add to Inventory',
+        `Found: ${productData.name}\nCategory: ${productData.category || 'Other'}\nQuantity: ${defaultQuantity} ${smartUnit}`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setScannedProduct(null),
+          },
+          {
+            text: 'Edit Details',
+            onPress: () => {
+              // Pre-populate and show custom modal for editing
+              setCustomName(productData.name);
+              setCustomCategory(productData.category || 'Other');
+              setQuantity(defaultQuantity);
+              setUnit(smartUnit);
+              setShowCustomModal(true);
+              setScannedProduct(null);
+            },
+          },
+          {
+            text: 'Add Now',
+            style: 'default',
+            onPress: () =>
+              addScannedProductDirectly(
+                productData,
+                defaultQuantity,
+                smartUnit,
+              ),
+          },
+        ],
+      );
+    } catch (error) {
+      console.error('Error handling scanned product:', error);
+      Alert.alert('Error', 'Failed to process scanned product');
+      setScannedProduct(null);
+    }
+  };
+
+  const getSmartUnit = (category: string, name: string): string => {
+    const categoryLower = (category || '').toLowerCase();
+    const nameLower = name.toLowerCase();
+
+    // Liquid products
+    if (
+      categoryLower.includes('beverage') ||
+      categoryLower.includes('drink') ||
+      nameLower.includes('milk') ||
+      nameLower.includes('juice') ||
+      nameLower.includes('water') ||
+      nameLower.includes('soda')
+    ) {
+      return 'fl oz';
+    }
+
+    // Canned goods
+    if (categoryLower.includes('canned') || nameLower.includes('can')) {
+      return 'can';
+    }
+
+    // Packaged items
+    if (
+      categoryLower.includes('snack') ||
+      categoryLower.includes('cereal') ||
+      categoryLower.includes('pasta') ||
+      categoryLower.includes('rice')
+    ) {
+      return 'box';
+    }
+
+    // Fresh produce
+    if (
+      categoryLower.includes('fruit') ||
+      categoryLower.includes('vegetable') ||
+      categoryLower.includes('produce')
+    ) {
+      return 'lb';
+    }
+
+    // Default to items for most products
+    return 'item';
+  };
+
+  const getDefaultQuantity = (category: string): string => {
+    const categoryLower = (category || '').toLowerCase();
+
+    // Bulk items get higher default quantities
+    if (
+      categoryLower.includes('produce') ||
+      categoryLower.includes('fruit') ||
+      categoryLower.includes('vegetable')
+    ) {
+      return '2'; // 2 lbs of produce
+    }
+
+    if (categoryLower.includes('beverage') || categoryLower.includes('drink')) {
+      return '16'; // 16 fl oz
+    }
+
+    // Most packaged items default to 1
+    return '1';
+  };
+
+  const addScannedProductDirectly = async (
+    productData: ScannedProduct,
+    productQuantity: string,
+    productUnit: string,
+  ) => {
+    try {
+      setIsLoading(true);
+
+      const ingredientData = {
+        name: productData.name,
+        category: productData.category || 'Other',
+        quantity: parseFloat(productQuantity),
+        unit: productUnit,
+        expiration_date: null,
+        notes: `Added via barcode scan${productData.barcode ? ` (${productData.barcode})` : ''}`,
+      };
+
+      await addIngredient(ingredientData);
+
+      Alert.alert(
+        'Success! 🎉',
+        `${productData.name} has been added to your inventory`,
+        [{text: 'OK', onPress: () => navigation.goBack()}],
+      );
+
+      setScannedProduct(null);
+    } catch (error) {
+      console.error('Error adding scanned ingredient:', error);
+      Alert.alert('Error', 'Failed to add ingredient to inventory');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleManualEntry = () => {
