@@ -247,8 +247,8 @@ Import our [Postman Collection](postman/cook-smart-api.json) for easy testing.
 
 ## Support
 
-- **API Issues**: api-support@cooksmartapp.com
-- **Documentation**: docs@cooksmartapp.com
+- **API Issues**: services.cooksmart@gmail.com
+- **Documentation**: services.cooksmart@gmail.com
 - **Status Page**: [status.cooksmartapp.com](https://status.cooksmartapp.com)
 
 ---

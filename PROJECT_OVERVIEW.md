@@ -235,17 +235,17 @@ Cook Smart is a production-ready, enterprise-grade mobile application that revol
 ## 📞 Contact Information
 
 ### Business Inquiries
-- **Email**: business@cooksmartapp.com
+- **Email**: services.cooksmart@gmail.com
 - **Phone**: +1 (555) 123-4567
 - **Address**: Cook Smart Technologies, Austin, TX
 
 ### Technical Support
-- **Email**: support@cooksmartapp.com
+- **Email**: services.cooksmart@gmail.com
 - **Discord**: [Community Server](https://discord.gg/7mAeMvjGVH)
 - **Documentation**: [docs.cooksmartapp.com](https://docs.cooksmartapp.com)
 
 ### Media & Press
-- **Email**: press@cooksmartapp.com
+- **Email**: services.cooksmart@gmail.com
 - **Press Kit**: [cooksmartapp.com/press](https://cooksmartapp.com/press)
 
 ---

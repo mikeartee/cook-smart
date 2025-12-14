@@ -247,7 +247,7 @@ Unauthorized copying, distribution, or modification of this software is strictly
 ### For Developers
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/tootallgames2020/cook-smart/issues)
 - **💡 Feature Requests**: [GitHub Discussions](https://github.com/tootallgames2020/cook-smart/discussions)
-- **📧 Technical Support**: dev@cooksmartapp.com
+- **📧 Technical Support**: services.cooksmart@gmail.com
 
 ---
 

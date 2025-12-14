@@ -301,7 +301,7 @@ Any other context or screenshots about the feature.
 ### Team Communication
 - **Slack**: #cook-smart-dev (internal team)
 - **Discord**: [Community Server](https://discord.gg/7mAeMvjGVH) (public)
-- **Email**: dev@cooksmartapp.com (technical issues)
+- **Email**: services.cooksmart@gmail.com (technical issues)
 
 ### Code Reviews
 - All code must be reviewed before merging
@@ -323,6 +323,6 @@ By contributing to Cook Smart, you agree that your contributions will be license
 
 ---
 
-**Questions?** Reach out to the development team at dev@cooksmartapp.com
+**Questions?** Reach out to the development team at services.cooksmart@gmail.com
 
 *Last updated: December 14, 2025*

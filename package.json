@@ -5,7 +5,7 @@
   "description": "Intelligent Recipe Generation Platform - Transform your available ingredients into personalized meal recommendations",
   "author": {
     "name": "Cook Smart Technologies",
-    "email": "dev@cooksmartapp.com",
+    "email": "services.cooksmart@gmail.com",
     "url": "https://cooksmartapp.com"
   },
   "homepage": "https://cooksmartapp.com",
@@ -15,7 +15,7 @@
   },
   "bugs": {
     "url": "https://github.com/tootallgames2020/cook-smart/issues",
-    "email": "support@cooksmartapp.com"
+    "email": "services.cooksmart@gmail.com"
   },
   "license": "PROPRIETARY",
   "keywords": [

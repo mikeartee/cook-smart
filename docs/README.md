@@ -44,7 +44,7 @@ Welcome to the comprehensive documentation for Cook Smart, an intelligent recipe
 ## 📞 Support
 
 For documentation issues or suggestions:
-- **Email**: docs@cooksmartapp.com
+- **Email**: services.cooksmart@gmail.com
 - **GitHub**: [Documentation Issues](https://github.com/tootallgames2020/cook-smart/issues?label=documentation)
 
 ---
