@@ -17,19 +17,12 @@ import RecipeCacheService from './services/RecipeCacheService';
 import pool from './config/database';
 import healthRoutes from './routes/health';
 
-// Load environment variables
-const envPath = __dirname + '/../.env';
-console.log('Loading .env from:', envPath);
-const envResult = dotenv.config({path: envPath});
-if (envResult.error) {
-  console.error('Error loading .env:', envResult.error);
-} else {
-  console.log('✅ .env loaded successfully');
-  console.log(
-    'DISCORD_ERROR_WEBHOOK_URL:',
-    process.env.DISCORD_ERROR_WEBHOOK_URL ? 'SET' : 'NOT SET',
-  );
-}
+// Environment is already loaded by load-env.js above
+console.log('✅ Environment loaded via load-env.js');
+console.log(
+  'DISCORD_ERROR_WEBHOOK_URL:',
+  process.env.DISCORD_ERROR_WEBHOOK_URL ? 'SET' : 'NOT SET',
+);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -145,6 +138,7 @@ import substitutionFeedbackRoutes from './routes/substitutionFeedback';
 import safetyCheckRoutes from './routes/safetyCheck';
 import usersRoutes from './routes/users';
 import favoritesRoutes from './routes/favorites';
+import discordRoutes from './routes/discord';
 
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/password', authLimiter, passwordResetRoutes);
@@ -194,6 +188,7 @@ app.use('/api/v1/substitutions', substitutionFeedbackRoutes);
 app.use('/api/v1/safety-check', safetyCheckRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/favorites', favoritesRoutes);
+app.use('/api/discord', discordRoutes);
 app.use('/contact', contactRoutes);
 
 app.get('/api/v1/test', (req, res) => {
