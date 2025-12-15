@@ -161,21 +161,22 @@ class HealthMonitor {
         `⚠️  High error rate detected: ${(errorRate * 100).toFixed(2)}%`,
       );
 
-      // Don't throw errors from the health monitor itself
-      await NotificationService.sendErrorNotification(
-        new Error(`High error rate: ${(errorRate * 100).toFixed(2)}%`),
-        'high',
-        {
-          endpoint: 'system-health',
-          affectedUsers: Math.floor(this.totalRequests * errorRate),
-        },
-      ).catch(err => {
-        // Silently log notification failures to prevent cascading errors
-        console.error(
-          'Failed to send high error rate alert (non-critical):',
-          err.message,
-        );
-      });
+      // Temporarily disable Discord notifications to prevent cascade errors
+      // TODO: Re-enable after Discord webhook issues are resolved
+      console.log(
+        `High error rate alert: ${(errorRate * 100).toFixed(2)}% - Discord notification disabled`,
+      );
+
+      // await NotificationService.sendErrorNotification(
+      //   new Error(`High error rate: ${(errorRate * 100).toFixed(2)}%`),
+      //   'high',
+      //   {
+      //     endpoint: 'system-health',
+      //     affectedUsers: Math.floor(this.totalRequests * errorRate),
+      //   },
+      // ).catch(err => {
+      //   console.error('Failed to send high error rate alert (non-critical):', err.message);
+      // });
     } catch (error) {
       // Catch any synchronous errors and log them without throwing
       console.error('Failed to send high error rate alert:', error);
