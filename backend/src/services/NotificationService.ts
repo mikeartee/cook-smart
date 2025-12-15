@@ -122,40 +122,58 @@ class NotificationService {
     severity: ErrorSeverity,
     context?: ErrorContext,
   ): Promise<void> {
-    this.initializeWebhooks();
+    try {
+      this.initializeWebhooks();
 
-    if (!this.errorWebhook) {
-      console.log('Error notification skipped - webhook not configured');
-      return;
+      if (!this.errorWebhook) {
+        console.log('Error notification skipped - webhook not configured');
+        return;
+      }
+
+      const embed = this.formatErrorEmbed(error, severity, context);
+      await this.sendToWebhook(this.errorWebhook, embed, 'error');
+    } catch (notificationError) {
+      // CRITICAL: Never throw errors from notification service to prevent cascades
+      console.error(
+        'Discord notification failed (non-critical):',
+        notificationError.message,
+      );
+      // Don't re-throw - this prevents cascade errors
     }
-
-    const embed = this.formatErrorEmbed(error, severity, context);
-    await this.sendToWebhook(this.errorWebhook, embed, 'error');
   }
 
   /**
    * Send feedback notification to Discord
    */
   async sendFeedbackNotification(feedback: FeedbackData): Promise<void> {
-    this.initializeWebhooks();
+    try {
+      this.initializeWebhooks();
 
-    if (!this.feedbackWebhook) {
-      console.log('Feedback notification skipped - webhook not configured');
-      return;
-    }
+      if (!this.feedbackWebhook) {
+        console.log('Feedback notification skipped - webhook not configured');
+        return;
+      }
 
-    const embed = this.formatFeedbackEmbed(feedback);
-    
-    // If screenshot is provided, send as file attachment
-    if (feedback.screenshot) {
-      await this.sendToWebhookWithFile(
-        this.feedbackWebhook,
-        embed,
-        feedback.screenshot,
-        'feedback',
+      const embed = this.formatFeedbackEmbed(feedback);
+
+      // If screenshot is provided, send as file attachment
+      if (feedback.screenshot) {
+        await this.sendToWebhookWithFile(
+          this.feedbackWebhook,
+          embed,
+          feedback.screenshot,
+          'feedback',
+        );
+      } else {
+        await this.sendToWebhook(this.feedbackWebhook, embed, 'feedback');
+      }
+    } catch (notificationError) {
+      // CRITICAL: Never throw errors from notification service to prevent cascades
+      console.error(
+        'Discord feedback notification failed (non-critical):',
+        notificationError.message,
       );
-    } else {
-      await this.sendToWebhook(this.feedbackWebhook, embed, 'feedback');
+      // Don't re-throw - this prevents cascade errors
     }
   }
 
@@ -166,15 +184,24 @@ class NotificationService {
     type: ActivityType,
     data: ActivityData,
   ): Promise<void> {
-    this.initializeWebhooks();
+    try {
+      this.initializeWebhooks();
 
-    if (!this.activityWebhook) {
-      console.log('Activity notification skipped - webhook not configured');
-      return;
+      if (!this.activityWebhook) {
+        console.log('Activity notification skipped - webhook not configured');
+        return;
+      }
+
+      const embed = this.formatActivityEmbed(type, data);
+      await this.sendToWebhook(this.activityWebhook, embed, 'activity');
+    } catch (notificationError) {
+      // CRITICAL: Never throw errors from notification service to prevent cascades
+      console.error(
+        'Discord activity notification failed (non-critical):',
+        notificationError.message,
+      );
+      // Don't re-throw - this prevents cascade errors
     }
-
-    const embed = this.formatActivityEmbed(type, data);
-    await this.sendToWebhook(this.activityWebhook, embed, 'activity');
   }
 
   /**
