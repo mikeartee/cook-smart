@@ -24,10 +24,10 @@ export interface DiscordWebhookPayload {
 
 export class DiscordWebhookService {
   private static webhookUrls = {
-    newUser: process.env.DISCORD_WEBHOOK_NEW_USER || '',
-    newRecipe: process.env.DISCORD_WEBHOOK_NEW_RECIPE || '',
-    feedback: process.env.DISCORD_WEBHOOK_FEEDBACK || '',
-    errors: process.env.DISCORD_WEBHOOK_ERRORS || '',
+    newUser: process.env.DISCORD_ACTIVITY_WEBHOOK || '',
+    newRecipe: process.env.DISCORD_ACTIVITY_WEBHOOK || '',
+    feedback: process.env.DISCORD_FEEDBACK_WEBHOOK || '',
+    errors: process.env.DISCORD_ERROR_WEBHOOK_URL || '',
   };
 
   static async sendNewUserNotification(

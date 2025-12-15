@@ -6,6 +6,7 @@ import {
   authenticateToken,
   AuthRequest,
 } from '../middleware/auth';
+// import axios from 'axios'; // Removed - using require() instead
 // import ActivityTracker from '../services/ActivityTracker';
 
 const router = Router();
@@ -63,16 +64,54 @@ router.post(
 
       const token = generateToken(user.id);
 
-      // Track signup activity (async, non-blocking)
-      // TODO: Re-enable when ActivityTracker is implemented
-      // if (user.first_name && user.last_name) {
-      //   ActivityTracker.trackSignup({
-      //     id: user.id,
-      //     first_name: user.first_name,
-      //     last_name: user.last_name,
-      //     email: user.email,
-      //   }).catch(err => console.error('Failed to track signup:', err));
-      // }
+      // Send Discord notification for new user registration
+      try {
+        const webhookUrl =
+          process.env.DISCORD_ACTIVITY_WEBHOOK ||
+          process.env.DISCORD_WEBHOOK_URL;
+        if (webhookUrl) {
+          const axios = require('axios');
+          await axios.post(webhookUrl, {
+            embeds: [
+              {
+                title: '🎉 New User Registration',
+                color: 0x00ff00, // Green color
+                fields: [
+                  {
+                    name: 'User Details',
+                    value: `**Email:** ${email}\n**Name:** ${first_name || 'Not provided'} ${last_name || ''}\n**User ID:** ${user.id}`,
+                    inline: false,
+                  },
+                  {
+                    name: 'Account Type',
+                    value: user.is_creator
+                      ? '👑 Creator'
+                      : user.is_co_founder
+                        ? '🎉 Co-Founder'
+                        : user.is_special_user
+                          ? '💐 Special User'
+                          : '👤 Regular User',
+                    inline: true,
+                  },
+                  {
+                    name: 'Registration Time',
+                    value: new Date().toLocaleString(),
+                    inline: true,
+                  },
+                ],
+                footer: {
+                  text: 'Cook Smart - New User Alert',
+                },
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          });
+          console.log('✅ Discord notification sent for new user registration');
+        }
+      } catch (discordError) {
+        console.error('Failed to send Discord notification:', discordError);
+        // Don't fail registration if Discord notification fails
+      }
 
       let welcomeMessage = 'Account created successfully';
       let specialMessage = undefined;
