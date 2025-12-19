@@ -151,15 +151,19 @@ export function errorMiddleware(
   // Log error to console
   console.error('❌ Error caught by middleware:', err);
 
-  // Record error in health monitor (wrapped to prevent cascading errors)
+  // Determine status code first
+  const statusCode = getStatusCode(err);
+
+  // Only record server errors (5xx) in health monitor, not client errors (4xx)
+  // 404s and other client errors shouldn't count as system health issues
   try {
-    HealthMonitor.recordRequest(true);
+    const isServerError = statusCode >= 500;
+    HealthMonitor.recordRequest(isServerError);
   } catch (monitorError) {
     console.error('Health monitor error (non-critical):', monitorError);
   }
 
-  // Determine status code and severity
-  const statusCode = getStatusCode(err);
+  // Determine severity (statusCode already determined above)
   const severity = classifyErrorSeverity(err, statusCode);
   const context = extractContext(req, err);
 
