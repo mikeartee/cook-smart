@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Professional documentation structure
 - Comprehensive contributing guidelines
 
+### Fixed
+- **HealthMonitor False Alerts**: Fixed 100% error rate alerts caused by bot traffic
+  - Only server errors (5xx) now count as health issues
+  - Client errors (404s) no longer skew health metrics
+  - Added successful request tracking for accurate health monitoring
+  - Prevents false alerts from legitimate 404 responses and bot requests
+
 ## [1.1.8] - 2025-12-14
 
 ### Added
