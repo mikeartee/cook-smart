@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendContactAutoReply, sendContactNotification } from '@/lib/email';
+import {
+  sendBetaRequestNotification,
+  sendContactNotification as sendDiscordContactNotification,
+} from '@/lib/discord';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -29,11 +33,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Send notification to admin
     const notificationResult = await sendContactNotification(name, email, message);
 
+    // Send Discord notifications (don't block on failure)
+    Promise.all([
+      sendBetaRequestNotification(name, email, subject, message),
+      sendDiscordContactNotification(name, email, subject, message),
+    ]).catch((error) => {
+      console.error('Discord notification failed:', error);
+      // Don't fail the request if Discord fails
+    });
+
     if (autoReplyResult.success && notificationResult.success) {
       // TODO: Log contact request in database for admin dashboard
       return NextResponse.json({
         success: true,
-        message: 'Message sent successfully! We\'ll get back to you soon.',
+        message: "Message sent successfully! We'll get back to you soon.",
       });
     } else {
       return NextResponse.json(
@@ -52,4 +65,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-
