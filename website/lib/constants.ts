@@ -5,7 +5,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
 export const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 export const EMAIL_FROM = process.env.EMAIL_FROM || 'Cook Smart <noreply@cooksmartapp.com>';
 
-// Discord Configuration
+// Discord Configuration (for system monitoring, bugs, etc. - NOT for contact form)
 export const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
 
 // App Store Links
