@@ -20,13 +20,14 @@ This document contains vital infrastructure information. Always reference this b
 - **URL**: https://cooksmartapp.com
 
 ### Backend API (api.cooksmartapp.com)
-- **Hosting**: AWS EC2 (34.203.8.150)
+- **Hosting**: AWS EC2 (34.203.8.150) - Instance ID: i-05e0746da4f5f9da0
 - **Location**: `/home/ubuntu/cook-smart/backend/backend`
 - **Process Manager**: PM2
-- **Deployment**: SSH + manual deploy
+- **Deployment**: SSH + manual deploy (VERIFIED WORKING)
 - **SSH Key**: `~/.ssh/cook-smart-key.pem`
 - **Restart Command**: `pm2 restart cook-smart-backend`
 - **URL**: https://api.cooksmartapp.com
+- **Status**: ✅ OPERATIONAL (as of Dec 23, 2025)
 
 ### Database
 - **Type**: PostgreSQL 16
@@ -60,7 +61,9 @@ git push origin fresh-project-migration
 
 ### Backend Deployment
 ```bash
-# 1. SSH into server
+# VERIFIED WORKING METHOD (Dec 23, 2025)
+
+# 1. SSH into server (IP confirmed: 34.203.8.150)
 ssh -i ~/.ssh/cook-smart-key.pem ubuntu@34.203.8.150
 
 # 2. Navigate to backend
@@ -69,17 +72,35 @@ cd /home/ubuntu/cook-smart/backend/backend
 # 3. Pull latest changes
 git pull origin fresh-project-migration
 
-# 4. Install dependencies (if needed)
-npm install
+# 4. Fix TypeScript errors if needed
+sed -i 's/notificationError.message/(notificationError as Error).message/g' src/services/NotificationService.ts
 
-# 5. Restart with PM2
+# 5. Build the project
+npm run build
+
+# 6. Restart with PM2
 pm2 restart cook-smart-backend
 
-# 6. Check logs
-pm2 logs cook-smart-backend
+# 7. Check logs
+pm2 logs cook-smart-backend --lines 10
 
-# 7. Exit SSH
+# 8. Exit SSH
 exit
+```
+
+### Alternative: AWS EC2 Restart (if SSH fails)
+```bash
+# Stop instance
+aws ec2 stop-instances --instance-ids i-05e0746da4f5f9da0
+
+# Wait for stop
+aws ec2 wait instance-stopped --instance-ids i-05e0746da4f5f9da0
+
+# Start instance
+aws ec2 start-instances --instance-ids i-05e0746da4f5f9da0
+
+# Wait for start
+aws ec2 wait instance-running --instance-ids i-05e0746da4f5f9da0
 ```
 
 ### Database Migrations
@@ -189,6 +210,24 @@ cook-smart/
     └── steering/      # Project rules
 ```
 
+## VERIFIED AWS INFRASTRUCTURE (Dec 23, 2025)
+
+**Discovered via AWS CLI:**
+- **AWS Account**: 976289921508
+- **User**: kitchen-helper-deploy (legacy name, manages Cook Smart resources)
+- **Region**: us-east-1
+
+### Active Resources
+- **Backend EC2**: i-05e0746da4f5f9da0 (34.203.8.150) - "cook-smart-backend" ✅
+- **Database RDS**: cook-smart-db-beta.cgfwigy2i9lk.us-east-1.rds.amazonaws.com ✅
+- **Route 53**: cooksmartapp.com hosted zone ✅
+- **CloudFormation**: cook-smart-infrastructure-beta stack ✅
+
+### Legacy Resources (Not Used)
+- **Old EC2**: i-0fb0d2533ab325c06 (54.158.22.192) - "StreamGuard-AI-Bot-Separate"
+- **Old Stack**: kitchen-helper-alb
+- **Old Security Groups**: kitchen-helper-* (can be cleaned up later)
+
 ## Common Mistakes to Avoid
 
 ❌ **Don't assume Vercel** - Website is on AWS
@@ -197,22 +236,32 @@ cook-smart/
 ❌ **Don't skip PM2 restart** - Backend won't update without it
 ❌ **Don't commit secrets** - Use .env files
 ❌ **Don't add paid services** - Check budget first
+❌ **Don't use wrong IP addresses** - Use 34.203.8.150, not 3.237.38.24
 
 ## Quick Reference Commands
 
-### Check Backend Status
+### Check Backend Status (WORKING)
 ```bash
 ssh -i ~/.ssh/cook-smart-key.pem ubuntu@34.203.8.150 "pm2 status"
 ```
 
-### View Backend Logs
+### View Backend Logs (WORKING)
 ```bash
 ssh -i ~/.ssh/cook-smart-key.pem ubuntu@34.203.8.150 "pm2 logs cook-smart-backend --lines 50"
 ```
 
-### Test API Endpoint
+### Test API Endpoint (WORKING)
 ```bash
 curl https://api.cooksmartapp.com/health
+# Should return: {"status":"OK","message":"Cook Smart API is running"...}
+```
+
+### Test Contact Form (WORKING)
+```bash
+curl -X POST https://api.cooksmartapp.com/contact \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","email":"test@example.com","subject":"Test","message":"Test message"}'
+# Should return: {"success":true,"message":"Message sent successfully"}
 ```
 
 ### Build Android APK
