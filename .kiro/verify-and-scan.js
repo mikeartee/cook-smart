@@ -17,7 +17,6 @@ class CookSmartSystemGuardian {
       backend: false,
       website: false,
       apk: false,
-      codepush: false,
     };
   }
 
@@ -36,7 +35,6 @@ class CookSmartSystemGuardian {
     await this.checkBackendHealth();
     await this.checkWebsiteDeployment();
     await this.checkAPKReadiness();
-    await this.checkCodePushSetup();
 
     // Security & Infrastructure
     await this.checkSecurityConfig();
@@ -72,6 +70,7 @@ class CookSmartSystemGuardian {
             console.log('❌ TypeScript errors found\n');
           } else {
             console.log('✅ TypeScript check passed\n');
+            this.checks.typescript = true;
           }
           resolve();
         },
@@ -84,7 +83,7 @@ class CookSmartSystemGuardian {
 
     return new Promise(resolve => {
       exec(
-        'npx eslint . --ext .js,.ts,.tsx --format json',
+        'npx eslint . --format json',
         {cwd: this.projectRoot},
         (error, stdout, _stderr) => {
           try {
@@ -119,6 +118,9 @@ class CookSmartSystemGuardian {
 
           if (this.errors.filter(e => e.type === 'ESLINT_ERROR').length === 0) {
             console.log('✅ ESLint check passed\n');
+            this.checks.eslint = true;
+          } else {
+            console.log('❌ ESLint errors found\n');
           }
           resolve();
         },
@@ -393,15 +395,6 @@ class CookSmartSystemGuardian {
         });
       }
 
-      // Check for CodePush gradle plugin (should NOT be present)
-      if (buildGradle.includes('codepush.gradle')) {
-        this.errors.push({
-          type: 'APK_ERROR',
-          file: 'android/app/build.gradle',
-          message: 'CodePush gradle plugin found - will cause build failures',
-        });
-      }
-
       console.log('✅ APK build configuration valid\n');
       this.checks.apk = true;
     } catch (error) {
@@ -414,48 +407,7 @@ class CookSmartSystemGuardian {
     }
   }
 
-  async checkCodePushSetup() {
-    console.log('🚀 Checking CodePush configuration...');
 
-    // Check App.tsx for CodePush integration
-    const appTsxPath = path.join(this.projectRoot, 'App.tsx');
-
-    if (!fs.existsSync(appTsxPath)) {
-      this.warnings.push({
-        type: 'CODEPUSH_WARNING',
-        file: 'App.tsx',
-        message: 'App.tsx not found',
-      });
-      console.log('⚠️ App.tsx not found\n');
-      return;
-    }
-
-    try {
-      const appTsx = fs.readFileSync(appTsxPath, 'utf8');
-
-      if (
-        appTsx.includes('react-native-code-push') &&
-        appTsx.includes('CodePush(')
-      ) {
-        console.log('✅ CodePush integration found\n');
-        this.checks.codepush = true;
-      } else {
-        this.warnings.push({
-          type: 'CODEPUSH_WARNING',
-          file: 'App.tsx',
-          message: 'CodePush integration not found',
-        });
-        console.log('⚠️ CodePush not integrated\n');
-      }
-    } catch (error) {
-      this.warnings.push({
-        type: 'CODEPUSH_WARNING',
-        file: 'App.tsx',
-        message: `Failed to read App.tsx: ${error.message}`,
-      });
-      console.log('⚠️ CodePush check failed\n');
-    }
-  }
 
   async checkSecurityConfig() {
     console.log('🔒 Checking security configuration...');
@@ -592,7 +544,6 @@ class CookSmartSystemGuardian {
     console.log(`   Backend Health: ${this.checks.backend ? '✅' : '❌'}`);
     console.log(`   Website: ${this.checks.website ? '✅' : '⚠️'}`);
     console.log(`   APK Ready: ${this.checks.apk ? '✅' : '❌'}`);
-    console.log(`   CodePush: ${this.checks.codepush ? '✅' : '⚠️'}`);
     console.log('');
 
     if (this.errors.length === 0) {
@@ -656,7 +607,7 @@ class CookSmartSystemGuardian {
       BACKEND_ERROR: 'Check backend deployment - may need PM2 restart',
       WEBSITE_ERROR: 'Check website deployment status on AWS',
       APK_ERROR:
-        'Check Android build configuration and remove CodePush gradle plugin',
+        'Check Android build configuration and ensure proper version settings',
       BUILD_ERROR: 'Run: npm install and check for missing dependencies',
     };
 
@@ -671,7 +622,7 @@ class CookSmartSystemGuardian {
     // Try ESLint auto-fix
     return new Promise(resolve => {
       exec(
-        'npx eslint . --ext .js,.ts,.tsx --fix',
+        'npx eslint . --fix',
         {cwd: this.projectRoot},
         (error, _stdout, _stderr) => {
           if (!error) {

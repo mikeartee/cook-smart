@@ -12,7 +12,6 @@ echo    - API configuration validation
 echo    - Backend health monitoring
 echo    - Website deployment status
 echo    - APK build readiness
-echo    - CodePush configuration
 echo    - Security & infrastructure
 echo.
 

@@ -29,7 +29,7 @@ export async function subscribeToNewsletter(
  */
 export async function unsubscribeFromNewsletter(
   email: string,
-  token?: string
+  _token?: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     await newsletterApi.unsubscribe(email);
@@ -44,9 +44,9 @@ export async function unsubscribeFromNewsletter(
  * Update newsletter preferences
  */
 export async function updateNewsletterPreferences(
-  email: string,
-  preferences: NewsletterSubscription['preferences'],
-  token?: string
+  _email: string,
+  _preferences: NewsletterSubscription['preferences'],
+  _token?: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     // Mock implementation - replace with actual API call when available

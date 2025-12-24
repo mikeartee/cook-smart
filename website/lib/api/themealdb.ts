@@ -224,8 +224,8 @@ export const themealdb = {
         this.getById(meal.idMeal)
       );
 
-      const recipes = await Promise.all(detailPromises);
-      const validRecipes = recipes.filter((r): r is Recipe => r !== null);
+      const _recipes = await Promise.all(detailPromises);
+      const validRecipes = _recipes.filter((r): r is Recipe => r !== null);
 
       setCache(cacheKey, validRecipes);
       return validRecipes;

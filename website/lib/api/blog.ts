@@ -6,7 +6,7 @@ import type { BlogPost } from '../../types';
  */
 export async function getBlogPosts(
   page: number = 1,
-  limit: number = 10,
+  _limit: number = 10,
   filters?: { search?: string; category?: string; tag?: string }
 ): Promise<{ posts: BlogPost[]; total: number; hasMore: boolean }> {
   try {
@@ -20,7 +20,7 @@ export async function getBlogPosts(
     return {
       posts: response.posts as BlogPost[],
       total: response.total,
-      hasMore: page * limit < response.total,
+      hasMore: page * _limit < response.total,
     };
   } catch (error) {
     console.error('Error fetching blog posts:', handleApiError(error));
@@ -70,7 +70,7 @@ export async function getBlogCategories(): Promise<string[]> {
 /**
  * Fetch related blog posts
  */
-export async function getRelatedBlogPosts(slug: string, limit: number = 3): Promise<BlogPost[]> {
+export async function getRelatedBlogPosts(_slug: string, _limit: number = 3): Promise<BlogPost[]> {
   try {
     // Mock implementation - replace with actual API call when available
     return [];

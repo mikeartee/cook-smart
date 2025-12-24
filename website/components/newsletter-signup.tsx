@@ -31,7 +31,7 @@ export function NewsletterSignup({ variant = 'default' }: NewsletterSignupProps)
       await newsletterApi.subscribe(email);
       setIsSuccess(true);
       setEmail('');
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to subscribe. Please try again.');
     } finally {
       setIsSubmitting(false);

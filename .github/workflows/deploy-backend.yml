@@ -21,6 +21,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         timeout: 60s
         command_timeout: 120s
+        fingerprint: sha256:D4L0hbuuP8a1vnSCWq3+h87Xh8/GrVBGh9b8810/D2o
         script: |
           echo "🚀 Starting backend deployment..."
           

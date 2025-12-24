@@ -46,7 +46,7 @@ export default function DataRequestPage(): React.ReactElement {
       } else {
         setError('Failed to submit request. Please try again or contact services.cooksmart@gmail.com');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to submit request. Please contact services.cooksmart@gmail.com directly.');
     } finally {
       setIsSubmitting(false);

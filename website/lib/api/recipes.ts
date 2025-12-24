@@ -92,7 +92,7 @@ async function fetchInternalRecipes(filters: RecipeFilters = {}): Promise<Recipe
 
     setCache(cacheKey, recipes);
     return recipes;
-  } catch (error) {
+  } catch (_error) {
     console.warn('Internal API unavailable, using TheMealDB fallback');
     return [];
   }
@@ -101,7 +101,7 @@ async function fetchInternalRecipes(filters: RecipeFilters = {}): Promise<Recipe
 /**
  * Merge and deduplicate recipes from multiple sources
  */
-function mergeRecipes(internal: Recipe[], external: Recipe[]): Recipe[] {
+function _mergeRecipes(internal: Recipe[], external: Recipe[]): Recipe[] {
   const merged = [...internal];
   const existingIds = new Set(internal.map(r => r.id));
 
@@ -221,7 +221,7 @@ export const recipeApi = {
         const recipe = await response.json();
         return { ...recipe, source: 'internal' as const };
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Internal API unavailable for recipe:', id);
     }
 
@@ -252,7 +252,7 @@ export const recipeApi = {
         const data = await response.json();
         return data.categories;
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Internal API unavailable for categories');
     }
 

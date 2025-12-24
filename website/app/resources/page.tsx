@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Search, BookOpen, Clock } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,10 +68,6 @@ export default function ResourcesPage(): React.ReactElement {
     if (search && !article.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
-
-  const relatedArticles = (currentId: string, category: string): Article[] => {
-    return ARTICLES.filter((a) => a.id !== currentId && a.category === category).slice(0, 3);
-  };
 
   return (
     <div className="min-h-screen bg-background">
