@@ -42,6 +42,22 @@ export default function TrendingRecipesScreen({navigation}: any) {
     const recipe = item;
     if (!recipe) return null;
 
+    // Per slice #6 / PRD #1: render the rating chip only when at least one
+    // rating exists. Avoid showing "0.0 stars" for unrated recipes.
+    const ratingAverage =
+      typeof recipe.rating_average === 'number'
+        ? recipe.rating_average
+        : typeof recipe.rating_average === 'string'
+          ? parseFloat(recipe.rating_average)
+          : NaN;
+    const ratingCount =
+      typeof recipe.rating_count === 'number'
+        ? recipe.rating_count
+        : typeof recipe.rating_count === 'string'
+          ? parseInt(recipe.rating_count, 10)
+          : 0;
+    const showRating = Number.isFinite(ratingAverage) && ratingCount > 0;
+
     return (
       <TouchableOpacity
         style={styles.recipeCard}
@@ -62,6 +78,17 @@ export default function TrendingRecipesScreen({navigation}: any) {
           <Text style={styles.recipeTitle}>
             {recipe.title || recipe.recipe_name || 'Untitled Recipe'}
           </Text>
+          {showRating && (
+            <View
+              style={styles.ratingChip}
+              accessibilityLabel={`Rated ${ratingAverage.toFixed(1)} out of 5 stars from ${ratingCount} ${
+                ratingCount === 1 ? 'rating' : 'ratings'
+              }`}>
+              <Icon name="star" size={14} color="#F59E0B" />
+              <Text style={styles.ratingValue}>{ratingAverage.toFixed(1)}</Text>
+              <Text style={styles.ratingCount}>({ratingCount})</Text>
+            </View>
+          )}
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Icon name="schedule" size={16} color="#10B981" />
@@ -138,6 +165,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  ratingValue: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  ratingCount: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   statsRow: {
     flexDirection: 'row',
