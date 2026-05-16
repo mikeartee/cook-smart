@@ -40,13 +40,15 @@ The live, wired-up rating implementation lives in **`backend/src/services/Recipe
 
 To keep recipe-list reads cheap, the following aggregates are stored on `recipe_cache` and `trending_recipes` and refreshed by `updateTrendingScore`:
 
-| Column                    | Source query                                                            |
-|---------------------------|-------------------------------------------------------------------------|
-| `view_count`              | maintained by view tracking                                             |
-| `save_count`              | maintained by favorite writes                                           |
-| `trending_score`          | `likes×1 + comments×2 + shares×3 + effective_rating × W`                |
-| `avg_rating` *(new)*      | `AVG(rating)` over `recipe_ratings WHERE recipe_id = ? AND recipe_type` |
-| `total_ratings` *(new)*   | `COUNT(*)`  over `recipe_ratings WHERE recipe_id = ? AND recipe_type`   |
+| Column                       | Source query                                                            |
+|------------------------------|-------------------------------------------------------------------------|
+| `view_count`                 | maintained by view tracking                                             |
+| `save_count`                 | maintained by favorite writes                                           |
+| `trending_score` (`score` on `trending_recipes`) | `likes×1 + comments×2 + shares×3 + effective_rating × W` |
+| `rating_average`             | `AVG(rating)` over `recipe_ratings WHERE recipe_id = ?`                 |
+| `rating_count`               | `COUNT(*)`  over `recipe_ratings WHERE recipe_id = ?`                   |
+
+> **Heads up on `rating_average` / `rating_count` writers.** `recipe_cache` has a parallel incremental write path via `RecipeCacheService.trackInteraction(recipeId, 'rate', userId, rating)`, used by `POST /interaction`. Once `SocialService.updateTrendingScore` (slice #5) starts authoritatively recomputing these columns from `recipe_ratings`, it will overwrite whatever the incremental path writes. The canonical write path is `RecipeEnhancementService.rateRecipe` → `updateTrendingScore`. The `trackInteraction('rate')` branch should be considered legacy.
 
 ## Out of scope of this glossary
 
