@@ -36,6 +36,11 @@ export default function SeasonalRecipesScreen({navigation}: any) {
             readyInMinutes: item.ready_in_minutes || item.readyInMinutes,
             servings: item.servings,
             calories: item.nutrition?.calories,
+            // Rating aggregates surfaced from recipe_cache by the trending pipeline
+            // (slice #5). May be missing on older cache rows; renderRecipe handles
+            // that gracefully by hiding the chip when count is 0 / undefined.
+            rating_average: item.rating_average,
+            rating_count: item.rating_count,
           })),
         );
       }
@@ -66,24 +71,55 @@ export default function SeasonalRecipesScreen({navigation}: any) {
     }
   };
 
-  const renderRecipe = ({item}: any) => (
-    <TouchableOpacity
-      style={styles.recipeCard}
-      onPress={() => navigation.navigate('RecipeDetail', {recipeId: item.id})}>
-      {item.image && (
-        <Image source={{uri: item.image}} style={styles.recipeImage} />
-      )}
-      <View style={styles.recipeContent}>
-        <Text style={styles.recipeTitle}>{item.title}</Text>
-        {item.readyInMinutes && (
-          <View style={styles.timeContainer}>
-            <Icon name="schedule" size={16} color="#666" />
-            <Text style={styles.timeText}>{item.readyInMinutes} min</Text>
-          </View>
+  const renderRecipe = ({item}: any) => {
+    // Per slice #6 / PRD #1: render the rating chip only when at least one
+    // rating exists. Avoid showing "0.0 stars" for unrated recipes.
+    const ratingAverage =
+      typeof item.rating_average === 'number'
+        ? item.rating_average
+        : typeof item.rating_average === 'string'
+          ? parseFloat(item.rating_average)
+          : NaN;
+    const ratingCount =
+      typeof item.rating_count === 'number'
+        ? item.rating_count
+        : typeof item.rating_count === 'string'
+          ? parseInt(item.rating_count, 10)
+          : 0;
+    const showRating = Number.isFinite(ratingAverage) && ratingCount > 0;
+
+    return (
+      <TouchableOpacity
+        style={styles.recipeCard}
+        onPress={() =>
+          navigation.navigate('RecipeDetail', {recipeId: item.id})
+        }>
+        {item.image && (
+          <Image source={{uri: item.image}} style={styles.recipeImage} />
         )}
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.recipeContent}>
+          <Text style={styles.recipeTitle}>{item.title}</Text>
+          {showRating && (
+            <View
+              style={styles.ratingChip}
+              accessibilityLabel={`Rated ${ratingAverage.toFixed(1)} out of 5 stars from ${ratingCount} ${
+                ratingCount === 1 ? 'rating' : 'ratings'
+              }`}>
+              <Icon name="star" size={14} color="#F59E0B" />
+              <Text style={styles.ratingValue}>{ratingAverage.toFixed(1)}</Text>
+              <Text style={styles.ratingCount}>({ratingCount})</Text>
+            </View>
+          )}
+          {item.readyInMinutes && (
+            <View style={styles.timeContainer}>
+              <Icon name="schedule" size={16} color="#666" />
+              <Text style={styles.timeText}>{item.readyInMinutes} min</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -175,6 +211,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  ratingValue: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  ratingCount: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   timeContainer: {
     flexDirection: 'row',
