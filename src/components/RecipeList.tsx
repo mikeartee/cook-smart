@@ -1,6 +1,12 @@
 import React from 'react';
-import { FlatList, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { RecipeCard } from './RecipeCard';
+import {
+  FlatList,
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
+import {RecipeCard} from './RecipeCard';
 
 interface Recipe {
   id: string;
@@ -11,6 +17,10 @@ interface Recipe {
   difficulty: string;
   cuisine: string;
   imageUrl?: string;
+  /** Optional rating aggregate, surfaced on the card via the rating chip. */
+  avgRating?: number;
+  /** Optional rating count, surfaced on the card via the rating chip. */
+  totalRatings?: number;
 }
 
 interface Props {
@@ -28,9 +38,9 @@ export const RecipeList: React.FC<Props> = ({
   onRecipePress,
   onLoadMore,
   hasMore = false,
-  conflictData = {}
+  conflictData = {},
 }) => {
-  const renderRecipe = ({ item }: { item: Recipe }) => (
+  const renderRecipe = ({item}: {item: Recipe}) => (
     <RecipeCard
       recipe={item}
       onPress={onRecipePress}
@@ -66,13 +76,15 @@ export const RecipeList: React.FC<Props> = ({
     <FlatList
       data={recipes}
       renderItem={renderRecipe}
-      keyExtractor={(item) => item.id}
+      keyExtractor={item => item.id}
       showsVerticalScrollIndicator={false}
       onEndReached={hasMore ? onLoadMore : undefined}
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}
       ListEmptyComponent={renderEmpty}
-      contentContainerStyle={recipes.length === 0 ? styles.emptyContainer : undefined}
+      contentContainerStyle={
+        recipes.length === 0 ? styles.emptyContainer : undefined
+      }
     />
   );
 };
