@@ -108,3 +108,4 @@ backend/.env.production
 *.old
 *.bak
 *~
+.worktrees/
