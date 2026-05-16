@@ -54,5 +54,5 @@ Where:
 The PRD requires a property-based test for the Bayesian prior (see scope item 6e). The test must demonstrate:
 
 - `effective_rating(recipe with 0 ratings)` equals `m`.
-- `effective_rating` is monotonic in the count of high ratings (≥ `m`) added.
+- `effective_rating` is non-decreasing when an additional 5-star rating is added (the maximum possible rating). Note: an earlier draft of this ADR claimed monotonicity for any rating ≥ `m`, but that is only true when the new rating is also ≥ the current `effective_rating` — adding a 4-star rating to a recipe whose effective rating is already 4.17 *decreases* it. The unconditional invariant uses the maximum rating.
 - As `total_ratings → ∞`, `effective_rating → avg_rating`.
