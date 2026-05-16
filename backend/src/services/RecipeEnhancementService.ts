@@ -1,4 +1,5 @@
 import pool from '../config/database';
+import socialService from './SocialService';
 
 export class RecipeEnhancementService {
   // RATINGS
@@ -17,6 +18,13 @@ export class RecipeEnhancementService {
        RETURNING *`,
       [userId, recipeId, recipeType, rating, review],
     );
+
+    // Recompute denormalised trending aggregates synchronously so the
+    // trending feed reflects the new rating immediately. Per ADR 0003,
+    // this writes rating_average and rating_count to both trending_recipes
+    // and recipe_cache.
+    await socialService.updateTrendingScore(recipeId, recipeType);
+
     return result.rows[0];
   }
 
