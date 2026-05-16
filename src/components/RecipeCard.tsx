@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface Recipe {
   id: string;
@@ -10,6 +11,10 @@ interface Recipe {
   difficulty: string;
   cuisine: string;
   imageUrl?: string;
+  /** Average rating (1.0–5.0). Combined with `totalRatings` to render the rating chip. */
+  avgRating?: number;
+  /** Total number of ratings. The chip is hidden when this is 0 or undefined. */
+  totalRatings?: number;
 }
 
 interface Props {
@@ -23,41 +28,67 @@ export const RecipeCard: React.FC<Props> = ({
   recipe,
   onPress,
   showConflicts = false,
-  conflictCount = 0
+  conflictCount = 0,
 }) => {
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty.toLowerCase()) {
-      case 'easy': return '#4CAF50';
-      case 'medium': return '#ff9800';
-      case 'hard': return '#f44336';
-      default: return '#666';
+      case 'easy':
+        return '#4CAF50';
+      case 'medium':
+        return '#ff9800';
+      case 'hard':
+        return '#f44336';
+      default:
+        return '#666';
     }
   };
+
+  const showRating =
+    typeof recipe.totalRatings === 'number' &&
+    recipe.totalRatings > 0 &&
+    typeof recipe.avgRating === 'number';
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(recipe)}>
       {recipe.imageUrl ? (
-        <Image source={{ uri: recipe.imageUrl }} style={styles.image} />
+        <Image source={{uri: recipe.imageUrl}} style={styles.image} />
       ) : (
         <View style={styles.placeholderImage}>
           <Text style={styles.placeholderText}>🍽️</Text>
         </View>
       )}
-      
+
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title} numberOfLines={2}>{recipe.title}</Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {recipe.title}
+          </Text>
           {showConflicts && conflictCount > 0 && (
             <View style={styles.conflictBadge}>
               <Text style={styles.conflictText}>⚠️ {conflictCount}</Text>
             </View>
           )}
         </View>
-        
+
+        {showRating && (
+          <View
+            style={styles.ratingChip}
+            testID="recipe-card-rating"
+            accessibilityLabel={`Rated ${recipe.avgRating!.toFixed(1)} out of 5 stars from ${recipe.totalRatings} ${
+              recipe.totalRatings === 1 ? 'rating' : 'ratings'
+            }`}>
+            <Icon name="star" size={14} color="#F59E0B" />
+            <Text style={styles.ratingValue}>
+              {recipe.avgRating!.toFixed(1)}
+            </Text>
+            <Text style={styles.ratingCount}>({recipe.totalRatings})</Text>
+          </View>
+        )}
+
         <Text style={styles.description} numberOfLines={2}>
           {recipe.description}
         </Text>
-        
+
         <View style={styles.details}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>⏱️ {recipe.cookingTime}min</Text>
@@ -66,12 +97,16 @@ export const RecipeCard: React.FC<Props> = ({
             <Text style={styles.detailLabel}>👥 {recipe.servings}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={[styles.difficulty, { color: getDifficultyColor(recipe.difficulty) }]}>
+            <Text
+              style={[
+                styles.difficulty,
+                {color: getDifficultyColor(recipe.difficulty)},
+              ]}>
               {recipe.difficulty}
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.footer}>
           <Text style={styles.cuisine}>{recipe.cuisine}</Text>
         </View>
@@ -87,7 +122,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -137,6 +172,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#f44336',
     fontWeight: 'bold',
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  ratingValue: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  ratingCount: {
+    fontSize: 12,
+    color: '#6B7280',
   },
   description: {
     fontSize: 14,
