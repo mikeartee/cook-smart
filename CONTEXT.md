@@ -34,10 +34,7 @@ These are first-class entities, each with its own table:
 
 ## Recipe rating system — canonical implementation
 
-Two implementations existed historically; only one is canonical going forward:
-
-- **`backend/src/services/RecipeEnhancementService.ts`** — the live, wired-up implementation. Used by route `/api/v1/recipe-enhancements/ratings` and by the mobile `recipeEnhancementService.ts`.
-- ~~`backend/src/models/RecipeRating.ts`~~ — dead code. Zero callers. References nonexistent columns (`date_created`/`date_updated`) and a nonexistent `recipes` table. **To be deleted** as part of the rating-system hardening work (see PRD).
+The live, wired-up rating implementation lives in **`backend/src/services/RecipeEnhancementService.ts`**. It backs the route `/api/v1/recipe-enhancements/ratings` and the mobile `recipeEnhancementService.ts`. Any future rating logic (avg/distribution helpers, deletion, paginated reviews) should be added there rather than in a parallel model.
 
 ## Denormalised aggregates
 
