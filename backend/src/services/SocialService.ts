@@ -1,4 +1,10 @@
 import pool from '../config/database';
+import {
+  computeTrendingScore,
+  TRENDING_DEFAULTS,
+} from './TrendingScoreCalculator';
+
+export type RecipeType = 'api' | 'user';
 
 export class SocialService {
   // Follow/Unfollow
@@ -90,7 +96,10 @@ export class SocialService {
     );
     if (result.rows.length > 0) {
       await this.logActivity(userId, 'liked_recipe', recipeId);
-      await this.updateTrendingScore(recipeId);
+      // Likes are tracked on api recipes (the social engagement layer is wired
+      // for the FatSecret corpus). Pass 'api' explicitly so the rating
+      // aggregation reads from the right partition of recipe_ratings.
+      await this.updateTrendingScore(recipeId, 'api');
     }
     return result.rows[0];
   }
@@ -100,7 +109,7 @@ export class SocialService {
       'DELETE FROM recipe_likes WHERE recipe_id = $1 AND user_id = $2',
       [recipeId, userId],
     );
-    await this.updateTrendingScore(recipeId);
+    await this.updateTrendingScore(recipeId, 'api');
   }
 
   async isLiked(recipeId: string, userId: string) {
@@ -125,7 +134,7 @@ export class SocialService {
       'INSERT INTO recipe_shares (recipe_id, user_id, platform) VALUES ($1, $2, $3) RETURNING *',
       [recipeId, userId, platform],
     );
-    await this.updateTrendingScore(recipeId);
+    await this.updateTrendingScore(recipeId, 'api');
     return result.rows[0];
   }
 
@@ -173,22 +182,81 @@ export class SocialService {
   }
 
   // Trending
-  async updateTrendingScore(recipeId: string) {
-    const [likes, comments, shares] = await Promise.all([
+  /**
+   * Recompute the denormalised trending aggregates for a recipe.
+   *
+   * Reads engagement counts (likes/comments/shares) and rating aggregates
+   * (sum, count) from their source tables, delegates the score arithmetic to
+   * `TrendingScoreCalculator` (per ADR 0002), and writes the new score plus
+   * `rating_average` and `rating_count` to both `trending_recipes` and
+   * `recipe_cache` (per ADR 0003).
+   *
+   * `recipeType` is required because `recipe_ratings` is keyed by
+   * `(user_id, recipe_id, recipe_type)`. Callers from the social side
+   * (likes/comments/shares) default to `'api'` since the existing engagement
+   * paths operate on the FatSecret-sourced recipe corpus.
+   */
+  async updateTrendingScore(recipeId: string, recipeType: RecipeType = 'api') {
+    const [likes, comments, shares, ratingAggregates] = await Promise.all([
       this.getLikesCount(recipeId),
       this.getCommentsCount(recipeId),
       this.getSharesCount(recipeId),
+      this.getRatingAggregates(recipeId, recipeType),
     ]);
 
-    const score = likes * 1 + comments * 2 + shares * 3;
+    const {sumOfRatings, totalRatings, ratingAverage} = ratingAggregates;
 
-    await pool.query(
-      `INSERT INTO trending_recipes (recipe_id, score, likes_count, comments_count, shares_count, updated_at) 
-       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) 
-       ON CONFLICT (recipe_id) DO UPDATE 
-       SET score = $2, likes_count = $3, comments_count = $4, shares_count = $5, updated_at = CURRENT_TIMESTAMP`,
-      [recipeId, score, likes, comments, shares],
+    const score = computeTrendingScore(
+      {likes, comments, shares, sumOfRatings, totalRatings},
+      TRENDING_DEFAULTS,
     );
+
+    // trending_recipes is keyed by recipe_id only.
+    await pool.query(
+      `INSERT INTO trending_recipes (
+         recipe_id, score, likes_count, comments_count, shares_count,
+         rating_average, rating_count, updated_at
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+       ON CONFLICT (recipe_id) DO UPDATE
+       SET score          = $2,
+           likes_count    = $3,
+           comments_count = $4,
+           shares_count   = $5,
+           rating_average = $6,
+           rating_count   = $7,
+           updated_at     = CURRENT_TIMESTAMP`,
+      [recipeId, score, likes, comments, shares, ratingAverage, totalRatings],
+    );
+
+    // recipe_cache.rating_average / rating_count: update the existing row only.
+    // We never insert into recipe_cache from this path — it's populated by the
+    // recipe-fetch pipeline.
+    await pool.query(
+      `UPDATE recipe_cache
+       SET rating_average = $2,
+           rating_count   = $3
+       WHERE recipe_id = $1`,
+      [recipeId, ratingAverage, totalRatings],
+    );
+  }
+
+  async getRatingAggregates(recipeId: string, recipeType: RecipeType) {
+    const result = await pool.query(
+      `SELECT
+         COALESCE(SUM(rating), 0)::int   AS sum_of_ratings,
+         COUNT(*)::int                   AS total_ratings,
+         COALESCE(AVG(rating)::numeric(3,2), 0) AS rating_average
+       FROM recipe_ratings
+       WHERE recipe_id = $1 AND recipe_type = $2`,
+      [recipeId, recipeType],
+    );
+    const row = result.rows[0];
+    return {
+      sumOfRatings: Number(row.sum_of_ratings),
+      totalRatings: Number(row.total_ratings),
+      ratingAverage: Number(row.rating_average),
+    };
   }
 
   async getTrendingRecipes(limit = 20) {
