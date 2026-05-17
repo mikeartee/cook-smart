@@ -17,7 +17,7 @@ describe('computeBootGates (issue #25)', () => {
 
       expect(gates).toEqual({
         healthMonitor: false,
-        subscriptionMonitor: false,
+        stripeBilling: false,
         dailyNotifications: false,
         recipeCacheMaintenance: false,
         systemGuardian: false,
@@ -58,18 +58,18 @@ describe('computeBootGates (issue #25)', () => {
     });
   });
 
-  describe('subscriptionMonitor gate', () => {
+  describe('stripeBilling gate', () => {
     it('opens when STRIPE_SECRET_KEY is set', () => {
       const gates = computeBootGates({STRIPE_SECRET_KEY: 'sk_test_abc'});
 
-      expect(gates.subscriptionMonitor).toBe(true);
+      expect(gates.stripeBilling).toBe(true);
     });
 
     it('stays closed when STRIPE_SECRET_KEY is unset or empty', () => {
-      expect(computeBootGates({}).subscriptionMonitor).toBe(false);
-      expect(
-        computeBootGates({STRIPE_SECRET_KEY: ''}).subscriptionMonitor,
-      ).toBe(false);
+      expect(computeBootGates({}).stripeBilling).toBe(false);
+      expect(computeBootGates({STRIPE_SECRET_KEY: ''}).stripeBilling).toBe(
+        false,
+      );
     });
   });
 
@@ -133,7 +133,7 @@ describe('computeBootGates (issue #25)', () => {
 
       expect(gates).toEqual({
         healthMonitor: true,
-        subscriptionMonitor: true,
+        stripeBilling: true,
         dailyNotifications: true,
         recipeCacheMaintenance: true,
         systemGuardian: true,
