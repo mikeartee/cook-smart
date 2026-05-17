@@ -1,6 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
 import NotificationService from '../services/NotificationService';
-import AutoRepairSystem from '../services/AutoRepairSystem';
 import HealthMonitor from '../services/HealthMonitor';
 import ErrorLogModel from '../models/ErrorLog';
 
@@ -199,20 +198,7 @@ export function errorMiddleware(
     // Send error notification asynchronously (don't block response).
     (async () => {
       try {
-        // Attempt auto-repair
-        const repairResult = await AutoRepairSystem.attemptRepair(err);
-
-        // Send notification with repair status
-        await NotificationService.sendErrorNotification(err, severity, {
-          ...context,
-          ...(repairResult &&
-            ({
-              repairAttempted: true,
-              repairSuccess: repairResult.success,
-              repairMessage: repairResult.message,
-              repairAction: repairResult.action,
-            } as any)),
-        });
+        await NotificationService.sendErrorNotification(err, severity, context);
       } catch (notificationError) {
         console.error('Failed to send error notification:', notificationError);
       }

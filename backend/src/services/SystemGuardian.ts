@@ -1,6 +1,6 @@
 // import NotificationService from './NotificationService';
-import AutoRepairSystem from './AutoRepairSystem';
 import HealthMonitor from './HealthMonitor';
+import pool from '../config/database';
 
 interface SystemHealth {
   backend: 'healthy' | 'degraded' | 'down';
@@ -222,11 +222,12 @@ class SystemGuardian {
    * Handle critical system state
    *
    * As of issue #22, this method only attempts the database-reconnect
-   * advisory (via AutoRepairSystem.attemptRepair, which currently does
-   * not actually restart anything) and notifies Discord. The prior
-   * `restartBackend` and `initiateNuclearOption` paths — which spawned
-   * `pm2 restart` / `git pull` / `npm install` from inside the running
-   * Node process — have been removed.
+   * advisory and notifies Discord. The prior `restartBackend` and
+   * `initiateNuclearOption` paths — which spawned `pm2 restart` /
+   * `git pull` / `npm install` from inside the running Node process —
+   * have been removed. As of issue #42 the database probe is a direct
+   * `pool.query('SELECT 1')` instead of going through the deleted
+   * AutoRepairSystem wrapper.
    */
   private async handleCriticalState(health: SystemHealth): Promise<void> {
     console.log('🚨 CRITICAL: System in critical state');
@@ -262,30 +263,33 @@ class SystemGuardian {
     try {
       console.log('🔧 Attempting database repair...');
 
-      const error = new Error('Database connection issue');
-      const result = await AutoRepairSystem.attemptRepair(error);
-
-      if (result?.success) {
-        action.success = true;
-        action.details = result.message;
-
-        this.sendDiscordNotification(
-          '✅ Database Repaired',
-          result.message,
-          'success',
-        );
-      } else {
-        action.details = result?.message || 'Repair failed';
-
-        this.sendDiscordNotification(
-          '❌ Database Repair Failed',
-          action.details,
-          'error',
-        );
+      // Direct pg probe (replaces AutoRepairSystem.attemptRepair from #42).
+      // The pg Pool reconnects on demand; this just confirms reachability
+      // and surfaces any auth/network failures to the Discord channel.
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+      } finally {
+        client.release();
       }
+
+      action.success = true;
+      action.details = 'Database connection probe succeeded';
+
+      this.sendDiscordNotification(
+        '✅ Database Repaired',
+        action.details,
+        'success',
+      );
     } catch (error) {
       action.details = error instanceof Error ? error.message : 'Unknown error';
       console.error('❌ Database repair failed:', error);
+
+      this.sendDiscordNotification(
+        '❌ Database Repair Failed',
+        action.details,
+        'error',
+      );
     }
 
     this.repairHistory.push(action);
