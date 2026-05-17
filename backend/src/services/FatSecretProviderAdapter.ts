@@ -434,6 +434,15 @@ class FatSecretProviderAdapter implements IRecipeProvider {
   }
 
   async isAvailable(): Promise<boolean> {
+    // Short-circuit: skip the network probe when credentials are absent so
+    // RecipeProviderService can fall through to TheMealDB without a wasted
+    // HTTP roundtrip. See docs/codebase-assessment.md F-EB-2 / issue #24.
+    const clientId = process.env.FATSECRET_CLIENT_ID;
+    const clientSecret = process.env.FATSECRET_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      return false;
+    }
+
     try {
       const recipes = await this.service.searchRecipes('chicken', 1);
       return recipes.length > 0;
