@@ -188,7 +188,19 @@ app.use('/api/v1/safety-check', safetyCheckRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/favorites', favoritesRoutes);
 app.use('/api/discord', discordRoutes);
-app.use('/contact', contactRoutes);
+
+// Decide which scheduled jobs and optional routes to mount based on env
+// presence. See `config/bootGates.ts` and `docs/codebase-assessment.md`
+// F-OA-2 / F-NL-3.
+const gates = computeBootGates();
+
+if (gates.contactForm) {
+  app.use('/contact', contactRoutes);
+} else {
+  console.log(
+    'ℹ️  Contact form route not mounted (no RESEND_API_KEY configured)',
+  );
+}
 
 app.get('/api/v1/test', (req, res) => {
   res.json({
@@ -214,10 +226,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 Network access: http://0.0.0.0:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/v1/test`);
-
-  // Decide which scheduled jobs to start based on env presence. See
-  // `config/bootGates.ts` and `docs/codebase-assessment.md` F-OA-2.
-  const gates = computeBootGates();
 
   // Start health monitoring (Discord-bound).
   if (gates.healthMonitor) {
