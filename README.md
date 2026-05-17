@@ -1,12 +1,14 @@
 # Cook Smart
 
-[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](https://github.com/tootallgames2020/cook-smart)
-[![Status](https://img.shields.io/badge/status-production-green.svg)](https://cooksmartapp.com)
+[![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](https://github.com/mikeartee/cook-smart)
+[![Status](https://img.shields.io/badge/status-development-yellow.svg)](https://github.com/mikeartee/cook-smart)
 [![License](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/security-enterprise-brightgreen.svg)](SECURITY_AUDIT_REPORT.md)
 
-> **Intelligent Recipe Generation Platform**  
+> **Intelligent Recipe Generation Platform**
 > Transform your available ingredients into personalized meal recommendations with AI-powered recipe matching, dietary filtering, and smart inventory management.
+
+> **Note on this fork.** This repository is a development fork of [`tootallgames2020/cook-smart`](https://github.com/tootallgames2020/cook-smart) (original copyright holder: Bradley L Turnbough). It is developed independently from the upstream repo and does not auto-deploy to `cooksmartapp.com` / `api.cooksmartapp.com` — those production endpoints are run from the upstream's infrastructure, which this fork does not have access to. Legal documents under `docs/legal/` retain the upstream's copyright/contact information unchanged.
 
 ## 🌟 Overview
 
@@ -74,7 +76,7 @@ Backup       │ Automated daily snapshots
 
 ```bash
 # Clone repository
-git clone https://github.com/tootallgames2020/cook-smart.git
+git clone https://github.com/mikeartee/cook-smart.git
 cd cook-smart
 
 # Install dependencies
@@ -245,8 +247,8 @@ Unauthorized copying, distribution, or modification of this software is strictly
 - **📖 Documentation**: [User Guide](docs/user-guide/)
 
 ### For Developers
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/tootallgames2020/cook-smart/issues)
-- **💡 Feature Requests**: [GitHub Discussions](https://github.com/tootallgames2020/cook-smart/discussions)
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/mikeartee/cook-smart/issues)
+- **💡 Feature Requests**: [GitHub Discussions](https://github.com/mikeartee/cook-smart/discussions)
 - **📧 Technical Support**: services.cooksmart@gmail.com
 
 ---
