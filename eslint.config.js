@@ -6,6 +6,7 @@ module.exports = [
     ignores: [
       'node_modules/**',
       'backend/node_modules/**',
+      'website/**',
       'dist/**',
       'build/**',
       'backend/dist/**',
@@ -22,8 +23,8 @@ module.exports = [
       'android/app/build/**',
       'android/build/**',
       'ios/build/**',
-      '**/intermediates/**'
-    ]
+      '**/intermediates/**',
+    ],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -33,8 +34,8 @@ module.exports = [
         ecmaVersion: 2021,
         sourceType: 'module',
         ecmaFeatures: {
-          jsx: true
-        }
+          jsx: true,
+        },
       },
       globals: {
         __DEV__: 'readonly',
@@ -44,22 +45,25 @@ module.exports = [
         process: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
-        fetch: 'readonly'
-      }
+        fetch: 'readonly',
+      },
     },
     plugins: {
-      '@typescript-eslint': tsPlugin
+      '@typescript-eslint': tsPlugin,
     },
     rules: {
       '@typescript-eslint/no-shadow': 'error',
       'no-shadow': 'off',
       'no-undef': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }],
-      'no-console': 'off'
-    }
-  }
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      'no-console': 'off',
+    },
+  },
 ];
