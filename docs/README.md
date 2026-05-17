@@ -8,6 +8,7 @@ Welcome to the comprehensive documentation for Cook Smart, an intelligent recipe
 - [**API Reference**](api/) - Complete REST API documentation
 - [**Database Schema**](database/) - Data models and relationships
 - [**Architecture Guide**](architecture/) - System design and patterns
+- [**Backend Codebase Assessment**](codebase-assessment.md) - Snapshot of backend state, organised by a four-category cleanup rubric
 - [**Security Documentation**](../SECURITY_IMPLEMENTATION.md) - Security practices and compliance
 - [**Deployment Guide**](deployment/) - Production deployment procedures
 - [**Contributing Guide**](../CONTRIBUTING.md) - Development workflow and standards
