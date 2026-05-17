@@ -8,13 +8,11 @@ const {loadEnvironment} = require('../load-env');
 loadEnvironment();
 import {errorMiddleware, notFoundHandler} from './middleware/errorMiddleware';
 import {requestLogger} from './middleware/logger';
-import AutoRepairSystem from './services/AutoRepairSystem';
 import HealthMonitor from './services/HealthMonitor';
 import SystemGuardian from './services/SystemGuardian';
 import {SubscriptionMonitor} from './services/SubscriptionMonitor';
 import {DailyNotificationService} from './services/DailyNotificationService';
 import RecipeCacheService from './services/RecipeCacheService';
-import pool from './config/database';
 import {computeBootGates} from './config/bootGates';
 import healthRoutes from './routes/health';
 
@@ -35,11 +33,6 @@ const gates = computeBootGates();
 
 // Trust proxy - required for rate limiting behind reverse proxy/load balancer
 app.set('trust proxy', 1);
-
-// Initialize auto-repair system with database pool
-if (pool) {
-  AutoRepairSystem.setDatabasePool(pool);
-}
 
 // Security middleware
 app.use(helmet());
