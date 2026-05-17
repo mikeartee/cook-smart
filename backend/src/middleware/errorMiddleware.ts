@@ -189,44 +189,59 @@ export function errorMiddleware(
   // Generate throttle key
   const throttleKey = ThrottleManager.generateErrorKey(err, context.endpoint);
 
-  // Check if we should send notification (throttling)
-  const shouldNotify = ThrottleManager.shouldSendNotification(
-    throttleKey,
-    'error',
-    severity,
+  // Discord-presence gate: skip the entire notify-and-throttle pipeline
+  // when no error webhook env var is configured. Per issue #40 / F-NL-2,
+  // a fresh local clone shouldn't pay throttle bookkeeping for
+  // notifications that will never fire.
+  const discordErrorWebhookConfigured = Boolean(
+    process.env.DISCORD_ERROR_WEBHOOK_URL || process.env.DISCORD_ERROR_WEBHOOK,
   );
 
-  if (shouldNotify) {
-    // Send error notification asynchronously (don't block response)
-    (async () => {
-      try {
-        // Attempt auto-repair
-        const repairResult = await AutoRepairSystem.attemptRepair(err);
-
-        // Send notification with repair status
-        await NotificationService.sendErrorNotification(err, severity, {
-          ...context,
-          ...(repairResult &&
-            ({
-              repairAttempted: true,
-              repairSuccess: repairResult.success,
-              repairMessage: repairResult.message,
-              repairAction: repairResult.action,
-            } as any)),
-        });
-
-        // Record that notification was sent
-        ThrottleManager.recordNotification(throttleKey, 'error', true);
-      } catch (notificationError) {
-        console.error('Failed to send error notification:', notificationError);
-      }
-    })();
+  if (!discordErrorWebhookConfigured) {
+    // Nothing to notify; client response still goes out below.
   } else {
-    // Record that notification was throttled
-    ThrottleManager.recordNotification(throttleKey, 'error', false);
-    console.log(
-      `⏸️  Error notification throttled (${ThrottleManager.getThrottledCount(throttleKey)} throttled)`,
+    // Check if we should send notification (throttling)
+    const shouldNotify = ThrottleManager.shouldSendNotification(
+      throttleKey,
+      'error',
+      severity,
     );
+
+    if (shouldNotify) {
+      // Send error notification asynchronously (don't block response)
+      (async () => {
+        try {
+          // Attempt auto-repair
+          const repairResult = await AutoRepairSystem.attemptRepair(err);
+
+          // Send notification with repair status
+          await NotificationService.sendErrorNotification(err, severity, {
+            ...context,
+            ...(repairResult &&
+              ({
+                repairAttempted: true,
+                repairSuccess: repairResult.success,
+                repairMessage: repairResult.message,
+                repairAction: repairResult.action,
+              } as any)),
+          });
+
+          // Record that notification was sent
+          ThrottleManager.recordNotification(throttleKey, 'error', true);
+        } catch (notificationError) {
+          console.error(
+            'Failed to send error notification:',
+            notificationError,
+          );
+        }
+      })();
+    } else {
+      // Record that notification was throttled
+      ThrottleManager.recordNotification(throttleKey, 'error', false);
+      console.log(
+        `⏸️  Error notification throttled (${ThrottleManager.getThrottledCount(throttleKey)} throttled)`,
+      );
+    }
   }
 
   // Send error response to client

@@ -80,23 +80,8 @@ class NotificationService {
   }
 
   private validateWebhooks(): void {
-    if (!this.errorWebhook) {
-      console.warn(
-        '⚠️  DISCORD_ERROR_WEBHOOK not configured - error notifications disabled',
-      );
-    }
-    if (!this.feedbackWebhook) {
-      console.warn(
-        '⚠️  DISCORD_FEEDBACK_WEBHOOK not configured - feedback notifications disabled',
-      );
-    }
-    if (!this.activityWebhook) {
-      console.warn(
-        '⚠️  DISCORD_ACTIVITY_WEBHOOK not configured - activity notifications disabled',
-      );
-    }
-
-    // Validate webhook URL format
+    // Validate webhook URL format up front so misconfigurations surface
+    // once at boot rather than on every send.
     const webhookPattern = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+$/;
 
     if (this.errorWebhook && !webhookPattern.test(this.errorWebhook)) {
@@ -110,6 +95,16 @@ class NotificationService {
     if (this.activityWebhook && !webhookPattern.test(this.activityWebhook)) {
       console.error('❌ Invalid DISCORD_ACTIVITY_WEBHOOK URL format');
       this.activityWebhook = null;
+    }
+
+    // Single concise log when no Discord channels are configured. Replaces
+    // the prior three-warns-per-missing-channel pattern (issue #40 / F-NL-2).
+    const anyConfigured =
+      this.errorWebhook || this.feedbackWebhook || this.activityWebhook;
+    if (!anyConfigured) {
+      console.log(
+        'ℹ️  Discord notifications disabled (no DISCORD_*_WEBHOOK env vars set)',
+      );
     }
   }
 
