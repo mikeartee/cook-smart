@@ -1,51 +1,72 @@
 /**
- * Source-content guard for issue #24 acceptance criterion 1:
+ * Source-content guards for the recipe-provider registration shape.
  *
- *   "All `new RecipeProviderService([...])` call sites include both
- *   `FatSecretAdapter` and `TheMealDBService` (or its singleton)."
+ * Originally pinned issue #24 acceptance criterion 1 — that every
+ * `new RecipeProviderService([...])` call passed both FatSecret and
+ * TheMealDB providers.
  *
- * Reads the route source files and asserts that every construction of
- * RecipeProviderService passes BOTH providers. Same pattern as
- * routes/systemGuardian.test.ts's negative-evidence guards (issue #22).
+ * Updated for issue #45: there should now be exactly ONE construction
+ * site (the shared `services/recipeProvider.ts` singleton). Both
+ * route files MUST import the singleton rather than constructing their
+ * own. See docs/codebase-assessment.md F-OA-7.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 
-const FILES_TO_CHECK = [
-  path.join(__dirname, 'recipes.ts'),
-  path.join(__dirname, 'trendingRecipes.ts'),
+const ROUTES_DIR = path.join(__dirname);
+const SERVICES_DIR = path.join(__dirname, '..', 'services');
+
+const ROUTE_FILES = [
+  path.join(ROUTES_DIR, 'recipes.ts'),
+  path.join(ROUTES_DIR, 'trendingRecipes.ts'),
 ];
 
-describe('RecipeProviderService registration sites (issue #24)', () => {
-  it.each(FILES_TO_CHECK)(
-    '%s registers both FatSecret and TheMealDB providers in every constructor call',
-    filePath => {
-      const source = fs.readFileSync(filePath, 'utf8');
+describe('RecipeProviderService registration shape', () => {
+  describe('issue #45: single shared instance', () => {
+    it('exports a default singleton from services/recipeProvider.ts', () => {
+      const sharedPath = path.join(SERVICES_DIR, 'recipeProvider.ts');
+      expect(fs.existsSync(sharedPath)).toBe(true);
 
-      // Find every `new RecipeProviderService([...])` call. The argument list
-      // can span multiple lines and contain comments, so use a permissive
-      // multi-line regex.
-      const constructorPattern =
-        /new\s+RecipeProviderService\s*\(\s*\[([\s\S]*?)\]\s*\)/g;
-      const matches = [...source.matchAll(constructorPattern)];
+      const source = fs.readFileSync(sharedPath, 'utf8');
+      // Must construct the orchestrator with both providers.
+      expect(source).toMatch(/new\s+RecipeProviderService\s*\(/);
+      expect(source).toMatch(/FatSecretAdapter\b/);
+      expect(source).toMatch(/TheMealDB(Service|Adapter)?\b/);
+      expect(source).toMatch(/export\s+default\s+recipeProviderService/);
+    });
 
-      expect(matches.length).toBeGreaterThan(0);
+    it.each(ROUTE_FILES)(
+      '%s does not construct its own RecipeProviderService instance',
+      filePath => {
+        const source = fs.readFileSync(filePath, 'utf8');
+        const matches = source.match(/new\s+RecipeProviderService\s*\(/g);
+        expect(matches).toBeNull();
+      },
+    );
 
-      for (const match of matches) {
-        const argList = match[1] ?? '';
-        // Strip comments so we don't false-match a commented-out provider.
-        const argsCodeOnly = argList
-          .replace(/\/\/.*$/gm, '')
-          .replace(/\/\*[\s\S]*?\*\//g, '');
+    it.each(ROUTE_FILES)(
+      '%s imports the shared recipeProvider singleton',
+      filePath => {
+        const source = fs.readFileSync(filePath, 'utf8');
+        // Either named or default import from ../services/recipeProvider.
+        expect(source).toMatch(/from\s+['"]\.\.\/services\/recipeProvider['"]/);
+      },
+    );
+  });
 
-        // Must reference both adapters by their imported names.
-        // FatSecretAdapter is the local name used in routes/recipes.ts and
-        // routes/trendingRecipes.ts; TheMealDBService is the class name.
-        // Either the class or an instance suffices for "or its singleton".
-        expect(argsCodeOnly).toMatch(/FatSecretAdapter\b/);
-        expect(argsCodeOnly).toMatch(/TheMealDB(Service|Adapter)?\b/);
-      }
-    },
-  );
+  describe('issue #24: provider chain still passes both adapters', () => {
+    it('the shared singleton registers both FatSecret and TheMealDB', () => {
+      const sharedPath = path.join(SERVICES_DIR, 'recipeProvider.ts');
+      const source = fs.readFileSync(sharedPath, 'utf8');
+
+      // Strip comments so we don't false-match a commented-out provider.
+      const codeOnly = source
+        .replace(/\/\/.*$/gm, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '');
+
+      expect(codeOnly).toMatch(/FatSecretAdapter\b/);
+      expect(codeOnly).toMatch(/TheMealDB(Service|Adapter)?\b/);
+    });
+  });
 });
