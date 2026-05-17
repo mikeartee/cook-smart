@@ -22,6 +22,8 @@ export interface BootGates {
   recipeCacheMaintenance: boolean;
   /** SystemGuardian.startMonitoring — periodic health check. Production-only. */
   systemGuardian: boolean;
+  /** Mount POST /contact (Resend-backed contact form). */
+  contactForm: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export function computeBootGates(
   );
   const hasStripeSecret = Boolean(env.STRIPE_SECRET_KEY);
   const hasFirebaseServiceAccount = Boolean(env.FIREBASE_SERVICE_ACCOUNT_PATH);
+  const hasResendKey = Boolean(env.RESEND_API_KEY);
 
   return {
     healthMonitor: hasDiscordErrorWebhook,
@@ -44,5 +47,6 @@ export function computeBootGates(
     dailyNotifications: hasFirebaseServiceAccount,
     recipeCacheMaintenance: isProduction,
     systemGuardian: isProduction,
+    contactForm: hasResendKey,
   };
 }

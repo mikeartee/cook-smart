@@ -21,6 +21,7 @@ describe('computeBootGates (issue #25)', () => {
         dailyNotifications: false,
         recipeCacheMaintenance: false,
         systemGuardian: false,
+        contactForm: false,
       } satisfies BootGates);
     });
   });
@@ -127,6 +128,7 @@ describe('computeBootGates (issue #25)', () => {
         DISCORD_ERROR_WEBHOOK_URL: 'https://discord.com/api/webhooks/abc',
         STRIPE_SECRET_KEY: 'sk_live_abc',
         FIREBASE_SERVICE_ACCOUNT_PATH: '/etc/cook-smart/firebase.json',
+        RESEND_API_KEY: 're_live_abc',
       });
 
       expect(gates).toEqual({
@@ -135,7 +137,21 @@ describe('computeBootGates (issue #25)', () => {
         dailyNotifications: true,
         recipeCacheMaintenance: true,
         systemGuardian: true,
+        contactForm: true,
       } satisfies BootGates);
+    });
+  });
+
+  describe('contactForm gate', () => {
+    it('opens when RESEND_API_KEY is set', () => {
+      const gates = computeBootGates({RESEND_API_KEY: 're_test_abc'});
+
+      expect(gates.contactForm).toBe(true);
+    });
+
+    it('stays closed when RESEND_API_KEY is unset or empty', () => {
+      expect(computeBootGates({}).contactForm).toBe(false);
+      expect(computeBootGates({RESEND_API_KEY: ''}).contactForm).toBe(false);
     });
   });
 });

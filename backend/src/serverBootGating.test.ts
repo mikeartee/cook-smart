@@ -81,4 +81,15 @@ describe('server.ts boot-time gating (issue #25)', () => {
     );
     expect(windowAbove).toMatch(/if\s*\(\s*gates\.recipeCacheMaintenance\s*\)/);
   });
+
+  it('places the /contact mount inside an if (gates.contactForm) block (issue #41)', () => {
+    const callIdx = SERVER_SOURCE.indexOf("app.use('/contact'");
+    expect(callIdx).toBeGreaterThan(-1);
+
+    const windowAbove = SERVER_SOURCE.slice(
+      Math.max(0, callIdx - 400),
+      callIdx,
+    );
+    expect(windowAbove).toMatch(/if\s*\(\s*gates\.contactForm\s*\)/);
+  });
 });
