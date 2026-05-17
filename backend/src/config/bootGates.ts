@@ -12,8 +12,6 @@
  */
 
 export interface BootGates {
-  /** HealthMonitor.startDailyHealthSummary — sends a Discord embed daily. */
-  healthMonitor: boolean;
   /**
    * Stripe billing surface: route mounts (`/api/webhooks/stripe`,
    * `/api/v1/payments`, `/api/v1/subscriptions`, `/api/v1/admin/subscriptions`)
@@ -38,15 +36,11 @@ export function computeBootGates(
   env: NodeJS.ProcessEnv = process.env,
 ): BootGates {
   const isProduction = env.NODE_ENV === 'production';
-  const hasDiscordErrorWebhook = Boolean(
-    env.DISCORD_ERROR_WEBHOOK_URL || env.DISCORD_ERROR_WEBHOOK,
-  );
   const hasStripeSecret = Boolean(env.STRIPE_SECRET_KEY);
   const hasFirebaseServiceAccount = Boolean(env.FIREBASE_SERVICE_ACCOUNT_PATH);
   const hasResendKey = Boolean(env.RESEND_API_KEY);
 
   return {
-    healthMonitor: hasDiscordErrorWebhook,
     stripeBilling: hasStripeSecret,
     dailyNotifications: hasFirebaseServiceAccount,
     recipeCacheMaintenance: isProduction,

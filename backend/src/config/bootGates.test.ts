@@ -16,45 +16,12 @@ describe('computeBootGates (issue #25)', () => {
       const gates = computeBootGates({});
 
       expect(gates).toEqual({
-        healthMonitor: false,
         stripeBilling: false,
         dailyNotifications: false,
         recipeCacheMaintenance: false,
         systemGuardian: false,
         contactForm: false,
       } satisfies BootGates);
-    });
-  });
-
-  describe('healthMonitor gate', () => {
-    it('opens when DISCORD_ERROR_WEBHOOK_URL is set', () => {
-      const gates = computeBootGates({
-        DISCORD_ERROR_WEBHOOK_URL: 'https://discord.com/api/webhooks/abc',
-      });
-
-      expect(gates.healthMonitor).toBe(true);
-    });
-
-    it('opens when DISCORD_ERROR_WEBHOOK is set (legacy variant)', () => {
-      const gates = computeBootGates({
-        DISCORD_ERROR_WEBHOOK: 'https://discord.com/api/webhooks/abc',
-      });
-
-      expect(gates.healthMonitor).toBe(true);
-    });
-
-    it('stays closed when no Discord webhook env vars are set', () => {
-      const gates = computeBootGates({
-        STRIPE_SECRET_KEY: 'present-but-irrelevant',
-      });
-
-      expect(gates.healthMonitor).toBe(false);
-    });
-
-    it('stays closed when the webhook URL is an empty string', () => {
-      const gates = computeBootGates({DISCORD_ERROR_WEBHOOK_URL: ''});
-
-      expect(gates.healthMonitor).toBe(false);
     });
   });
 
@@ -125,14 +92,12 @@ describe('computeBootGates (issue #25)', () => {
     it('opens every gate (regression guard for production)', () => {
       const gates = computeBootGates({
         NODE_ENV: 'production',
-        DISCORD_ERROR_WEBHOOK_URL: 'https://discord.com/api/webhooks/abc',
         STRIPE_SECRET_KEY: 'sk_live_abc',
         FIREBASE_SERVICE_ACCOUNT_PATH: '/etc/cook-smart/firebase.json',
         RESEND_API_KEY: 're_live_abc',
       });
 
       expect(gates).toEqual({
-        healthMonitor: true,
         stripeBilling: true,
         dailyNotifications: true,
         recipeCacheMaintenance: true,

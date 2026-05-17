@@ -32,23 +32,6 @@ describe('server.ts boot-time gating (issue #25)', () => {
     expect(windowAbove).toMatch(/if\s*\(\s*gates\.stripeBilling\s*\)/);
   });
 
-  it('places the "Daily health summary" log inside an if (gates.healthMonitor) block', () => {
-    // HealthMonitor doesn't print its own "activated" line — it logs
-    // "Daily health summary scheduled" from inside startDailyHealthSummary.
-    // The acceptance criterion is that the *call* is gated, so check the
-    // call site itself.
-    const callIdx = SERVER_SOURCE.indexOf(
-      'HealthMonitor.startDailyHealthSummary',
-    );
-    expect(callIdx).toBeGreaterThan(-1);
-
-    const windowAbove = SERVER_SOURCE.slice(
-      Math.max(0, callIdx - 400),
-      callIdx,
-    );
-    expect(windowAbove).toMatch(/if\s*\(\s*gates\.healthMonitor\s*\)/);
-  });
-
   it('places the "Daily notifications activated" log inside an if (gates.dailyNotifications) block', () => {
     const logIdx = SERVER_SOURCE.indexOf('Daily notifications activated');
     expect(logIdx).toBeGreaterThan(-1);

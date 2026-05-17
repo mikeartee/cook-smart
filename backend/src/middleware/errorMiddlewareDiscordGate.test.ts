@@ -25,10 +25,10 @@ describe('errorMiddleware Discord gating (issue #40)', () => {
     // Inspect a window of source above the call.
     const windowAbove = SOURCE.slice(Math.max(0, callIdx - 1500), callIdx);
 
-    // Accepts any of: env-presence check, gates.healthMonitor check, or a
-    // configured-flag method on NotificationService itself.
+    // Accepts an env-presence check on either of the two webhook env vars,
+    // or a configured-flag method on NotificationService itself.
     const gatePattern =
-      /(DISCORD_ERROR_WEBHOOK(?:_URL)?|gates\.healthMonitor|isErrorWebhookConfigured)/;
+      /(DISCORD_ERROR_WEBHOOK(?:_URL)?|isErrorWebhookConfigured)/;
     expect(windowAbove).toMatch(gatePattern);
   });
 });
