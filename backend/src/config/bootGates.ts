@@ -14,8 +14,12 @@
 export interface BootGates {
   /** HealthMonitor.startDailyHealthSummary — sends a Discord embed daily. */
   healthMonitor: boolean;
-  /** SubscriptionMonitor.startDailyMonitoring — Stripe expiry/grace checks. */
-  subscriptionMonitor: boolean;
+  /**
+   * Stripe billing surface: route mounts (`/api/webhooks/stripe`,
+   * `/api/v1/payments`, `/api/v1/subscriptions`, `/api/v1/admin/subscriptions`)
+   * plus the `SubscriptionMonitor.startDailyMonitoring` boot job.
+   */
+  stripeBilling: boolean;
   /** DailyNotificationService.startDailyChecks — FCM pushes via Firebase Admin. */
   dailyNotifications: boolean;
   /** Hourly recipe-cache maintenance interval. Production-only. */
@@ -43,7 +47,7 @@ export function computeBootGates(
 
   return {
     healthMonitor: hasDiscordErrorWebhook,
-    subscriptionMonitor: hasStripeSecret,
+    stripeBilling: hasStripeSecret,
     dailyNotifications: hasFirebaseServiceAccount,
     recipeCacheMaintenance: isProduction,
     systemGuardian: isProduction,

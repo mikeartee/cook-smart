@@ -28,6 +28,11 @@ console.log(
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
+// Decide which scheduled jobs and optional routes to mount based on env
+// presence. See `config/bootGates.ts` and `docs/codebase-assessment.md`
+// F-OA-2 / F-NL-1 / F-NL-3.
+const gates = computeBootGates();
+
 // Trust proxy - required for rate limiting behind reverse proxy/load balancer
 app.set('trust proxy', 1);
 
@@ -76,9 +81,12 @@ app.use(limiter);
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
-// Stripe webhook route (must be before body parser)
+// Stripe webhook route (must be before body parser). Gated on
+// STRIPE_SECRET_KEY presence — see issue #39 / F-NL-1.
 import stripeWebhookRoutes from './routes/stripeWebhook';
-app.use('/api/webhooks/stripe', stripeWebhookRoutes);
+if (gates.stripeBilling) {
+  app.use('/api/webhooks/stripe', stripeWebhookRoutes);
+}
 
 // Body parsing middleware
 app.use(express.json({limit: '10mb'}));
@@ -153,12 +161,16 @@ app.use('/api/v1/dietary', dietaryRoutes);
 app.use('/api/v1/shopping-list', shoppingRoutes);
 app.use('/api/v1/points', pointsRoutes);
 app.use('/api/v1/referrals', referralRoutes);
-app.use('/api/v1/payments', paymentRoutes);
+if (gates.stripeBilling) {
+  app.use('/api/v1/payments', paymentRoutes);
+}
 app.use('/api/v1/admin/auth', authLimiter, adminAuthRoutes);
 app.use('/api/v1/admin/management', adminManagementRoutes);
 app.use('/api/v1/admin/users', adminUsersRoutes);
 app.use('/api/v1/admin/recipes', adminRecipesRoutes);
-app.use('/api/v1/admin/subscriptions', adminSubscriptionsRoutes);
+if (gates.stripeBilling) {
+  app.use('/api/v1/admin/subscriptions', adminSubscriptionsRoutes);
+}
 app.use('/api/v1/admin/analytics', adminAnalyticsRoutes);
 app.use('/api/v1/admin/feedback', adminFeedbackRoutes);
 app.use('/api/v1/admin/health', adminHealthRoutes);
@@ -169,8 +181,10 @@ app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/admin/migration', adminMigrationRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
-app.use('/api/v1/subscriptions', subscriptionPricingRoutes);
-app.use('/api/v1/subscriptions', subscriptionSyncRoutes);
+if (gates.stripeBilling) {
+  app.use('/api/v1/subscriptions', subscriptionPricingRoutes);
+  app.use('/api/v1/subscriptions', subscriptionSyncRoutes);
+}
 app.use('/api/v1/system-guardian', systemGuardianRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/achievements', achievementRoutes);
@@ -188,11 +202,6 @@ app.use('/api/v1/safety-check', safetyCheckRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/favorites', favoritesRoutes);
 app.use('/api/discord', discordRoutes);
-
-// Decide which scheduled jobs and optional routes to mount based on env
-// presence. See `config/bootGates.ts` and `docs/codebase-assessment.md`
-// F-OA-2 / F-NL-3.
-const gates = computeBootGates();
 
 if (gates.contactForm) {
   app.use('/contact', contactRoutes);
@@ -237,7 +246,7 @@ app.listen(PORT, '0.0.0.0', () => {
   }
 
   // Start subscription monitoring (Stripe-bound).
-  if (gates.subscriptionMonitor) {
+  if (gates.stripeBilling) {
     SubscriptionMonitor.startDailyMonitoring();
     console.log('📧 Subscription monitoring activated');
   } else {

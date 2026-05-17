@@ -23,13 +23,13 @@ describe('server.ts boot-time gating (issue #25)', () => {
     );
   });
 
-  it('places the "Subscription monitoring activated" log inside an if (gates.subscriptionMonitor) block', () => {
+  it('places the "Subscription monitoring activated" log inside an if (gates.stripeBilling) block', () => {
     // Find the log line and inspect a window of source above it.
     const logIdx = SERVER_SOURCE.indexOf('Subscription monitoring activated');
     expect(logIdx).toBeGreaterThan(-1);
 
     const windowAbove = SERVER_SOURCE.slice(Math.max(0, logIdx - 400), logIdx);
-    expect(windowAbove).toMatch(/if\s*\(\s*gates\.subscriptionMonitor\s*\)/);
+    expect(windowAbove).toMatch(/if\s*\(\s*gates\.stripeBilling\s*\)/);
   });
 
   it('places the "Daily health summary" log inside an if (gates.healthMonitor) block', () => {
@@ -91,5 +91,29 @@ describe('server.ts boot-time gating (issue #25)', () => {
       callIdx,
     );
     expect(windowAbove).toMatch(/if\s*\(\s*gates\.contactForm\s*\)/);
+  });
+
+  describe('Stripe route mounts (issue #39)', () => {
+    const stripeMounts = [
+      "app.use('/api/webhooks/stripe'",
+      "app.use('/api/v1/payments'",
+      "app.use('/api/v1/admin/subscriptions'",
+      "app.use('/api/v1/subscriptions', subscriptionPricingRoutes",
+      "app.use('/api/v1/subscriptions', subscriptionSyncRoutes",
+    ];
+
+    it.each(stripeMounts)(
+      'wraps `%s` in an if (gates.stripeBilling) block',
+      mountSnippet => {
+        const callIdx = SERVER_SOURCE.indexOf(mountSnippet);
+        expect(callIdx).toBeGreaterThan(-1);
+
+        const windowAbove = SERVER_SOURCE.slice(
+          Math.max(0, callIdx - 400),
+          callIdx,
+        );
+        expect(windowAbove).toMatch(/if\s*\(\s*gates\.stripeBilling\s*\)/);
+      },
+    );
   });
 });
