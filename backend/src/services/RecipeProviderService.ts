@@ -37,40 +37,26 @@ export class RecipeProviderService {
   }
 
   /**
-   * Search for recipes by ingredients with cache-first strategy
+   * Search for recipes by ingredients.
+   *
+   * Note: cache-first lookup is intentionally NOT applied to ingredient
+   * search. Ingredient-matching data (usedIngredientCount,
+   * missedIngredientCount, matchPercentage) is dynamic per call and
+   * cached recipes don't carry it — caching here would strip the
+   * matching fields and return empty matches. The orchestrator still
+   * caches per-recipe details in `getRecipeDetails`. See issue #45.
    */
   async searchByIngredients(
     ingredients: string[],
     limit: number = 10,
     options?: {maxCalories?: number; mealType?: string},
   ): Promise<Recipe[]> {
-    // Generate cache key including filters
+    // Cache key is still generated for downstream cacheResults() — we
+    // store the API response keyed by ingredient hash so repeat searches
+    // can re-use the recipe data even though we don't short-circuit on it.
     const cacheKey = this.generateCacheKey(ingredients, options);
-
-    // SKIP CACHE for ingredient searches to ensure fresh matching calculations
-    // Cached recipes don't have proper ingredient matching data
     console.log(
-      `⏭️  Skipping cache for ingredient search to ensure fresh matching`,
-    );
-
-    // Step 1: Check cache first (DISABLED for ingredient matching)
-    // The cache-first strategy was causing 0% matches because cached recipes
-    // don't have proper ingredient matching calculations
-    // try {
-    //   const cached = await this.checkCache(cacheKey);
-    //   if (cached && cached.length > 0) {
-    //     console.log(`✅ Cache HIT for ingredient search: ${cacheKey}`);
-    //     return cached;
-    //   }
-    // } catch (cacheError) {
-    //   console.log(
-    //     `⚠️  Cache check failed, continuing to API:`,
-    //     (cacheError as Error).message,
-    //   );
-    // }
-
-    console.log(
-      `⏭️  Forcing fresh API call for ingredient search: ${cacheKey}`,
+      `🔍 Searching recipes for ingredient set ${cacheKey} (cache lookup skipped to preserve matching data)`,
     );
 
     // Step 2: Try primary provider

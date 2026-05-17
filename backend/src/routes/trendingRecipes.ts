@@ -1,8 +1,6 @@
 import express from 'express';
 import RecipeCacheService from '../services/RecipeCacheService';
-import FatSecretAdapter from '../services/FatSecretProviderAdapter';
-import TheMealDBAdapter from '../services/TheMealDBService';
-import {RecipeProviderService} from '../services/RecipeProviderService';
+import recipeProviderService from '../services/recipeProvider';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
 import {RecipeScalingService} from '../services/RecipeScalingService';
@@ -42,12 +40,6 @@ router.get('/trending-recipes', optionalAuth, async (req: AuthRequest, res) => {
     console.log(
       '[Trending] Using RecipeProviderService for trending recipes...',
     );
-
-    // Use the SAME service as main recipe search for consistency
-    const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier
-      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
-    ]);
 
     // Get trending recipes by searching for popular ingredients
     const trendingIngredients = [
@@ -179,12 +171,6 @@ router.get('/seasonal-recipes', optionalAuth, async (req: AuthRequest, res) => {
       `[Seasonal] Using RecipeProviderService for ${season} recipes...`,
     );
 
-    // Use the SAME service as main recipe search for consistency
-    const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier
-      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
-    ]);
-
     const seasonalIngredients = getSeasonalIngredients(season);
     const recipes = await recipeProviderService.searchByIngredients(
       seasonalIngredients.slice(0, 3),
@@ -301,12 +287,6 @@ router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
     console.log(
       `[Seasonal Current] Using RecipeProviderService for ${season} (current season)...`,
     );
-
-    // Use the SAME service as main recipe search for consistency
-    const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier
-      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
-    ]);
 
     const seasonalIngredients = getSeasonalIngredients(season);
     const recipes = await recipeProviderService.searchByIngredients(

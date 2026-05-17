@@ -1,12 +1,10 @@
 import {Router, Request, Response} from 'express';
 import {query} from 'express-validator';
-import {RecipeProviderService} from '../services/RecipeProviderService';
 import {APIUsageLogModel} from '../models/APIUsageLog';
 import {UserPointsModel} from '../models/UserPoints';
 import {AchievementService} from '../services/AchievementService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
-import FatSecretAdapter from '../services/FatSecretProviderAdapter';
-import TheMealDBAdapter from '../services/TheMealDBService';
+import recipeProviderService from '../services/recipeProvider';
 import RecipeCacheService from '../services/RecipeCacheService';
 import pool from '../config/database';
 import {ComprehensiveIngredientStandardizer} from '../services/ComprehensiveIngredientStandardizer';
@@ -72,18 +70,10 @@ function prioritizeIngredientsForSearch(ingredients: string[]): string[] {
   return result;
 }
 
-// Initialize recipe provider service with FatSecret (primary) and TheMealDB
-// (fallback). FatSecret Premier: 500K calls/month free, 1M+ recipes, full
-// nutrition data. TheMealDB: unlimited free tier, no API key required.
-//
-// As of issue #24 (PRD #20 / slice #21), TheMealDBAdapter is registered as
-// the fallback so recipe search degrades gracefully when FATSECRET_CLIENT_ID
-// / FATSECRET_CLIENT_SECRET are missing — FatSecretAdapter.isAvailable()
-// short-circuits to false in that state and the orchestrator falls through.
-const recipeProviderService = new RecipeProviderService([
-  FatSecretAdapter, // Primary: FatSecret Premier
-  TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier
-]);
+// Recipe provider orchestrator: see services/recipeProvider.ts. Issue #45
+// (PRD #20 / slice #21) consolidated the duplicate construction sites
+// across this file and routes/trendingRecipes.ts into a single shared
+// instance.
 
 const router = Router();
 
