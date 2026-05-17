@@ -1,5 +1,5 @@
 // import NotificationService from './NotificationService';
-import HealthMonitor from './HealthMonitor';
+import SystemHealthService from './SystemHealthService';
 import pool from '../config/database';
 
 interface SystemHealth {
@@ -128,17 +128,52 @@ class SystemGuardian {
   }
 
   /**
-   * Check overall system health
+   * Check overall system health.
+   *
+   * After issue #43 (PRD #20 / slice #21) this delegates to
+   * `SystemHealthService.getHealth()` rather than the now-deleted
+   * `HealthMonitor` rolling counter. We project SystemHealthService's
+   * shape into the `'healthy' | 'degraded' | 'down'` triple this class
+   * reasons about.
    */
   private async checkSystemHealth(): Promise<SystemHealth> {
-    const [backendHealth, databaseHealth, apiHealth] = await Promise.all([
-      this.checkBackendHealth(),
-      this.checkDatabaseHealth(),
-      this.checkAPIHealth(),
-    ]);
+    let backendHealth: 'healthy' | 'degraded' | 'down' = 'healthy';
+    let databaseHealth: 'healthy' | 'degraded' | 'down' = 'healthy';
+    let apiHealth: 'healthy' | 'degraded' | 'down' = 'healthy';
+
+    try {
+      const health = await SystemHealthService.getHealth();
+
+      // Backend health: derived from the API error rate (errors/min). The
+      // 0.05 / 0.15 thresholds preserve the prior HealthMonitor shape.
+      const errorRatePerMin = health.api.errorRate;
+      if (errorRatePerMin > this.CRITICAL_ERROR_RATE * 100) {
+        backendHealth = 'down';
+      } else if (errorRatePerMin > 5) {
+        backendHealth = 'degraded';
+      }
+
+      // Database health: SystemHealthService reports connected/disconnected;
+      // map to the guardian's three-state shape using slowQueries as the
+      // degraded signal.
+      if (health.database.status === 'disconnected') {
+        databaseHealth = 'down';
+      } else if (health.database.slowQueries > 0) {
+        databaseHealth = 'degraded';
+      }
+
+      // API health: SystemHealthService already produces the same triple
+      // labels we use. 'operational' maps to 'healthy'.
+      if (health.api.status === 'down') {
+        apiHealth = 'down';
+      } else if (health.api.status === 'degraded') {
+        apiHealth = 'degraded';
+      }
+    } catch (_error) {
+      backendHealth = 'down';
+    }
 
     let overall: 'healthy' | 'degraded' | 'critical' = 'healthy';
-
     if (
       backendHealth === 'down' ||
       databaseHealth === 'down' ||
@@ -159,45 +194,6 @@ class SystemGuardian {
       apis: apiHealth,
       overall,
     };
-  }
-
-  /**
-   * Check backend health
-   */
-  private async checkBackendHealth(): Promise<'healthy' | 'degraded' | 'down'> {
-    try {
-      const errorRate = HealthMonitor.getErrorRate();
-
-      if (errorRate > this.CRITICAL_ERROR_RATE) return 'down';
-      if (errorRate > 0.05) return 'degraded';
-      return 'healthy';
-    } catch (_error) {
-      return 'down';
-    }
-  }
-
-  /**
-   * Check database health
-   */
-  private async checkDatabaseHealth(): Promise<
-    'healthy' | 'degraded' | 'down'
-  > {
-    return await HealthMonitor.checkDatabaseStatus();
-  }
-
-  /**
-   * Check API health
-   */
-  private async checkAPIHealth(): Promise<'healthy' | 'degraded' | 'down'> {
-    try {
-      await HealthMonitor.getAPIUsage();
-
-      // Check if APIs are responding (basic check)
-      // Could be enhanced with actual API health endpoints
-      return 'healthy';
-    } catch (_error) {
-      return 'degraded';
-    }
   }
 
   /**

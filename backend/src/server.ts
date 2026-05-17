@@ -8,7 +8,6 @@ const {loadEnvironment} = require('../load-env');
 loadEnvironment();
 import {errorMiddleware, notFoundHandler} from './middleware/errorMiddleware';
 import {requestLogger} from './middleware/logger';
-import HealthMonitor from './services/HealthMonitor';
 import SystemGuardian from './services/SystemGuardian';
 import {SubscriptionMonitor} from './services/SubscriptionMonitor';
 import {DailyNotificationService} from './services/DailyNotificationService';
@@ -228,15 +227,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 Network access: http://0.0.0.0:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/v1/test`);
-
-  // Start health monitoring (Discord-bound).
-  if (gates.healthMonitor) {
-    HealthMonitor.startDailyHealthSummary();
-  } else {
-    console.log(
-      'ℹ️  Health monitor skipped (no DISCORD_ERROR_WEBHOOK_URL configured)',
-    );
-  }
 
   // Start subscription monitoring (Stripe-bound).
   if (gates.stripeBilling) {

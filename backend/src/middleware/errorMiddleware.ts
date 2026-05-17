@@ -1,6 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
 import NotificationService from '../services/NotificationService';
-import HealthMonitor from '../services/HealthMonitor';
 import ErrorLogModel from '../models/ErrorLog';
 
 type ErrorSeverity = 'critical' | 'high' | 'medium' | 'low';
@@ -151,15 +150,6 @@ export function errorMiddleware(
 
   // Determine status code first
   const statusCode = getStatusCode(err);
-
-  // Only record server errors (5xx) in health monitor, not client errors (4xx)
-  // 404s and other client errors shouldn't count as system health issues
-  try {
-    const isServerError = statusCode >= 500;
-    HealthMonitor.recordRequest(isServerError);
-  } catch (monitorError) {
-    console.error('Health monitor error (non-critical):', monitorError);
-  }
 
   // Determine severity (statusCode already determined above)
   const severity = classifyErrorSeverity(err, statusCode);
