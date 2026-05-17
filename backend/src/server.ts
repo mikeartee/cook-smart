@@ -15,6 +15,7 @@ import {SubscriptionMonitor} from './services/SubscriptionMonitor';
 import {DailyNotificationService} from './services/DailyNotificationService';
 import RecipeCacheService from './services/RecipeCacheService';
 import pool from './config/database';
+import {computeBootGates} from './config/bootGates';
 import healthRoutes from './routes/health';
 
 // Environment is already loaded by load-env.js above
@@ -216,36 +217,65 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔗 Network access: http://0.0.0.0:${PORT}/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/v1/test`);
 
-  // Start health monitoring
-  HealthMonitor.startDailyHealthSummary();
+  // Decide which scheduled jobs to start based on env presence. See
+  // `config/bootGates.ts` and `docs/codebase-assessment.md` F-OA-2.
+  const gates = computeBootGates();
 
-  // Start subscription monitoring
-  SubscriptionMonitor.startDailyMonitoring();
-  console.log('📧 Subscription monitoring activated');
+  // Start health monitoring (Discord-bound).
+  if (gates.healthMonitor) {
+    HealthMonitor.startDailyHealthSummary();
+  } else {
+    console.log(
+      'ℹ️  Health monitor skipped (no DISCORD_ERROR_WEBHOOK_URL configured)',
+    );
+  }
 
-  // Start daily notifications
-  DailyNotificationService.startDailyChecks();
-  console.log('🔔 Daily notifications activated');
+  // Start subscription monitoring (Stripe-bound).
+  if (gates.subscriptionMonitor) {
+    SubscriptionMonitor.startDailyMonitoring();
+    console.log('📧 Subscription monitoring activated');
+  } else {
+    console.log(
+      'ℹ️  Subscription monitor skipped (no STRIPE_SECRET_KEY configured)',
+    );
+  }
 
-  // Start recipe cache maintenance (daily at 3 AM)
-  const runRecipeMaintenance = () => {
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour === 3) {
-      RecipeCacheService.runDailyMaintenance().catch(err =>
-        console.error('Recipe cache maintenance error:', err),
-      );
-    }
-  };
-  setInterval(runRecipeMaintenance, 60 * 60 * 1000); // Check every hour
-  console.log('🍳 Recipe cache maintenance scheduled');
+  // Start daily notifications (Firebase Admin-bound).
+  if (gates.dailyNotifications) {
+    DailyNotificationService.startDailyChecks();
+    console.log('🔔 Daily notifications activated');
+  } else {
+    console.log(
+      'ℹ️  Daily notifications skipped (no FIREBASE_SERVICE_ACCOUNT_PATH configured)',
+    );
+  }
 
-  // Start System Guardian (automated monitoring and repair)
-  if (process.env.NODE_ENV === 'production') {
+  // Recipe cache maintenance interval. Production-only — pointless to run
+  // hourly checks for "is local time 03:00?" on a developer laptop.
+  if (gates.recipeCacheMaintenance) {
+    const runRecipeMaintenance = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      if (hour === 3) {
+        RecipeCacheService.runDailyMaintenance().catch(err =>
+          console.error('Recipe cache maintenance error:', err),
+        );
+      }
+    };
+    setInterval(runRecipeMaintenance, 60 * 60 * 1000); // Check every hour
+    console.log('🍳 Recipe cache maintenance scheduled');
+  } else {
+    console.log('ℹ️  Recipe cache maintenance skipped (non-production)');
+  }
+
+  // Start System Guardian (automated monitoring and repair). After issue #22
+  // this is the non-destructive variant — periodic health probes + Discord
+  // alerts only, no in-process auto-rebuild.
+  if (gates.systemGuardian) {
     SystemGuardian.startMonitoring();
     console.log('🛡️  System Guardian activated');
   } else {
-    console.log('🛡️  System Guardian disabled in development mode');
+    console.log('🛡️  System Guardian disabled (non-production)');
   }
 });
 
