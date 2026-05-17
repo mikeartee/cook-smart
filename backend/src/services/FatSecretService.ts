@@ -1,4 +1,4 @@
-import axios from 'axios';
+import {httpPost} from '../utils/httpClient';
 
 interface FatSecretConfig {
   clientId: string;
@@ -68,7 +68,10 @@ class FatSecretService {
         `${this.config.clientId}:${this.config.clientSecret}`,
       ).toString('base64');
 
-      const response = await axios.post(
+      const response = await httpPost<{
+        access_token: string;
+        expires_in: number;
+      }>(
         'https://oauth.fatsecret.com/connect/token',
         'grant_type=client_credentials&scope=premier',
         {
@@ -95,7 +98,7 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
+      const response = await httpPost<{food_id?: {value: string}}>(
         'https://platform.fatsecret.com/rest/server.api',
         null,
         {
@@ -117,11 +120,7 @@ class FatSecretService {
       }
 
       return null;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        console.log(`[FatSecret] Barcode not found: ${barcode}`);
-        return null;
-      }
+    } catch (error: unknown) {
       console.error('[FatSecret] Barcode search error:', error);
       return null;
     }
@@ -131,7 +130,7 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
+      const response = await httpPost<{food?: FatSecretFood}>(
         'https://platform.fatsecret.com/rest/server.api',
         null,
         {
@@ -158,22 +157,20 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
-        'https://platform.fatsecret.com/rest/server.api',
-        null,
-        {
-          params: {
-            method: 'foods.search',
-            search_expression: query,
-            max_results: maxResults,
-            format: 'json',
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 10000,
+      const response = await httpPost<{
+        foods?: {food?: unknown | unknown[]};
+      }>('https://platform.fatsecret.com/rest/server.api', null, {
+        params: {
+          method: 'foods.search',
+          search_expression: query,
+          max_results: maxResults,
+          format: 'json',
         },
-      );
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 10000,
+      });
 
       if (response.data && response.data.foods && response.data.foods.food) {
         return Array.isArray(response.data.foods.food)
@@ -196,22 +193,20 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
-        'https://platform.fatsecret.com/rest/server.api',
-        null,
-        {
-          params: {
-            method: 'recipes.search.v3',
-            search_expression: query,
-            max_results: maxResults,
-            format: 'json',
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 10000,
+      const response = await httpPost<{
+        recipes?: {recipe?: unknown | unknown[]};
+      }>('https://platform.fatsecret.com/rest/server.api', null, {
+        params: {
+          method: 'recipes.search.v3',
+          search_expression: query,
+          max_results: maxResults,
+          format: 'json',
         },
-      );
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 10000,
+      });
 
       if (
         response.data &&
@@ -234,7 +229,7 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
+      const response = await httpPost<{recipe?: any}>(
         'https://platform.fatsecret.com/rest/server.api',
         null,
         {
@@ -305,17 +300,15 @@ class FatSecretService {
 
       console.log('[FatSecret] Search params:', params);
 
-      const response = await axios.post(
-        'https://platform.fatsecret.com/rest/server.api',
-        null,
-        {
-          params,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 10000,
+      const response = await httpPost<{
+        recipes?: {recipe?: unknown | unknown[]};
+      }>('https://platform.fatsecret.com/rest/server.api', null, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        timeout: 10000,
+      });
 
       console.log('[FatSecret] Search response:', {
         hasRecipes: !!response.data?.recipes,
@@ -337,11 +330,10 @@ class FatSecretService {
       }
 
       return [];
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       console.error('[FatSecret] Advanced recipe search error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
+        message: err.message,
       });
       return [];
     }
@@ -351,21 +343,19 @@ class FatSecretService {
     try {
       const token = await this.getAccessToken();
 
-      const response = await axios.post(
-        'https://platform.fatsecret.com/rest/server.api',
-        null,
-        {
-          params: {
-            method: 'foods.autocomplete',
-            expression: query,
-            format: 'json',
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 5000,
+      const response = await httpPost<{
+        suggestions?: {suggestion?: string | string[]};
+      }>('https://platform.fatsecret.com/rest/server.api', null, {
+        params: {
+          method: 'foods.autocomplete',
+          expression: query,
+          format: 'json',
         },
-      );
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 5000,
+      });
 
       if (
         response.data &&

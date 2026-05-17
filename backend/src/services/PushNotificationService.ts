@@ -4,7 +4,7 @@
  */
 
 import pool from '../config/database';
-import axios from 'axios';
+import {httpPost} from '../utils/httpClient';
 
 export class PushNotificationService {
   /**
@@ -92,7 +92,7 @@ export class PushNotificationService {
   ): Promise<void> {
     try {
       // Using Expo Push Notifications (free for React Native)
-      await axios.post('https://exp.host/--/api/v2/push/send', {
+      await httpPost('https://exp.host/--/api/v2/push/send', {
         to: token,
         title,
         body,

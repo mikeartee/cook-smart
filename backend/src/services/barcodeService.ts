@@ -1,4 +1,4 @@
-import axios from 'axios';
+import {httpGet} from '../utils/httpClient';
 import FatSecretService from './FatSecretService';
 
 interface BarcodeResult {
@@ -155,10 +155,19 @@ class BarcodeService {
 
   private async tryOpenFoodFacts(barcode: string): Promise<BarcodeResult> {
     try {
-      const response = await axios.get(
-        `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`,
-        {timeout: 5000},
-      );
+      const response = await httpGet<{
+        status?: number;
+        product?: {
+          product_name?: string;
+          product_name_en?: string;
+          brands?: string;
+          categories?: string;
+          categories_tags?: string[];
+          nutriments?: Record<string, number>;
+        };
+      }>(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`, {
+        timeout: 5000,
+      });
 
       if (response.data.status === 1 && response.data.product) {
         const product = response.data.product;
@@ -211,17 +220,25 @@ class BarcodeService {
 
   private async tryNutritionix(barcode: string): Promise<BarcodeResult> {
     try {
-      const response = await axios.get(
-        `https://trackapi.nutritionix.com/v2/search/item`,
-        {
-          params: {upc: barcode},
-          headers: {
-            'x-app-id': process.env.NUTRITIONIX_APP_ID,
-            'x-app-key': process.env.NUTRITIONIX_API_KEY,
-          },
-          timeout: 5000,
+      const response = await httpGet<{
+        foods?: Array<{
+          food_name: string;
+          brand_name?: string;
+          tags?: {food_group?: string};
+          nf_calories: number;
+          nf_protein: number;
+          nf_total_carbohydrate: number;
+          nf_total_fat: number;
+          serving_weight_grams: number;
+        }>;
+      }>(`https://trackapi.nutritionix.com/v2/search/item`, {
+        params: {upc: barcode},
+        headers: {
+          'x-app-id': process.env.NUTRITIONIX_APP_ID || '',
+          'x-app-key': process.env.NUTRITIONIX_API_KEY || '',
         },
-      );
+        timeout: 5000,
+      });
 
       if (response.data.foods && response.data.foods.length > 0) {
         const food = response.data.foods[0];
@@ -281,18 +298,19 @@ class BarcodeService {
     try {
       if (!openFoodResult.product?.name) return openFoodResult;
 
-      const response = await axios.get(
-        'https://api.nal.usda.gov/fdc/v1/foods/search',
-        {
-          params: {
-            query: openFoodResult.product.name,
-            dataType: ['Branded', 'Survey (FNDDS)'],
-            pageSize: 5,
-            api_key: process.env.USDA_API_KEY || 'DEMO_KEY',
-          },
-          timeout: 5000,
+      const response = await httpGet<{
+        foods?: Array<{
+          foodNutrients?: Array<{nutrientId: number; value: number}>;
+        }>;
+      }>('https://api.nal.usda.gov/fdc/v1/foods/search', {
+        params: {
+          query: openFoodResult.product.name,
+          dataType: 'Branded,Survey (FNDDS)',
+          pageSize: 5,
+          api_key: process.env.USDA_API_KEY || 'DEMO_KEY',
         },
-      );
+        timeout: 5000,
+      });
 
       if (response.data.foods && response.data.foods.length > 0) {
         const food = response.data.foods[0];
@@ -682,10 +700,14 @@ class BarcodeService {
   private async tryBarcodeSpider(barcode: string): Promise<BarcodeResult> {
     try {
       // Barcode Spider - free barcode lookup service
-      const response = await axios.get(
-        `https://api.barcodespider.com/v1/lookup?token=free&upc=${barcode}`,
-        {timeout: 5000},
-      );
+      const response = await httpGet<{
+        item_response?: {
+          code: number;
+          item?: {title?: string; brand?: string; category?: string};
+        };
+      }>(`https://api.barcodespider.com/v1/lookup?token=free&upc=${barcode}`, {
+        timeout: 5000,
+      });
 
       if (
         response.data &&
@@ -718,10 +740,11 @@ class BarcodeService {
   private async tryUPCDatabase(barcode: string): Promise<BarcodeResult> {
     try {
       // UPC Database - free alternative
-      const response = await axios.get(
-        `https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`,
-        {timeout: 5000},
-      );
+      const response = await httpGet<{
+        items?: Array<{title?: string; brand?: string; category?: string}>;
+      }>(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`, {
+        timeout: 5000,
+      });
 
       if (response.data.items && response.data.items.length > 0) {
         const item = response.data.items[0];
