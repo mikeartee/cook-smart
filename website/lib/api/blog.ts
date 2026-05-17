@@ -12,11 +12,11 @@ export async function getBlogPosts(
   try {
     const response = await blogApi.getAll({
       page,
-      limit,
+      limit: _limit,
       search: filters?.search,
       category: filters?.category,
     });
-    
+
     return {
       posts: response.posts as BlogPost[],
       total: response.total,
@@ -79,4 +79,3 @@ export async function getRelatedBlogPosts(_slug: string, _limit: number = 3): Pr
     return [];
   }
 }
-
