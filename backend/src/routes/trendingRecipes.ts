@@ -412,6 +412,14 @@ router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
 });
 
 // Track recipe interaction
+//
+// `interactionType: 'rate'` is rejected with HTTP 400 — it was previously
+// handled here via an incremental running-average write to recipe_cache,
+// but the canonical rating writer is now POST /api/v1/recipe-enhancements/ratings
+// (which delegates to SocialService.updateTrendingScore). See PRD #14, slice #16.
+const VALID_INTERACTION_TYPES = ['view', 'save', 'share', 'cook'] as const;
+type InteractionType = (typeof VALID_INTERACTION_TYPES)[number];
+
 router.post(
   '/interaction',
   authenticateToken,
@@ -425,9 +433,26 @@ router.post(
         return;
       }
 
+      if (interactionType === 'rate') {
+        res.status(400).json({
+          error:
+            "interactionType 'rate' is no longer supported. Use POST /api/v1/recipe-enhancements/ratings instead.",
+        });
+        return;
+      }
+
+      if (
+        !VALID_INTERACTION_TYPES.includes(interactionType as InteractionType)
+      ) {
+        res.status(400).json({
+          error: `interactionType must be one of: ${VALID_INTERACTION_TYPES.join(', ')}`,
+        });
+        return;
+      }
+
       await RecipeCacheService.trackInteraction(
         recipeId,
-        interactionType,
+        interactionType as InteractionType,
         userId,
         rating,
       );

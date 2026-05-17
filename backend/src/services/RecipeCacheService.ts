@@ -347,7 +347,7 @@ class RecipeCacheService {
 
   async trackInteraction(
     recipeId: string,
-    interactionType: 'view' | 'save' | 'share' | 'rate' | 'cook',
+    interactionType: 'view' | 'save' | 'share' | 'cook',
     userId?: string,
     rating?: number,
   ): Promise<void> {
@@ -380,15 +380,11 @@ class RecipeCacheService {
         );
       }
 
-      if (interactionType === 'rate' && rating) {
-        await pool.query(
-          `UPDATE recipe_cache 
-           SET rating_count = rating_count + 1,
-               rating_average = ((rating_average * rating_count) + $2) / (rating_count + 1)
-           WHERE recipe_id = $1`,
-          [recipeId, rating],
-        );
-      }
+      // Note: 'rate' is no longer supported here — the canonical rating writer
+      // is RecipeEnhancementService.rateRecipe -> SocialService.updateTrendingScore,
+      // which authoritatively recomputes recipe_cache.rating_average / rating_count
+      // from recipe_ratings. The legacy incremental-average update that used to
+      // live in this method has been removed (PRD #14, slice #16).
     } catch (error) {
       console.error('[RecipeCache] Track interaction error:', error);
     }
