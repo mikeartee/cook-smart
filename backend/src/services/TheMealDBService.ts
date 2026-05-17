@@ -11,7 +11,7 @@
  * so we search with the first ingredient and filter results
  */
 
-import axios from 'axios';
+import {httpGet} from '../utils/httpClient';
 import {
   IRecipeProvider,
   Recipe,
@@ -36,19 +36,26 @@ export class TheMealDBService implements IRecipeProvider {
     // Try searching with multiple ingredients until we find results
     for (const ingredient of ingredients) {
       const searchTerms = this.getSearchTerms(ingredient);
-      
+
       for (const searchTerm of searchTerms) {
         console.log(
           `🔍 Searching TheMealDB for: "${searchTerm}" (original: "${ingredient}")`,
         );
 
         try {
-          const response = await axios.get(`${THEMEALDB_BASE_URL}/filter.php`, {
-            params: {i: searchTerm},
-            timeout: 10000, // 10 second timeout
-          });
+          const response = await httpGet<{meals?: Array<{idMeal: string}>}>(
+            `${THEMEALDB_BASE_URL}/filter.php`,
+            {
+              params: {i: searchTerm},
+              timeout: 10000, // 10 second timeout
+            },
+          );
 
-          if (response.data && response.data.meals && response.data.meals.length > 0) {
+          if (
+            response.data &&
+            response.data.meals &&
+            response.data.meals.length > 0
+          ) {
             console.log(
               `✅ Found ${response.data.meals.length} meals for "${searchTerm}"`,
             );
@@ -64,7 +71,9 @@ export class TheMealDBService implements IRecipeProvider {
             console.log(`⚠️  No meals found for "${searchTerm}"`);
           }
         } catch (error: any) {
-          console.log(`⚠️  Search failed for "${searchTerm}": ${error.message}`);
+          console.log(
+            `⚠️  Search failed for "${searchTerm}": ${error.message}`,
+          );
         }
       }
     }
@@ -79,10 +88,13 @@ export class TheMealDBService implements IRecipeProvider {
    */
   async getRecipeDetails(recipeId: string): Promise<RecipeDetails> {
     try {
-      const response = await axios.get(`${THEMEALDB_BASE_URL}/lookup.php`, {
-        params: {i: recipeId},
-        timeout: 10000,
-      });
+      const response = await httpGet<{meals?: Array<Record<string, unknown>>}>(
+        `${THEMEALDB_BASE_URL}/lookup.php`,
+        {
+          params: {i: recipeId},
+          timeout: 10000,
+        },
+      );
 
       if (
         !response.data ||
@@ -121,21 +133,21 @@ export class TheMealDBService implements IRecipeProvider {
    */
   private getSearchTerms(ingredient: string): string[] {
     const terms: string[] = [];
-    
+
     // Remove content in parentheses (brand names, details)
     let cleaned = ingredient.replace(/\([^)]*\)/g, '').trim();
-    
+
     // Remove common prefixes
     cleaned = cleaned.replace(
       /^(sliced|diced|chopped|fresh|frozen|canned|organic)\s+/i,
       '',
     );
-    
+
     // Try full cleaned name first
     if (cleaned) {
       terms.push(cleaned.toLowerCase());
     }
-    
+
     // Try each word individually (for compound ingredients)
     const words = cleaned.split(' ').filter(w => w.length > 2);
     for (const word of words) {
@@ -144,15 +156,15 @@ export class TheMealDBService implements IRecipeProvider {
         terms.push(lowerWord);
       }
     }
-    
+
     // Fallback to original if nothing else worked
     if (terms.length === 0) {
       terms.push(ingredient.toLowerCase().trim());
     }
-    
+
     return terms;
   }
-  
+
   /**
    * Simplify ingredient name for better search results (deprecated - use getSearchTerms)
    * Removes brand names, parentheses, and extra details

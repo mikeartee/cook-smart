@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import NotificationLogModel from '../models/NotificationLog';
 
 interface ErrorContext {

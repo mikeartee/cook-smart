@@ -1,4 +1,4 @@
-import axios from 'axios';
+import {httpPost} from '../utils/httpClient';
 
 export interface DiscordEmbed {
   title: string;
@@ -140,7 +140,7 @@ export class DiscordWebhookService {
     }
 
     try {
-      await axios.post(webhookUrl, payload, {
+      await httpPost(webhookUrl, payload, {
         headers: {
           'Content-Type': 'application/json',
         },
