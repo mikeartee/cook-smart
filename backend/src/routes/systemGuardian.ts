@@ -69,37 +69,14 @@ router.post('/stop', authenticateToken, async (req, res) => {
 });
 
 /**
- * Manual nuclear option (emergency use only)
- * POST /api/v1/system-guardian/nuke
+ * Manual nuclear option route REMOVED in issue #22 (PRD #20 / slice #21).
+ *
+ * Rationale: the prior `POST /nuke` route called `SystemGuardian.manualNuke`
+ * which spawned `git pull && npm install && npm run build && pm2 restart all`
+ * via `child_process.exec` from inside the running Node process — a
+ * 15%-error-rate / 500ms-DB-latency trigger could fire it ambiently. See
+ * `docs/codebase-assessment.md` finding F-OA-1.
  */
-router.post('/nuke', authenticateToken, async (req, res) => {
-  try {
-    const {reason} = req.body;
-
-    if (!reason) {
-      return res.status(400).json({
-        error: 'Reason required',
-        message: 'You must provide a reason for initiating nuclear option',
-      });
-    }
-
-    // This is async but we respond immediately
-    SystemGuardian.manualNuke(reason);
-
-    return res.json({
-      message: 'Nuclear option initiated',
-      reason,
-      warning:
-        'System will rebuild and restart. This may take several minutes.',
-    });
-  } catch (error) {
-    console.error('Error initiating nuclear option:', error);
-    return res.status(500).json({
-      error: 'Failed to initiate nuclear option',
-      message: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
 
 /**
  * Get repair history
