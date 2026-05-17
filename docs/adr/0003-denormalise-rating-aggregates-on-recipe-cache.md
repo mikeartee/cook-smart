@@ -37,7 +37,7 @@ Refresh them inside `SocialService.updateTrendingScore(recipeId, recipeType)`, a
 **Negative:**
 
 - Two writes (the `recipe_ratings` upsert and the cache table update) must stay consistent. We accept eventual consistency: if the cache update fails, the next `updateTrendingScore` call will reconcile. Any read in the gap will see stale aggregates.
-- A pre-existing parallel write path on `recipe_cache.rating_average` / `rating_count` exists in `RecipeCacheService.trackInteraction('rate', ...)` (called by `POST /interaction`). Once slice #5 wires `updateTrendingScore` to recompute these columns from `recipe_ratings`, it will overwrite whatever the incremental path writes. The trackInteraction branch should be considered legacy and removed in a follow-up; we don't remove it in this PRD to keep the blast radius small.
+- ~~A pre-existing parallel write path on `recipe_cache.rating_average` / `rating_count` exists in `RecipeCacheService.trackInteraction('rate', ...)` (called by `POST /interaction`). Once slice #5 wires `updateTrendingScore` to recompute these columns from `recipe_ratings`, it will overwrite whatever the incremental path writes. The trackInteraction branch should be considered legacy and removed in a follow-up; we don't remove it in this PRD to keep the blast radius small.~~ **Resolved by PRD #14 slice #16:** the legacy write path has been removed from `trackInteraction`, and `POST /interaction` now rejects `interactionType: 'rate'` with HTTP 400 + a redirect message.
 - Schema migration required (one-time backfill from `recipe_ratings` for existing rows — already done in slice #4).
 
 ## Validation

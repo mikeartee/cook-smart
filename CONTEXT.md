@@ -48,7 +48,7 @@ To keep recipe-list reads cheap, the following aggregates are stored on `recipe_
 | `rating_average`             | `AVG(rating)` over `recipe_ratings WHERE recipe_id = ?`                 |
 | `rating_count`               | `COUNT(*)`  over `recipe_ratings WHERE recipe_id = ?`                   |
 
-> **Heads up on `rating_average` / `rating_count` writers.** `recipe_cache` has a parallel incremental write path via `RecipeCacheService.trackInteraction(recipeId, 'rate', userId, rating)`, used by `POST /interaction`. Once `SocialService.updateTrendingScore` (slice #5) starts authoritatively recomputing these columns from `recipe_ratings`, it will overwrite whatever the incremental path writes. The canonical write path is `RecipeEnhancementService.rateRecipe` → `updateTrendingScore`. The `trackInteraction('rate')` branch should be considered legacy.
+> **Single canonical writer for `rating_average` / `rating_count`.** The only path that writes to these columns is `RecipeEnhancementService.rateRecipe` → `SocialService.updateTrendingScore`, which authoritatively recomputes both columns from `recipe_ratings` on every rating write. A legacy parallel writer used to live at `RecipeCacheService.trackInteraction(recipeId, 'rate', ...)` (called by `POST /interaction`); it was removed in PRD #14 slice #16, and `POST /interaction` now rejects `interactionType: 'rate'` with HTTP 400 + a redirect message.
 
 ## Out of scope of this glossary
 
