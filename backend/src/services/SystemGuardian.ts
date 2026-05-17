@@ -1,10 +1,6 @@
-import {exec} from 'child_process';
-import {promisify} from 'util';
 // import NotificationService from './NotificationService';
 import AutoRepairSystem from './AutoRepairSystem';
 import HealthMonitor from './HealthMonitor';
-
-const execAsync = promisify(exec);
 
 interface SystemHealth {
   backend: 'healthy' | 'degraded' | 'down';
@@ -14,7 +10,7 @@ interface SystemHealth {
 }
 
 interface RepairAction {
-  type: 'restart' | 'reconnect' | 'rebuild' | 'nuke';
+  type: 'reconnect';
   reason: string;
   timestamp: Date;
   success: boolean;
@@ -87,6 +83,11 @@ class SystemGuardian {
 
   /**
    * Perform comprehensive health check
+   *
+   * Note: as of issue #22 (PRD #20 / slice #21), exceeding
+   * MAX_CONSECUTIVE_FAILURES no longer triggers any in-process
+   * recovery action. The Discord notification still fires so a
+   * human can intervene.
    */
   private async performHealthCheck(): Promise<void> {
     try {
@@ -117,8 +118,10 @@ class SystemGuardian {
       this.consecutiveFailures++;
 
       if (this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
-        await this.initiateNuclearOption(
-          'Health check failures exceeded threshold',
+        this.sendDiscordNotification(
+          '🚨 Repeated Health Check Failures',
+          `Health checks have failed ${this.consecutiveFailures} times in a row. Manual intervention required.`,
+          'error',
         );
       }
     }
@@ -217,6 +220,13 @@ class SystemGuardian {
 
   /**
    * Handle critical system state
+   *
+   * As of issue #22, this method only attempts the database-reconnect
+   * advisory (via AutoRepairSystem.attemptRepair, which currently does
+   * not actually restart anything) and notifies Discord. The prior
+   * `restartBackend` and `initiateNuclearOption` paths — which spawned
+   * `pm2 restart` / `git pull` / `npm install` from inside the running
+   * Node process — have been removed.
    */
   private async handleCriticalState(health: SystemHealth): Promise<void> {
     console.log('🚨 CRITICAL: System in critical state');
@@ -228,19 +238,13 @@ class SystemGuardian {
       'error',
     );
 
-    // Attempt repairs based on what's failing
+    // Attempt non-destructive repairs based on what's failing
     if (health.database === 'down') {
       await this.repairDatabase();
     }
 
-    if (health.backend === 'down') {
-      await this.restartBackend();
-    }
-
-    // If too many consecutive failures, initiate nuclear option
-    if (this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
-      await this.initiateNuclearOption('Maximum consecutive failures reached');
-    }
+    // Note: backend-restart path removed in issue #22; if backend is
+    // 'down' we surface the alert and rely on external supervision.
   }
 
   /**
@@ -288,119 +292,6 @@ class SystemGuardian {
   }
 
   /**
-   * Restart backend service
-   */
-  private async restartBackend(): Promise<void> {
-    const action: RepairAction = {
-      type: 'restart',
-      reason: 'Backend service failure',
-      timestamp: new Date(),
-      success: false,
-      details: '',
-    };
-
-    try {
-      console.log('🔄 Restarting backend service...');
-
-      this.sendDiscordNotification(
-        '🔄 Restarting Backend',
-        'Attempting to restart PM2 process',
-        'warning',
-      );
-
-      // Restart PM2 process
-      await execAsync('pm2 restart cook-smart-backend');
-
-      action.success = true;
-      action.details = 'Backend restarted successfully';
-
-      this.sendDiscordNotification(
-        '✅ Backend Restarted',
-        'PM2 process restarted successfully',
-        'success',
-      );
-
-      // Reset failure counter
-      this.consecutiveFailures = 0;
-    } catch (error) {
-      action.details = error instanceof Error ? error.message : 'Unknown error';
-
-      this.sendDiscordNotification(
-        '❌ Backend Restart Failed',
-        action.details,
-        'error',
-      );
-
-      console.error('❌ Backend restart failed:', error);
-    }
-
-    this.repairHistory.push(action);
-  }
-
-  /**
-   * Nuclear option - rebuild everything
-   * This is the last resort when all other repairs fail
-   */
-  private async initiateNuclearOption(reason: string): Promise<void> {
-    console.log('☢️  NUCLEAR OPTION INITIATED');
-
-    this.sendDiscordNotification(
-      '☢️ NUCLEAR OPTION INITIATED',
-      `Reason: ${reason}\n\nRebuilding entire system...`,
-      'error',
-    );
-
-    const action: RepairAction = {
-      type: 'nuke',
-      reason,
-      timestamp: new Date(),
-      success: false,
-      details: '',
-    };
-
-    try {
-      // Step 1: Stop all services
-      await execAsync('pm2 stop all');
-
-      // Step 2: Pull latest code
-      await execAsync('git pull origin fresh-project-migration');
-
-      // Step 3: Reinstall dependencies
-      await execAsync('npm install');
-
-      // Step 4: Rebuild
-      await execAsync('npm run build');
-
-      // Step 5: Restart services
-      await execAsync('pm2 restart all');
-
-      action.success = true;
-      action.details = 'System rebuilt and restarted successfully';
-
-      this.sendDiscordNotification(
-        '✅ System Rebuilt',
-        'Nuclear option completed successfully. System is back online.',
-        'success',
-      );
-
-      // Reset failure counter
-      this.consecutiveFailures = 0;
-    } catch (error) {
-      action.details = error instanceof Error ? error.message : 'Unknown error';
-
-      this.sendDiscordNotification(
-        '🚨 NUCLEAR OPTION FAILED',
-        `System rebuild failed: ${action.details}\n\n**MANUAL INTERVENTION REQUIRED**`,
-        'error',
-      );
-
-      console.error('☢️  Nuclear option failed:', error);
-    }
-
-    this.repairHistory.push(action);
-  }
-
-  /**
    * Send notification to Discord
    */
   private async sendDiscordNotification(
@@ -431,7 +322,9 @@ class SystemGuardian {
       //   timestamp: new Date().toISOString(),
       //   footer: 'System Guardian',
       // });
-      console.log(`[SystemGuardian] ${type.toUpperCase()}: ${title} - ${message}`);
+      console.log(
+        `[SystemGuardian] ${type.toUpperCase()}: ${title} - ${message}`,
+      );
     } catch (error) {
       console.error('Failed to send Discord notification:', error);
     }
@@ -459,14 +352,6 @@ class SystemGuardian {
       consecutiveFailures: this.consecutiveFailures,
       repairCount: this.repairHistory.length,
     };
-  }
-
-  /**
-   * Manual trigger for nuclear option (for testing or emergency)
-   */
-  async manualNuke(reason: string): Promise<void> {
-    console.log('☢️  Manual nuclear option triggered');
-    await this.initiateNuclearOption(`Manual trigger: ${reason}`);
   }
 }
 
