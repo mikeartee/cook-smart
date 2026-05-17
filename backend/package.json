@@ -11,9 +11,7 @@
     "lint": "eslint src/**/*.ts",
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
-    "migrate:create": "node-pg-migrate create",
-    "knex:migrate": "knex migrate:latest",
-    "seed": "knex seed:run"
+    "migrate:create": "node-pg-migrate create"
   },
   "dependencies": {
     "@types/node-cron": "^3.0.11",
@@ -26,7 +24,6 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "knex": "^3.1.0",
     "morgan": "^1.10.0",
     "node-cron": "^4.2.1",
     "node-fetch": "^2.7.0",
