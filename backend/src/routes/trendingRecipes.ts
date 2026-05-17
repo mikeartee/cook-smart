@@ -1,6 +1,7 @@
 import express from 'express';
 import RecipeCacheService from '../services/RecipeCacheService';
 import FatSecretAdapter from '../services/FatSecretProviderAdapter';
+import TheMealDBAdapter from '../services/TheMealDBService';
 import {RecipeProviderService} from '../services/RecipeProviderService';
 import {authenticateToken, AuthRequest} from '../middleware/auth';
 import {DietaryAwareRecipeService} from '../services/DietaryAwareRecipeService';
@@ -44,7 +45,8 @@ router.get('/trending-recipes', optionalAuth, async (req: AuthRequest, res) => {
 
     // Use the SAME service as main recipe search for consistency
     const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier (free, unlimited for our needs)
+      FatSecretAdapter, // Primary: FatSecret Premier
+      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
     ]);
 
     // Get trending recipes by searching for popular ingredients
@@ -179,7 +181,8 @@ router.get('/seasonal-recipes', optionalAuth, async (req: AuthRequest, res) => {
 
     // Use the SAME service as main recipe search for consistency
     const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier (free, unlimited for our needs)
+      FatSecretAdapter, // Primary: FatSecret Premier
+      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
     ]);
 
     const seasonalIngredients = getSeasonalIngredients(season);
@@ -301,7 +304,8 @@ router.get('/seasonal/current', optionalAuth, async (req: AuthRequest, res) => {
 
     // Use the SAME service as main recipe search for consistency
     const recipeProviderService = new RecipeProviderService([
-      FatSecretAdapter, // Primary: FatSecret Premier (free, unlimited for our needs)
+      FatSecretAdapter, // Primary: FatSecret Premier
+      TheMealDBAdapter, // Fallback: TheMealDB unlimited-free tier (issue #24)
     ]);
 
     const seasonalIngredients = getSeasonalIngredients(season);
