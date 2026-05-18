@@ -3,7 +3,6 @@
 [![Version](https://img.shields.io/badge/version-1.1.8-blue.svg)](https://github.com/mikeartee/cook-smart)
 [![Status](https://img.shields.io/badge/status-development-yellow.svg)](https://github.com/mikeartee/cook-smart)
 [![License](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/security-enterprise-brightgreen.svg)](SECURITY_AUDIT_REPORT.md)
 
 > **Intelligent Recipe Generation Platform**
 > Transform your available ingredients into personalized meal recommendations with AI-powered recipe matching, dietary filtering, and smart inventory management.
@@ -12,52 +11,50 @@
 
 ## 🌟 Overview
 
-Cook Smart is a production-ready mobile application that revolutionizes meal planning by intelligently matching user ingredients with curated recipes. Built with enterprise-grade architecture and security standards, the platform serves thousands of users with real-time recipe generation, barcode scanning, and personalized dietary management.
+Cook Smart is a React Native mobile app that matches your available ingredients to recipes using the FatSecret API. It includes barcode scanning (via Open Food Facts), dietary filtering, and smart inventory tracking. The backend is Node.js/Express with PostgreSQL.
 
-**🔗 Live Application**: [cooksmartapp.com](https://cooksmartapp.com)  
-**📱 API Endpoint**: [api.cooksmartapp.com](https://api.cooksmartapp.com)  
-**💬 Community**: [Discord Server](https://discord.gg/7mAeMvjGVH)
+This fork is in active development and has not launched to end users. There is a [Discord community](https://discord.gg/7mAeMvjGVH) for development discussion.
 
 ## ✨ Key Features
 
 ### Core Functionality
-- **🔍 Intelligent Recipe Matching** - AI-powered ingredient-to-recipe correlation
-- **📱 Barcode Scanning** - Instant ingredient identification with nutritional data
-- **🥗 Dietary Management** - Comprehensive allergy and dietary restriction filtering
-- **📊 Smart Inventory** - Real-time ingredient tracking with expiration monitoring
-- **⭐ Personalization** - Favorite recipes, custom preferences, and usage analytics
+
+- **🔍 Intelligent Recipe Matching** - Ingredient-to-recipe correlation via FatSecret API
+- **📱 Barcode Scanning** - Ingredient identification using Open Food Facts
+- **🥗 Dietary Management** - Allergy and dietary restriction filtering
+- **📊 Smart Inventory** - Ingredient tracking with expiration monitoring
+- **⭐ Personalization** - Favorite recipes and custom preferences
 
 ### Advanced Features
-- **🎯 Recipe Scaling** - Dynamic serving size adjustments with accurate measurements
+
+- **🎯 Recipe Scaling** - Dynamic serving size adjustments
 - **🛒 Shopping Lists** - Auto-generated lists based on missing ingredients
 - **🏆 Gamification** - Points system and achievement tracking
-- **👥 Referral Program** - Built-in user acquisition and rewards system
+- **👥 Referral Program** - User acquisition and rewards system
 - **💳 Subscription Management** - Stripe-integrated payment processing
 
 ## 🏗️ Architecture
 
 ### Technology Stack
+
 ```
-Frontend     │ React Native 0.72+ (TypeScript)
+Frontend     │ React Native 0.82.1 (TypeScript)
 Backend      │ Node.js 18+ / Express.js (TypeScript)
-Database     │ PostgreSQL 16 (AWS RDS)
-Cache        │ Redis (AWS ElastiCache)
+Database     │ PostgreSQL 16 (AWS RDS — single instance)
 Storage      │ AWS S3 (Static Assets)
-CDN          │ AWS CloudFront
-Monitoring   │ AWS CloudWatch + Custom Analytics
 ```
 
 ### Infrastructure
+
 ```
-Production   │ AWS EC2 (Auto Scaling)
-Database     │ AWS RDS Multi-AZ (PostgreSQL)
-Load Balancer│ AWS Application Load Balancer
+Backend      │ Single AWS EC2 instance (34.203.8.150)
+Database     │ AWS RDS PostgreSQL (single instance)
 SSL/TLS      │ AWS Certificate Manager
 DNS          │ AWS Route 53
-Backup       │ Automated daily snapshots
 ```
 
 ### External Integrations
+
 - **FatSecret API** - Recipe database (1M+ recipes)
 - **Open Food Facts** - Barcode and nutritional data
 - **Stripe** - Payment processing and subscription management
@@ -67,6 +64,7 @@ Backup       │ Automated daily snapshots
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm 8+
 - React Native CLI
 - Android Studio (for Android development)
@@ -116,46 +114,26 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 ## 📚 Documentation
 
 ### For Developers
+
 - [**API Documentation**](docs/api/) - Complete REST API reference
 - [**Database Schema**](docs/database/) - Entity relationships and migrations
 - [**Security Guide**](SECURITY_IMPLEMENTATION.md) - Security practices and compliance
 - [**Deployment Guide**](docs/deployment/) - Production deployment procedures
 
 ### For Users
+
 - [**User Guide**](docs/user-guide/) - Application usage instructions
 - [**FAQ**](docs/faq.md) - Frequently asked questions
 - [**Privacy Policy**](docs/legal/PRIVACY_POLICY.md) - Data handling practices
 - [**Terms of Service**](docs/legal/TERMS_OF_SERVICE.md) - Usage terms and conditions
 
-## 🔒 Security & Compliance
+## 🔒 Security
 
-Cook Smart implements enterprise-grade security measures:
+Cook Smart implements the following security measures:
 
-- **🛡️ Data Encryption** - AES-256 encryption at rest and in transit
 - **🔐 Authentication** - JWT-based authentication with secure session management
-- **🚫 Input Validation** - Comprehensive sanitization and validation
-- **📊 Audit Logging** - Complete audit trail for all user actions
-- **🔍 Vulnerability Scanning** - Automated security testing and monitoring
-
-**Compliance Standards**: SOC 2 Type II, GDPR, PCI DSS Level 1
-
-*Security Score: 9/10 (Enterprise Level)*
-
-## 📈 Performance & Scalability
-
-### Current Metrics
-- **Response Time**: < 200ms average API response
-- **Uptime**: 99.9% availability (SLA)
-- **Concurrent Users**: 1,000+ supported
-- **Database**: 100,000+ recipes cached
-- **API Calls**: 1M+ monthly requests handled
-
-### Scalability Features
-- Horizontal auto-scaling on AWS
-- Database read replicas
-- CDN-cached static assets
-- Optimized database queries with indexing
-- Redis caching for frequently accessed data
+- **🚫 Input Validation** - Sanitization and validation on API inputs
+- **📊 Audit Logging** - Audit trail for user actions
 
 ## 🧪 Testing & Quality Assurance
 
@@ -168,52 +146,34 @@ npm run test:integration
 
 # Run security audit
 npm audit
-
-# Run performance tests
-npm run test:performance
 ```
 
-**Test Coverage**: 95%+ across all critical paths  
-**Quality Gates**: Automated testing on all pull requests  
+The backend has 104 tests. The mobile app has 7 tests. The website has ~200 tests (some flaky). Coverage is growing but not yet measured as a single percentage.
+
+**Quality Gates**: Automated testing on all pull requests (CI runs lint, type-check, and tests)
 **Code Quality**: ESLint + Prettier + TypeScript strict mode
 
 ## 🚀 Deployment
 
-### Production Deployment
-```bash
-# Deploy backend
-./scripts/deploy-production.sh
+### Backend
 
-# Build mobile app
+```bash
+# SSH to EC2 and pull latest
+ssh -i ~/.ssh/cook-smart-key.pem ubuntu@34.203.8.150
+cd /home/ubuntu/cook-smart/backend/backend
+git pull
+npm run build
+pm2 restart cook-smart-backend
+```
+
+### Mobile App
+
+```bash
+# Build release APK
 cd android && ./gradlew assembleRelease
-
-# Deploy website
-# Automatic deployment via GitHub Actions
+# APK output: android/app/build/outputs/apk/release/app-release.apk
+# Distribution is manual
 ```
-
-### Staging Environment
-```bash
-# Deploy to staging
-./scripts/deploy-staging.sh
-```
-
-**Deployment Strategy**: Blue-green deployment with zero downtime  
-**Rollback**: Automated rollback on deployment failure  
-**Monitoring**: Real-time deployment monitoring and alerting
-
-## 📊 Analytics & Monitoring
-
-### Application Monitoring
-- Real-time error tracking and alerting
-- Performance monitoring and optimization
-- User behavior analytics and insights
-- Business metrics and KPI tracking
-
-### Infrastructure Monitoring
-- Server health and resource utilization
-- Database performance and query optimization
-- API endpoint monitoring and SLA tracking
-- Security event monitoring and incident response
 
 ## 🤝 Contributing
 
@@ -226,8 +186,8 @@ This is a proprietary project with controlled access. For authorized contributor
 5. **Open** a Pull Request
 
 ### Development Standards
+
 - Follow TypeScript strict mode
-- Maintain 95%+ test coverage
 - Use conventional commit messages
 - Pass all quality gates and security scans
 
@@ -242,11 +202,13 @@ Unauthorized copying, distribution, or modification of this software is strictly
 ## 🆘 Support
 
 ### For Users
+
 - **📧 Email**: services.cooksmart@gmail.com
 - **💬 Discord**: [Community Server](https://discord.gg/7mAeMvjGVH)
 - **📖 Documentation**: [User Guide](docs/user-guide/)
 
 ### For Developers
+
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/mikeartee/cook-smart/issues)
 - **💡 Feature Requests**: [GitHub Discussions](https://github.com/mikeartee/cook-smart/discussions)
 - **📧 Technical Support**: services.cooksmart@gmail.com
@@ -257,6 +219,6 @@ Unauthorized copying, distribution, or modification of this software is strictly
 
 **Built with ❤️ by the Cook Smart Team**
 
-[Website](https://cooksmartapp.com) • [API](https://api.cooksmartapp.com) • [Community](https://discord.gg/7mAeMvjGVH) • [Support](mailto:services.cooksmart@gmail.com)
+[Community](https://discord.gg/7mAeMvjGVH) • [Support](mailto:services.cooksmart@gmail.com)
 
 </div>
