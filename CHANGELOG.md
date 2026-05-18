@@ -268,4 +268,4 @@ For upgrade instructions between versions, see our [Upgrade Guide](docs/upgrade-
 
 ---
 
-*For technical details about any release, see the corresponding [GitHub Release](https://github.com/tootallgames2020/cook-smart/releases).*
+*For technical details about any release, see the corresponding [GitHub Release](https://github.com/mikeartee/cook-smart/releases).*

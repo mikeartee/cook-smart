@@ -20,7 +20,7 @@ Before contributing, ensure you have:
 
 1. **Clone and Setup**
    ```bash
-   git clone https://github.com/tootallgames2020/cook-smart.git
+   git clone https://github.com/mikeartee/cook-smart.git
    cd cook-smart
    npm install
    ```
