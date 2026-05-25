@@ -1,0 +1,18 @@
+# Analyzer and lint configuration for the Cook Smart Flutter mobile app.
+#
+# Per Requirement 10.8 of the flutter-migration-architecture spec, this project
+# uses the `very_good_analysis` ruleset as the lint baseline. Disables are kept
+# to the minimum needed to match the project's documented conventions, and each
+# disable carries an inline comment explaining why.
+#
+# Reference: https://pub.dev/packages/very_good_analysis
+
+include: package:very_good_analysis/analysis_options.yaml
+
+linter:
+  rules:
+    # `mobile/` is a private application, not a package published to pub.dev,
+    # so requiring doc comments on every public member produces boilerplate
+    # without consumer benefit. Internal documentation lives in design.md and
+    # in feature-level READMEs instead.
+    public_member_api_docs: false

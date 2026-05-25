@@ -10,6 +10,7 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     strategy:
       matrix:
@@ -170,3 +171,63 @@ jobs:
     
     - name: Validate commit messages
       run: npx commitlint --from HEAD~1 --to HEAD --verbose
+
+  flutter-mobile:
+    name: Flutter Mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Detect mobile/ changes
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          mobile:
+            - 'mobile/**'
+    
+    - name: Setup Flutter
+      if: steps.changes.outputs.mobile == 'true'
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.44.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Install Flutter dependencies
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: flutter pub get
+    
+    - name: Run flutter analyze
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: flutter analyze
+    
+    - name: Run flutter test
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: flutter test
+    
+    - name: Check architecture invariants
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: dart run tool/check_architecture.dart
+    
+    - name: Check folder and naming structure
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: dart run tool/check_structure.dart
+    
+    - name: Check cross-platform package support
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: dart run tool/check_packages.dart
+    
+    - name: Scan for hardcoded secrets
+      if: steps.changes.outputs.mobile == 'true'
+      working-directory: mobile
+      run: dart run tool/check_secrets.dart

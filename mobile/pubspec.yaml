@@ -1,0 +1,97 @@
+name: mobile
+description: "Cook Smart Flutter mobile app."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none'
+
+# The version and build number for the application.
+# A version number is three numbers separated by dots (e.g. 1.2.43)
+# followed by an optional build number separated by a +.
+# Both can be overridden by `flutter build` via --build-name and --build-number.
+version: 1.0.0+1
+
+# Constrains the Dart and Flutter SDKs per Requirement 10.11.
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.44.0"
+
+# Production dependencies pinned per Requirement 10. Per-feature specs may add
+# more, but they may not change these without amending the spec.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (Requirement 3.2, 10.10)
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Routing (Requirement 5.1)
+  go_router: ^14.2.0
+
+  # Networking (Requirement 4.7)
+  # Note: `retrofit ^4.1.0` was previously pinned here per
+  # flutter-migration-architecture Requirement 10.10. The flutter-port-auth
+  # spec (Task 1.1) needs `glados` for property-based tests, and `glados`'s
+  # transitive dependency on `package:test` cannot co-exist with
+  # `retrofit_generator ^8.1.0`'s `analyzer <7.0.0` pin under Flutter SDK
+  # 3.44+. Since no source under `mobile/lib/` imports `retrofit`, the
+  # package was removed pending a foundation-spec amendment to either bump
+  # the retrofit_generator line or relax the pin entirely.
+  dio: ^5.4.3
+
+  # Storage (Requirement 10.1, 10.2)
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+
+  # Native features (Requirement 10.3, 10.4, 10.5, 10.6)
+  mobile_scanner: ^5.1.1
+  firebase_core: ^3.1.0
+  firebase_messaging: ^15.0.0
+  # firebase_crashlytics is required by Requirement 16 (Crash Reporting in
+  # Foundation_Phase). Requirement 10 enumerates a baseline package list but
+  # cannot be satisfied alongside Requirement 16 without this dependency, so it
+  # is added here as a clarification rather than a deviation. Pinned to the
+  # 4.x line because firebase_crashlytics 4.0.x is the version line aligned
+  # with firebase_core ^3.1.0 (the FlutterFire 4.x release group).
+  firebase_crashlytics: ^4.0.0
+  just_audio: ^0.9.38
+  audio_service: ^0.18.13
+  flutter_native_splash: ^2.4.0
+  package_info_plus: ^8.0.0
+  url_launcher: ^6.3.0
+
+  # UI (Requirement 10.7)
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+
+# Development dependencies pinned per Requirement 10.
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Lints (Requirement 10.8)
+  very_good_analysis: ^6.0.0
+
+  # Test helpers (Requirement 10.9)
+  mocktail: ^1.0.4
+
+  # Property-based testing for the auth feature spec (flutter-port-auth Task 1.1).
+  # Pure-Dart, supports Android and iOS, used by the auth feature's property
+  # tests for User round-trip, repository surface, and notifier transitions.
+  glados: ^1.1.6
+
+  # Code generation (Requirement 10.10)
+  # Note: `retrofit_generator ^8.1.0` and `riverpod_generator ^2.4.0` were
+  # previously pinned here. See the comment under `dio` in `dependencies` for
+  # the full reasoning. Both packages cap `analyzer` at `<7.0.0`, which the
+  # auth-port spec's `glados` test runner cannot co-exist with. Neither
+  # package is currently imported by any source under `mobile/lib/`,
+  # `mobile/test/`, or `mobile/integration_test/`, so they were removed
+  # pending a foundation-spec amendment.
+  build_runner: ^2.4.11
+
+# Flutter-specific configuration.
+flutter:
+  uses-material-design: true
