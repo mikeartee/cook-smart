@@ -121,3 +121,33 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 4. Verify ingredient is removed from the list
 
 **Success Rate**: New fix - pending verification
+
+## Next.js Medium CVEs in Website (Logged 2026-05-24)
+
+**Source**: Red Hat Dependency Analytics report (`rhtpa/osv-github` provider)
+
+**Affected dependency**: `next@16.2.6` in `website/`
+
+**Severity counts**:
+- Critical: 0
+- High: 0
+- Medium: 2
+- Low: 0
+- Total unique vulnerabilities: 2 (11 direct + 11 transitive references in the report — counts include duplicates across version ranges, the unique CVE count is 2)
+
+**Remediations available**: 0 — no patched Next.js version available at the time of the scan.
+
+**License summary** (informational, not a vulnerability): 136 permissive, 14 weak copyleft, 0 strong copyleft, 1 unknown out of 151 total. The unknown license entry is a one-off and worth a click-through next time the report is opened, but is not a blocker.
+
+**Risk assessment**:
+- Website is a public marketing site with a contact form, no user auth, no payment, no PII storage.
+- Medium CVEs in Next.js are typically cache poisoning, header injection, or middleware SSRF — annoying, not catastrophic on a site that mostly serves static-ish content.
+- No fix available means even an immediate upgrade can't address these specific CVEs.
+
+**Action plan**:
+1. Monitor the Next.js release notes (https://github.com/vercel/next.js/releases) for security patches.
+2. When Next.js 16.2.7 or 16.3 ships, scan the changelog for security fixes and bump the dep.
+3. Capture the actual CVE IDs from the Red Hat report next time it is opened (the dashboard surfaces them in the Vulnerabilities tab) — then update this entry with the IDs so they can be tracked individually.
+4. No hotfix needed today. "Watch and wait" until a patched version exists.
+
+**TODO when revisiting**: replace the "2 unique CVEs (IDs not yet captured)" placeholder above with the real CVE-YYYY-NNNNN identifiers from the dashboard.

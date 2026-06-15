@@ -31,6 +31,7 @@ coverage/
 # IDE files
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
@@ -58,6 +59,8 @@ android/.gradle/
 android/app/.cxx/
 android/app/build/
 android/build/
+android/local.properties
+mobile/android/local.properties
 *.apk
 *.aab
 android/app/debug.keystore
@@ -109,3 +112,9 @@ backend/.env.production
 *.bak
 *~
 .worktrees/
+
+# Flutter mobile/ secrets and untracked configuration
+# Note: mobile/ios/ is intentionally NOT excluded — it must be committed.
+mobile/android/app/google-services.json
+*.keystore
+keystore.properties

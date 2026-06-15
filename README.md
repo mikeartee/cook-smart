@@ -15,6 +15,19 @@ Cook Smart is a React Native mobile app that matches your available ingredients 
 
 This fork is in active development and has not launched to end users. There is a [Discord community](https://discord.gg/7mAeMvjGVH) for development discussion.
 
+## 📱 Mobile App (Flutter)
+
+Cook Smart is being ported from React Native to Flutter. The Flutter project lives in [`mobile/`](mobile/README.md), separate from the existing React Native app documented in the rest of this README.
+
+The migration is currently in the **Parallel_Build_Phase**: the React Native app keeps shipping APKs while the Flutter app is brought to feature parity. Cutover happens only when every parity-checklist entry passes a binary `Cutover_Gate`, defined in [`.kiro/specs/flutter-migration-architecture/`](.kiro/specs/flutter-migration-architecture/).
+
+- **Location**: [`mobile/`](mobile/README.md)
+- **Framework**: Flutter 3.44.0 / Dart 3.9.2
+- **State management**: Riverpod 2.x
+- **iOS status**: scaffolded but not built, signed, or shipped pending Mac access
+
+See [`mobile/README.md`](mobile/README.md) for setup, structure, and the per-feature migration order.
+
 ## ✨ Key Features
 
 ### Core Functionality
